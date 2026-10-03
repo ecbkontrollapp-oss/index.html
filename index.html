@@ -262,6 +262,28 @@
                         </div>
                     </div>
 
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photo_demin">Foto der Anlage / Messwerte</label>
+                        <input type="file" id="camera-input-demin" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'demin')">
+                        <div id="photo-btns-demin">
+                            <button type="button" onclick="document.getElementById('camera-input-demin').click()" 
+                                    class="w-full py-2.5 px-3 bg-sky-50 hover:bg-sky-100 active:scale-[0.99] border-2 border-dashed border-sky-300 rounded-xl text-xs font-bold text-sky-800 flex items-center justify-center gap-2 transition-all shadow-xs">
+                                <i class="fa-solid fa-camera text-base text-sky-600"></i>
+                                <span data-i18n="btn_take_photo_demin">Foto mit Kamera aufnehmen</span>
+                            </button>
+                        </div>
+                        <div id="photo-preview-box-demin" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900">
+                            <img id="photo-preview-img-demin" src="" alt="Entmineralisierungselfoto" class="w-full h-40 object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+                            <span class="absolute bottom-2 left-2.5 text-white text-[10px] font-mono flex items-center gap-1">
+                                <i class="fa-solid fa-circle-check text-emerald-400"></i> <span data-i18n="photo_captured">Foto erfasst</span>
+                            </span>
+                            <button type="button" onclick="removePhoto('demin')" class="absolute top-2 right-2 px-2 py-1 bg-rose-600/90 hover:bg-rose-700 text-white rounded-lg text-[10px] font-bold shadow-xs">
+                                <i class="fa-solid fa-trash-can mr-1"></i> <span data-i18n="btn_delete">Entfernen</span>
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="space-y-2 pt-1">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_demin_checks">Sicht- & Funktionsprüfung</label>
                         <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
@@ -305,121 +327,15 @@
                                 </button>
                             </div>
                         </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_demin_notes">Bemerkungen / Mängelhinweise</label>
-                        <textarea id="demin-notes" rows="2" placeholder="Optional: Filterwechsel fällig..." data-i18n-ph="ph_demin_notes"
-                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-sky-500 outline-none"></textarea>
-                    </div>
-
-                    <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
-                            <button type="button" onclick="clearSignature('demin')" class="text-[11px] text-rose-600 hover:text-rose-800 font-semibold">
-                                <i class="fa-solid fa-rotate-left mr-0.5"></i> <span data-i18n="btn_clear">Löschen</span>
-                            </button>
-                        </div>
-                        <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
-                            <canvas id="canvas-demin" class="sig-canvas w-full h-28 block"></canvas>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-xs text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
-                        <i class="fa-solid fa-paper-plane"></i>
-                        <span data-i18n="btn_save_send_demin">Entmineralisierung speichern & Protokoll versenden</span>
-                    </button>
-                </form>
-            </div>
-        </section>
-
-        <section id="view-outdoor" class="view-panel hidden space-y-3.5">
-            <div class="flex items-center justify-between">
-                <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
-                    <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
-                </button>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100" data-i18n="step2_of_4">Bereich 2</span>
-            </div>
-
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3.5">
-                <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base shrink-0">
-                        <i class="fa-solid fa-tree"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-sm font-bold text-slate-900" data-i18n="outdoor_header">Außenbereichskontrolle</h2>
-                        <p class="text-[10px] text-slate-400"><span data-i18n="report_to">Meldung an:</span> <strong class="text-slate-600 font-mono">pb@ecb-system.de</strong></p>
-                    </div>
-                </div>
-
-                <form id="form-outdoor" onsubmit="saveOutdoor(event)" class="space-y-3.5">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
-                        <input type="text" id="outdoor-inspector" required placeholder="Vor- und Nachname" data-i18n-ph="ph_name"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-emerald-500 outline-none">
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photo">Aktuelles Live-Foto des Außenbereichs *</label>
-                        <input type="file" id="camera-input-outdoor" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'outdoor')">
-                        <div id="photo-btns-outdoor">
-                            <button type="button" onclick="document.getElementById('camera-input-outdoor').click()" 
-                                    class="w-full py-3 px-3 bg-emerald-50 hover:bg-emerald-100 active:scale-[0.99] border-2 border-dashed border-emerald-300 rounded-xl text-xs font-bold text-emerald-800 flex items-center justify-center gap-2 transition-all shadow-xs">
-                                <i class="fa-solid fa-camera text-base text-emerald-600"></i>
-                                <span data-i18n="btn_take_photo">Aktuelles Foto mit Kamera aufnehmen</span>
-                            </button>
-                        </div>
-                        <div id="photo-preview-box-outdoor" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900">
-                            <img id="photo-preview-img-outdoor" src="" alt="Kontrollfoto" class="w-full h-40 object-cover">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
-                            <span class="absolute bottom-2 left-2.5 text-white text-[10px] font-mono flex items-center gap-1">
-                                <i class="fa-solid fa-circle-check text-emerald-400"></i> <span data-i18n="photo_captured">Foto erfasst</span>
-                            </span>
-                            <button type="button" onclick="removePhoto('outdoor')" class="absolute top-2 right-2 px-2 py-1 bg-rose-600/90 hover:bg-rose-700 text-white rounded-lg text-[10px] font-bold shadow-xs">
-                                <i class="fa-solid fa-trash-can mr-1"></i> <span data-i18n="btn_delete">Entfernen</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2 pt-1">
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_outdoor_checks">Zustandskriterien</label>
 
                         <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
-                            <div class="text-xs font-semibold text-slate-800" data-i18n="check_trash_cigs">Mülleimer geleert und Zigarettenstummel entsorgt</div>
+                            <div class="text-xs font-semibold text-slate-800" data-i18n="check_salt">Salz aufgefüllt</div>
                             <div class="grid grid-cols-2 gap-2">
-                                <button type="button" onclick="setItemStatus('outdoor', 'trash', 'ok')" id="btn-outdoor-trash-ok"
+                                <button type="button" onclick="setItemStatus('demin', 'salt', 'ok')" id="btn-demin-salt-ok"
                                         class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-50 border-emerald-500 text-emerald-700 shadow-xs">
                                     <i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">In Ordnung</span>
                                 </button>
-                                <button type="button" onclick="setItemStatus('outdoor', 'trash', 'fail')" id="btn-outdoor-trash-fail"
-                                        class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 bg-white border-slate-200 text-slate-500 hover:text-rose-600">
-                                    <i class="fa-solid fa-circle-xmark"></i> <span data-i18n="status_fail">Nicht i.O.</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
-                            <div class="text-xs font-semibold text-slate-800" data-i18n="check_tables_cans">Kein Essen auf den Tischen, leere Dosen entsorgt</div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button type="button" onclick="setItemStatus('outdoor', 'tables', 'ok')" id="btn-outdoor-tables-ok"
-                                        class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-50 border-emerald-500 text-emerald-700 shadow-xs">
-                                    <i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">In Ordnung</span>
-                                </button>
-                                <button type="button" onclick="setItemStatus('outdoor', 'tables', 'fail')" id="btn-outdoor-tables-fail"
-                                        class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 bg-white border-slate-200 text-slate-500 hover:text-rose-600">
-                                    <i class="fa-solid fa-circle-xmark"></i> <span data-i18n="status_fail">Nicht i.O.</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
-                            <div class="text-xs font-semibold text-slate-800" data-i18n="check_outdoor_grounds">Sauberkeit der Flächen, Abläufe & Zufahrtswege frei</div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button type="button" onclick="setItemStatus('outdoor', 'grounds', 'ok')" id="btn-outdoor-grounds-ok"
-                                        class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-50 border-emerald-500 text-emerald-700 shadow-xs">
-                                    <i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">In Ordnung</span>
-                                </button>
-                                <button type="button" onclick="setItemStatus('outdoor', 'grounds', 'fail')" id="btn-outdoor-grounds-fail"
+                                <button type="button" onclick="setItemStatus('demin', 'salt', 'fail')" id="btn-demin-salt-fail"
                                         class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 bg-white border-slate-200 text-slate-500 hover:text-rose-600">
                                     <i class="fa-solid fa-circle-xmark"></i> <span data-i18n="status_fail">Nicht i.O.</span>
                                 </button>
@@ -1744,12 +1660,12 @@
         const state = {
             todayKey: new Date().toISOString().slice(0, 10),
             data: { entmineralisierung: null, aussenbereich: null, pausenraum: null, fahrzeuge: null },
-            statusDemin: { leak: 'ok', filter: 'ok', resin: 'ok' },
+            statusDemin: { leak: 'ok', filter: 'ok', resin: 'ok', salt: 'ok' },
             statusOutdoor: { trash: 'ok', tables: 'ok', grounds: 'ok' },
             statusBreakroom: { surfaces: 'ok', appliances: 'ok', trash: 'ok', floor: 'ok' },
             statusVehicle: { clean: 'ok', condition: 'ok', tirePressure: 'ok', warnings: 'ok' },
             signatures: { demin: null, outdoor: null, breakroom: null, vehicle: null, vacation: null },
-            photos: { outdoor: null, breakroom: null, vehicle: null },
+            photos: { demin: null, outdoor: null, breakroom: null, vehicle: null },
             currentDispatchContext: { type: 'Gesamtbericht', data: null, subject: '', body: '', categoryFolder: 'Tagesberichte' }
         };
 
@@ -1806,6 +1722,8 @@
                 this.ctx = this.canvas.getContext('2d');
                 this.isDrawing = false;
                 this.hasDrawn = false;
+                this.lastX = 0;
+                this.lastY = 0;
                 this.setup();
                 this.bindEvents();
             }
@@ -1819,7 +1737,7 @@
                 this.ctx.scale(dpr, dpr);
                 this.ctx.strokeStyle = '#0f172a';
                 this.ctx.fillStyle = '#0f172a';
-                this.ctx.lineWidth = 2.2;
+                this.ctx.lineWidth = 2.5;
                 this.ctx.lineCap = 'round';
                 this.ctx.lineJoin = 'round';
             }
@@ -1839,31 +1757,63 @@
                     img.src = cached;
                 }
             }
-            getPos(e) { const rect = this.canvas.getBoundingClientRect(); return { x: e.clientX - rect.left, y: e.clientY - rect.top }; }
-            bindEvents() {
-                this.canvas.addEventListener('pointerdown', (e) => {
-                    e.preventDefault();
-                    try { this.canvas.setPointerCapture(e.pointerId); } catch(err) {}
-                    this.isDrawing = true; this.hasDrawn = true;
-                    const pos = this.getPos(e);
-                    this.ctx.beginPath(); this.ctx.arc(pos.x, pos.y, 1.1, 0, Math.PI * 2); this.ctx.fill();
-                    this.ctx.beginPath(); this.ctx.moveTo(pos.x, pos.y);
-                }, { passive: false });
-                this.canvas.addEventListener('pointermove', (e) => {
-                    if (!this.isDrawing) return; e.preventDefault();
-                    const pos = this.getPos(e); this.ctx.lineTo(pos.x, pos.y); this.ctx.stroke();
-                }, { passive: false });
-                const stop = (e) => {
-                    if (!this.isDrawing) return; this.isDrawing = false; this.ctx.closePath();
-                    try { this.canvas.releasePointerCapture(e.pointerId); } catch(err) {}
-                };
-                this.canvas.addEventListener('pointerup', stop);
-                this.canvas.addEventListener('pointercancel', stop);
+            getPos(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+                const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+                return { x: clientX - rect.left, y: clientY - rect.top };
             }
-            clear() { const rect = this.canvas.getBoundingClientRect(); this.ctx.clearRect(0, 0, rect.width, rect.height); this.hasDrawn = false; }
+            bindEvents() {
+                const startDraw = (e) => {
+                    e.preventDefault();
+                    this.isDrawing = true;
+                    this.hasDrawn = true;
+                    const pos = this.getPos(e);
+                    this.lastX = pos.x;
+                    this.lastY = pos.y;
+                    this.ctx.beginPath();
+                    this.ctx.arc(pos.x, pos.y, 1.2, 0, Math.PI * 2);
+                    this.ctx.fill();
+                };
+
+                const moveDraw = (e) => {
+                    if (!this.isDrawing) return;
+                    e.preventDefault();
+                    const pos = this.getPos(e);
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.lastX, this.lastY);
+                    this.ctx.lineTo(pos.x, pos.y);
+                    this.ctx.stroke();
+                    this.lastX = pos.x;
+                    this.lastY = pos.y;
+                };
+
+                const stopDraw = (e) => {
+                    if (!this.isDrawing) return;
+                    this.isDrawing = false;
+                    this.ctx.closePath();
+                };
+
+                // Pointer events (für Maus, Touch und Pen)
+                this.canvas.addEventListener('pointerdown', startDraw, { passive: false });
+                this.canvas.addEventListener('pointermove', moveDraw, { passive: false });
+                window.addEventListener('pointerup', stopDraw);
+                window.addEventListener('pointercancel', stopDraw);
+
+                // Fallback Touch events
+                this.canvas.addEventListener('touchstart', startDraw, { passive: false });
+                this.canvas.addEventListener('touchmove', moveDraw, { passive: false });
+                this.canvas.addEventListener('touchend', stopDraw);
+            }
+            clear() {
+                const rect = this.canvas.getBoundingClientRect();
+                this.ctx.clearRect(0, 0, rect.width, rect.height);
+                this.hasDrawn = false;
+            }
             isEmpty() { return !this.hasDrawn; }
             loadDataUrl(dataUrl) {
-                if (!dataUrl) return; this.hasDrawn = true;
+                if (!dataUrl) return;
+                this.hasDrawn = true;
                 const img = new Image();
                 img.onload = () => {
                     const rect = this.canvas.getBoundingClientRect();
@@ -2104,8 +2054,9 @@
                 inspector: document.getElementById('demin-inspector').value.trim(),
                 conductivity: document.getElementById('demin-cond').value.trim() || 'Nicht gemessen',
                 pressure: document.getElementById('demin-press').value.trim() || 'Nicht gemessen',
-                statusLeak: state.statusDemin.leak, statusFilter: state.statusDemin.filter, statusResin: state.statusDemin.resin,
+                statusLeak: state.statusDemin.leak, statusFilter: state.statusDemin.filter, statusResin: state.statusDemin.resin, statusSalt: state.statusDemin.salt,
                 notes: document.getElementById('demin-notes').value.trim() || 'Keine Auffälligkeiten',
+                photo: state.photos.demin,
                 timestamp: timeFormatted, signature: sig
             };
 
@@ -2896,6 +2847,7 @@
                         document.getElementById('demin-cond').value = d.conductivity !== 'Nicht gemessen' ? d.conductivity : '';
                         document.getElementById('demin-press').value = d.pressure !== 'Nicht gemessen' ? d.pressure : '';
                         document.getElementById('demin-notes').value = d.notes !== 'Keine Auffälligkeiten' ? d.notes : '';
+                        if (d.photo) { state.photos.demin = d.photo; document.getElementById('photo-preview-img-demin').src = d.photo; document.getElementById('photo-preview-box-demin').classList.remove('hidden'); document.getElementById('photo-btns-demin').classList.add('hidden'); }
                         if (d.signature && pads.demin) pads.demin.loadDataUrl(d.signature);
                     }
                     if (parsed.data.aussenbereich) {
