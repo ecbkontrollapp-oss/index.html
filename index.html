@@ -39,6 +39,11 @@
             touch-action: none;
             -webkit-user-select: none;
             user-select: none;
+            cursor: crosshair;
+            display: block;
+            width: 100%;
+            height: 112px;
+            background-color: #ffffff;
         }
         .safe-bottom {
             padding-bottom: max(1.2rem, env(safe-area-inset-bottom));
@@ -95,6 +100,7 @@
 
     <main id="main-container" class="flex-1 max-w-md w-full mx-auto px-4 py-3 space-y-3.5 pb-28">
 
+        <!-- START VIEW -->
         <section id="view-start" class="view-panel space-y-3.5">
             <div class="pt-0.5 flex items-center justify-between">
                 <div>
@@ -223,6 +229,7 @@
             </div>
         </section>
 
+        <!-- DEMIN VIEW -->
         <section id="view-demin" class="view-panel hidden space-y-3.5">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
@@ -273,7 +280,7 @@
                             </button>
                         </div>
                         <div id="photo-preview-box-demin" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900">
-                            <img id="photo-preview-img-demin" src="" alt="Entmineralisierungselfoto" class="w-full h-40 object-cover">
+                            <img id="photo-preview-img-demin" src="" alt="Anlagenfoto" class="w-full h-40 object-cover">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
                             <span class="absolute bottom-2 left-2.5 text-white text-[10px] font-mono flex items-center gap-1">
                                 <i class="fa-solid fa-circle-check text-emerald-400"></i> <span data-i18n="photo_captured">Foto erfasst</span>
@@ -344,6 +351,127 @@
                     </div>
 
                     <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_demin_notes">Bemerkungen / Mängelhinweise</label>
+                        <textarea id="demin-notes" rows="2" placeholder="Optional: Filterwechsel fällig..." data-i18n-ph="ph_demin_notes"
+                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-sky-500 outline-none"></textarea>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
+                            <button type="button" onclick="clearSignature('demin')" class="text-[11px] text-rose-600 hover:text-rose-800 font-semibold">
+                                <i class="fa-solid fa-rotate-left mr-0.5"></i> <span data-i18n="btn_clear">Löschen</span>
+                            </button>
+                        </div>
+                        <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
+                            <canvas id="canvas-demin" class="sig-canvas"></canvas>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-xs text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span data-i18n="btn_save_send_demin">Entmineralisierung speichern & Protokoll versenden</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- OUTDOOR VIEW -->
+        <section id="view-outdoor" class="view-panel hidden space-y-3.5">
+            <div class="flex items-center justify-between">
+                <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
+                    <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
+                </button>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100" data-i18n="step2_of_4">Bereich 2</span>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3.5">
+                <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base shrink-0">
+                        <i class="fa-solid fa-tree"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-900" data-i18n="outdoor_header">Außenbereichskontrolle</h2>
+                        <p class="text-[10px] text-slate-400"><span data-i18n="report_to">Meldung an:</span> <strong class="text-slate-600 font-mono">pb@ecb-system.de</strong></p>
+                    </div>
+                </div>
+
+                <form id="form-outdoor" onsubmit="saveOutdoor(event)" class="space-y-3.5">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
+                        <input type="text" id="outdoor-inspector" required placeholder="Vor- und Nachname" data-i18n-ph="ph_name"
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-emerald-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photo">Aktuelles Live-Foto des Außenbereichs *</label>
+                        <input type="file" id="camera-input-outdoor" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'outdoor')">
+                        <div id="photo-btns-outdoor">
+                            <button type="button" onclick="document.getElementById('camera-input-outdoor').click()" 
+                                    class="w-full py-3 px-3 bg-emerald-50 hover:bg-emerald-100 active:scale-[0.99] border-2 border-dashed border-emerald-300 rounded-xl text-xs font-bold text-emerald-800 flex items-center justify-center gap-2 transition-all shadow-xs">
+                                <i class="fa-solid fa-camera text-base text-emerald-600"></i>
+                                <span data-i18n="btn_take_photo">Aktuelles Foto mit Kamera aufnehmen</span>
+                            </button>
+                        </div>
+                        <div id="photo-preview-box-outdoor" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900">
+                            <img id="photo-preview-img-outdoor" src="" alt="Kontrollfoto" class="w-full h-40 object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+                            <span class="absolute bottom-2 left-2.5 text-white text-[10px] font-mono flex items-center gap-1">
+                                <i class="fa-solid fa-circle-check text-emerald-400"></i> <span data-i18n="photo_captured">Foto erfasst</span>
+                            </span>
+                            <button type="button" onclick="removePhoto('outdoor')" class="absolute top-2 right-2 px-2 py-1 bg-rose-600/90 hover:bg-rose-700 text-white rounded-lg text-[10px] font-bold shadow-xs">
+                                <i class="fa-solid fa-trash-can mr-1"></i> <span data-i18n="btn_delete">Entfernen</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 pt-1">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_outdoor_checks">Zustandskriterien</label>
+
+                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                            <div class="text-xs font-semibold text-slate-800" data-i18n="check_trash_cigs">Mülleimer geleert und Zigarettenstummel entsorgt</div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" onclick="setItemStatus('outdoor', 'trash', 'ok')" id="btn-outdoor-trash-ok"
+                                        class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-50 border-emerald-500 text-emerald-700 shadow-xs">
+                                    <i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">In Ordnung</span>
+                                </button>
+                                <button type="button" onclick="setItemStatus('outdoor', 'trash', 'fail')" id="btn-outdoor-trash-fail"
+                                        class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 bg-white border-slate-200 text-slate-500 hover:text-rose-600">
+                                    <i class="fa-solid fa-circle-xmark"></i> <span data-i18n="status_fail">Nicht i.O.</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                            <div class="text-xs font-semibold text-slate-800" data-i18n="check_tables_cans">Kein Essen auf den Tischen, leere Dosen entsorgt</div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" onclick="setItemStatus('outdoor', 'tables', 'ok')" id="btn-outdoor-tables-ok"
+                                        class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-50 border-emerald-500 text-emerald-700 shadow-xs">
+                                    <i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">In Ordnung</span>
+                                </button>
+                                <button type="button" onclick="setItemStatus('outdoor', 'tables', 'fail')" id="btn-outdoor-tables-fail"
+                                        class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 bg-white border-slate-200 text-slate-500 hover:text-rose-600">
+                                    <i class="fa-solid fa-circle-xmark"></i> <span data-i18n="status_fail">Nicht i.O.</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                            <div class="text-xs font-semibold text-slate-800" data-i18n="check_outdoor_grounds">Sauberkeit der Flächen, Abläufe & Zufahrtswege frei</div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" onclick="setItemStatus('outdoor', 'grounds', 'ok')" id="btn-outdoor-grounds-ok"
+                                        class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 bg-emerald-50 border-emerald-500 text-emerald-700 shadow-xs">
+                                    <i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">In Ordnung</span>
+                                </button>
+                                <button type="button" onclick="setItemStatus('outdoor', 'grounds', 'fail')" id="btn-outdoor-grounds-fail"
+                                        class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 bg-white border-slate-200 text-slate-500 hover:text-rose-600">
+                                    <i class="fa-solid fa-circle-xmark"></i> <span data-i18n="status_fail">Nicht i.O.</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_outdoor_notes">Besondere Vorkommnisse / Mängel</label>
                         <textarea id="outdoor-notes" rows="2" placeholder="Optional: Mängel oder Reinigungsbedarf..." data-i18n-ph="ph_outdoor_notes"
                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-emerald-500 outline-none"></textarea>
@@ -357,7 +485,7 @@
                             </button>
                         </div>
                         <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
-                            <canvas id="canvas-outdoor" class="sig-canvas w-full h-28 block"></canvas>
+                            <canvas id="canvas-outdoor" class="sig-canvas"></canvas>
                         </div>
                     </div>
 
@@ -369,6 +497,7 @@
             </div>
         </section>
 
+        <!-- BREAKROOM VIEW -->
         <section id="view-breakroom" class="view-panel hidden space-y-3.5">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
@@ -491,7 +620,7 @@
                             </button>
                         </div>
                         <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
-                            <canvas id="canvas-breakroom" class="sig-canvas w-full h-28 block"></canvas>
+                            <canvas id="canvas-breakroom" class="sig-canvas"></canvas>
                         </div>
                     </div>
 
@@ -503,6 +632,7 @@
             </div>
         </section>
 
+        <!-- VEHICLE VIEW -->
         <section id="view-vehicle" class="view-panel hidden space-y-3.5">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
@@ -638,7 +768,7 @@
                             </button>
                         </div>
                         <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
-                            <canvas id="canvas-vehicle" class="sig-canvas w-full h-28 block"></canvas>
+                            <canvas id="canvas-vehicle" class="sig-canvas"></canvas>
                         </div>
                     </div>
 
@@ -650,6 +780,7 @@
             </div>
         </section>
 
+        <!-- VACATION VIEW -->
         <section id="view-vacation" class="view-panel hidden space-y-3.5">
             <div class="flex items-center justify-between">
                 <div>
@@ -748,6 +879,7 @@
             </div>
         </section>
 
+        <!-- SHIFTS VIEW -->
         <section id="view-shifts" class="view-panel hidden space-y-3.5">
             <div class="flex items-center justify-between">
                 <div>
@@ -804,7 +936,7 @@
 
             <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-clock text-indigo-600"></i> <span data-i18n="shift_list_title">Aktuelle Schicht-Einträge (Klick zum Bearbeiten/Löschen)</span>
+                    <i class="fa-solid fa-clock text-indigo-600"></i> <span data-i18n="shift_list_title">Aktuelle Schicht-Einträge</span>
                 </h3>
                 <div id="shift-list-container" class="space-y-2">
                     <div class="p-4 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_shifts">
@@ -814,6 +946,7 @@
             </div>
         </section>
 
+        <!-- HISTORY VIEW -->
         <section id="view-history" class="view-panel hidden space-y-3.5">
             <div class="flex items-center justify-between">
                 <div>
@@ -892,6 +1025,7 @@
         </div>
     </nav>
 
+    <!-- VACATION MODAL -->
     <div id="modal-vacation" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
         <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -959,7 +1093,7 @@
                         </button>
                     </div>
                     <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
-                        <canvas id="canvas-vacation" class="sig-canvas w-full h-24 block"></canvas>
+                        <canvas id="canvas-vacation" class="sig-canvas"></canvas>
                     </div>
                 </div>
 
@@ -1022,18 +1156,14 @@
                     <label for="shift-delivery" class="text-xs font-bold text-slate-800" data-i18n="shift_label_delivery">🚚 Übernimmt LKW / Auslieferung an diesem Tag</label>
                 </div>
 
-                <div class="flex gap-2 pt-2">
-                    <button type="submit" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="shift_btn_save">Schicht speichern</span>
-                    </button>
-                    <button type="button" id="btn-delete-shift-modal" onclick="deleteCurrentModalShift()" class="hidden py-2.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold text-xs transition-colors" title="Schicht löschen">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </div>
+                <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="shift_btn_save">Schicht speichern</span>
+                </button>
             </form>
         </div>
     </div>
 
+    <!-- ATTENDANCE MODAL -->
     <div id="modal-attendance" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
         <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -1051,6 +1181,7 @@
         </div>
     </div>
 
+    <!-- DISPATCH MODAL -->
     <div id="modal-dispatch" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
         <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -1107,6 +1238,7 @@
         </div>
     </div>
 
+    <!-- PDF VIEWER MODAL -->
     <div id="modal-pdf" class="fixed inset-0 bg-black/80 z-50 hidden flex flex-col items-center justify-center p-3">
         <div class="bg-white rounded-2xl max-w-lg w-full p-4 shadow-2xl flex flex-col max-h-[92vh]">
             <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-2">
@@ -1139,6 +1271,7 @@
         </div>
     </div>
 
+    <!-- SETTINGS MODAL -->
     <div id="modal-settings" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
         <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -1191,6 +1324,7 @@
         </div>
     </div>
 
+    <!-- CLOUD DIAGNOSTIC MODAL -->
     <div id="modal-cloud" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
         <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -1219,7 +1353,6 @@
         const MANAGER_PASSWORD_HASH = "ECB1688!";
         let isManagerAuthenticated = false;
         let managerTimeoutTimer = null;
-        let activeEditingShiftId = null;
 
         const TEAM_EMPLOYEES = ["Neymar", "Vasi", "Maria", "Livio", "Mario", "Mirel", "Bogdanie"];
 
@@ -1285,6 +1418,7 @@
                 check_leak: "Dichtheit der Anlage & Schläuche",
                 check_filter: "Vorfilter & Patronenzustand",
                 check_resin: "Harzkapazität",
+                check_salt: "Salz aufgefüllt",
                 status_ok: "In Ordnung",
                 status_fail: "Nicht i.O.",
                 label_demin_notes: "Bemerkungen / Mängelhinweise",
@@ -1466,6 +1600,7 @@
                 check_leak: "Etanșeitatea instalației și a furtunurilor",
                 check_filter: "Starea prefiltrului și a cartușelor",
                 check_resin: "Capacitatea rășinii",
+                check_salt: "Sare adăugată",
                 status_ok: "În regulă",
                 status_fail: "Neconform",
                 label_demin_notes: "Observații / Deficiențe",
@@ -1569,7 +1704,7 @@
                 nav_history: "Dosare",
                 direct_send_title: "Trimite imediat la pb@ecb-system.de",
                 badge_recommended: "Recomandat",
-                direct_send_desc: "Trimite <strong>documentul PDF oficial</strong> direct per e-mail și îl arhivează în folderul Dropbox potrivit.",
+                direct_send_desc: "Trimite <strong>documentul PDF oficial</strong> direct prin e-mail și îl arhivează în folderul Dropbox potrivit.",
                 btn_send_now: "Trimite protocolul acum",
                 mail_app_title: "În aplicația de mail cu PDF atașat",
                 btn_open_mail_app: "Deschide în Apple Mail / Gmail",
@@ -1669,7 +1804,7 @@
             currentDispatchContext: { type: 'Gesamtbericht', data: null, subject: '', body: '', categoryFolder: 'Tagesberichte' }
         };
 
-        let pads = { demin: null, outdoor: null, breakroom: null, vehicle: null, vacation: null };
+        let pads = {};
         let activePdfBlob = null;
         let activePdfUrl = null;
         let cloudHistory = [];
@@ -1719,6 +1854,7 @@
         class SignaturePad {
             constructor(canvasId) {
                 this.canvas = document.getElementById(canvasId);
+                if (!this.canvas) return;
                 this.ctx = this.canvas.getContext('2d');
                 this.isDrawing = false;
                 this.hasDrawn = false;
@@ -1728,11 +1864,13 @@
                 this.bindEvents();
             }
             setup() {
+                if (!this.canvas) return;
                 const rect = this.canvas.getBoundingClientRect();
-                if (!rect.width || !rect.height) return;
+                const w = rect.width > 0 ? rect.width : 300;
+                const h = 112;
                 const dpr = Math.max(window.devicePixelRatio || 1, 1);
-                this.canvas.width = Math.round(rect.width * dpr);
-                this.canvas.height = Math.round(rect.height * dpr);
+                this.canvas.width = Math.round(w * dpr);
+                this.canvas.height = Math.round(h * dpr);
                 this.ctx.setTransform(1, 0, 0, 1, 0, 0);
                 this.ctx.scale(dpr, dpr);
                 this.ctx.strokeStyle = '#0f172a';
@@ -1742,18 +1880,15 @@
                 this.ctx.lineJoin = 'round';
             }
             resize() {
-                const rect = this.canvas.getBoundingClientRect();
-                if (!rect.width || !rect.height) return;
-                const dpr = Math.max(window.devicePixelRatio || 1, 1);
-                const targetW = Math.round(rect.width * dpr);
-                const targetH = Math.round(rect.height * dpr);
-                if (this.canvas.width === targetW && this.canvas.height === targetH) return;
+                if (!this.canvas) return;
                 let cached = null;
                 if (this.hasDrawn) cached = this.canvas.toDataURL();
                 this.setup();
                 if (cached) {
                     const img = new Image();
-                    img.onload = () => this.ctx.drawImage(img, 0, 0, rect.width, rect.height);
+                    img.onload = () => {
+                        this.ctx.drawImage(img, 0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
+                    };
                     img.src = cached;
                 }
             }
@@ -1764,7 +1899,8 @@
                 return { x: clientX - rect.left, y: clientY - rect.top };
             }
             bindEvents() {
-                const startDraw = (e) => {
+                if (!this.canvas) return;
+                const start = (e) => {
                     e.preventDefault();
                     this.isDrawing = true;
                     this.hasDrawn = true;
@@ -1772,11 +1908,11 @@
                     this.lastX = pos.x;
                     this.lastY = pos.y;
                     this.ctx.beginPath();
-                    this.ctx.arc(pos.x, pos.y, 1.2, 0, Math.PI * 2);
-                    this.ctx.fill();
+                    this.ctx.moveTo(this.lastX, this.lastY);
+                    this.ctx.lineTo(this.lastX, this.lastY);
+                    this.ctx.stroke();
                 };
-
-                const moveDraw = (e) => {
+                const move = (e) => {
                     if (!this.isDrawing) return;
                     e.preventDefault();
                     const pos = this.getPos(e);
@@ -1787,37 +1923,31 @@
                     this.lastX = pos.x;
                     this.lastY = pos.y;
                 };
-
-                const stopDraw = (e) => {
+                const end = (e) => {
                     if (!this.isDrawing) return;
                     this.isDrawing = false;
-                    this.ctx.closePath();
                 };
 
-                // Pointer events (für Maus, Touch und Pen)
-                this.canvas.addEventListener('pointerdown', startDraw, { passive: false });
-                this.canvas.addEventListener('pointermove', moveDraw, { passive: false });
-                window.addEventListener('pointerup', stopDraw);
-                window.addEventListener('pointercancel', stopDraw);
+                this.canvas.addEventListener('mousedown', start);
+                this.canvas.addEventListener('mousemove', move);
+                window.addEventListener('mouseup', end);
 
-                // Fallback Touch events
-                this.canvas.addEventListener('touchstart', startDraw, { passive: false });
-                this.canvas.addEventListener('touchmove', moveDraw, { passive: false });
-                this.canvas.addEventListener('touchend', stopDraw);
+                this.canvas.addEventListener('touchstart', start, { passive: false });
+                this.canvas.addEventListener('touchmove', move, { passive: false });
+                this.canvas.addEventListener('touchend', end);
             }
             clear() {
-                const rect = this.canvas.getBoundingClientRect();
-                this.ctx.clearRect(0, 0, rect.width, rect.height);
+                if (!this.canvas) return;
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 this.hasDrawn = false;
             }
             isEmpty() { return !this.hasDrawn; }
             loadDataUrl(dataUrl) {
-                if (!dataUrl) return;
+                if (!dataUrl || !this.canvas) return;
                 this.hasDrawn = true;
                 const img = new Image();
                 img.onload = () => {
-                    const rect = this.canvas.getBoundingClientRect();
-                    if (rect.width > 0 && rect.height > 0) this.ctx.drawImage(img, 0, 0, rect.width, rect.height);
+                    this.ctx.drawImage(img, 0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
                 };
                 img.src = dataUrl;
             }
@@ -1859,7 +1989,9 @@
             updateDashboard();
         });
 
-        window.addEventListener('resize', () => { Object.values(pads).forEach(p => { if (p) p.resize(); }); });
+        window.addEventListener('resize', () => {
+            Object.values(pads).forEach(p => { if (p) p.resize(); });
+        });
 
         function setupFirebaseRealtimeListener() {
             const indicator = document.getElementById('cloud-indicator');
@@ -1893,10 +2025,6 @@
             }, (error) => {
                 firebaseStatus.connected = false; firebaseStatus.error = error.message || String(error);
                 renderHistoryView();
-                if (indicator) {
-                    indicator.className = 'flex items-center justify-center text-[8px] text-rose-700 font-semibold bg-rose-50 px-2.5 py-2 rounded-xl border border-rose-200 transition-colors h-10';
-                    if (indicatorLabel) indicatorLabel.innerText = 'Fehler';
-                }
             });
 
             db.collection('urlaube').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
@@ -1906,9 +2034,8 @@
                 try { localStorage.setItem('ecb_app_vacations', JSON.stringify(items)); } catch(e){}
                 renderVacationList();
                 renderShiftList();
-            }, (error) => { console.warn("Urlaub Firestore Fehler:", error); });
+            }, (error) => {});
 
-            // ZWEI-WEGE BINDUNG FÜR SCHICHTEN (Realtime Listener)
             db.collection('schichten').onSnapshot((snapshot) => {
                 const items = [];
                 snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
@@ -1916,7 +2043,7 @@
                 cloudShifts = items;
                 try { localStorage.setItem('ecb_app_shifts', JSON.stringify(items)); } catch(e){}
                 renderShiftList();
-            }, (error) => { console.warn("Schichten Firestore Fehler:", error); });
+            }, (error) => {});
         }
 
         function syncTodayControlsFromCloud(items) {
@@ -1944,20 +2071,17 @@
                         </div>
                         <p class="text-[11px] text-emerald-900 leading-snug">
                             Projekt: <strong>eck-kontroll-app</strong><br>
-                            Einträge in Cloud: <strong>${firebaseStatus.count}</strong><br>
-                            Alle Geräte synchronisieren automatisch in Echtzeit.
+                            Einträge in Cloud: <strong>${firebaseStatus.count}</strong>
                         </p>
                     </div>
                 `;
             } else {
-                const err = firebaseStatus.error || "Keine Verbindung.";
                 modalContent.innerHTML = `
                     <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl space-y-2">
                         <div class="flex items-center gap-1.5 text-rose-800 font-bold">
                             <i class="fa-solid fa-circle-exclamation text-rose-600 text-sm"></i>
-                            <span>Cloud-Verbindung unterbrochen</span>
+                            <span>Offline-Modus</span>
                         </div>
-                        <div class="p-2 bg-white rounded border border-rose-200 font-mono text-[10px] text-rose-900 break-words">${err}</div>
                     </div>
                 `;
             }
@@ -2142,34 +2266,12 @@
         }
 
         function openNewShiftModal() {
-            activeEditingShiftId = null;
             const form = document.getElementById('form-shift-request');
             if (form) form.reset();
             const todayIso = new Date().toISOString().slice(0, 10);
             document.getElementById('shift-date-start').value = todayIso;
             document.getElementById('shift-date-end').value = todayIso;
-            document.getElementById('btn-delete-shift-modal').classList.add('hidden');
             openModal('modal-shift');
-        }
-
-        function editShiftEntry(docId) {
-            const item = cloudShifts.find(i => i.id === docId);
-            if (!item) return;
-            activeEditingShiftId = docId;
-            document.getElementById('shift-date-start').value = item.date;
-            document.getElementById('shift-date-end').value = item.date;
-            document.getElementById('shift-employee').value = item.employee;
-            document.getElementById('shift-type').value = item.shiftType;
-            document.getElementById('shift-delivery').checked = !!item.isDelivery;
-            document.getElementById('btn-delete-shift-modal').classList.remove('hidden');
-            openModal('modal-shift');
-        }
-
-        function deleteCurrentModalShift() {
-            if (activeEditingShiftId) {
-                deleteShiftEntry(activeEditingShiftId);
-                closeModal('modal-shift');
-            }
         }
 
         function submitShift(e) {
@@ -2182,12 +2284,6 @@
 
             if (!startDate || !endDate || startDate > endDate) return;
 
-            if (activeEditingShiftId && startDate === endDate) {
-                if (activeEditingShiftId !== `${startDate}_${employee}` && db) {
-                    db.collection('schichten').doc(activeEditingShiftId).delete().catch(()=>{});
-                }
-            }
-
             const start = new Date(startDate);
             const end = new Date(endDate);
             let cur = new Date(start);
@@ -2197,32 +2293,17 @@
 
             while (cur <= end) {
                 const dateIso = cur.toISOString().slice(0, 10);
-                const uniqueDocId = `${dateIso}_${employee}`;
-                
-                const dCopy = new Date(cur.getTime());
-                dCopy.setHours(0, 0, 0, 0);
-                dCopy.setDate(dCopy.getDate() + 4 - (dCopy.getDay() || 7));
-                const yearStart = new Date(dCopy.getFullYear(), 0, 1);
-                const weekNo = Math.ceil((((dCopy - yearStart) / 86400000) + 1) / 7);
-
                 const rec = {
-                    id: uniqueDocId,
                     date: dateIso,
                     employee: employee,
                     shiftType: shiftType,
                     isDelivery: isDelivery,
-                    weekNumber: weekNo,
                     timestamp: timeFormatted,
                     createdAt: Date.now()
                 };
 
                 if (db) {
-                    db.collection('schichten').doc(uniqueDocId).set(rec, { merge: true }).catch(err => console.warn("Shift save error:", err));
-                }
-
-                const existingIdx = cloudShifts.findIndex(i => i.id === uniqueDocId);
-                if (existingIdx > -1) {
-                    cloudShifts[existingIdx] = rec;
+                    db.collection('schichten').add(rec).catch(err => {});
                 } else {
                     cloudShifts.unshift(rec);
                 }
@@ -2230,21 +2311,19 @@
                 cur.setDate(cur.getDate() + 1);
             }
 
-            try { localStorage.setItem('ecb_app_shifts', JSON.stringify(cloudShifts)); } catch(e){}
             renderShiftList();
             closeModal('modal-shift');
             showToast(currentLang === 'ro' ? 'Ture salvate cu succes!' : 'Schichten erfolgreich gespeichert!');
         }
 
         function deleteShiftEntry(docId) {
-            const idx = cloudShifts.findIndex(i => i.id === docId);
+            const idx = cloudShifts.findIndex(i => i.id === docId || cloudShifts.indexOf(i) === parseInt(docId));
             if (idx > -1) {
                 const item = cloudShifts[idx];
                 if (item.id && db) {
                     db.collection('schichten').doc(item.id).delete().catch(() => {});
                 }
                 cloudShifts.splice(idx, 1);
-                try { localStorage.setItem('ecb_app_shifts', JSON.stringify(cloudShifts)); } catch(e){}
                 renderShiftList();
                 showToast(currentLang === 'ro' ? 'Tură ștearsă.' : 'Schicht gelöscht.');
             }
@@ -2369,19 +2448,19 @@
                 return;
             }
 
-            container.innerHTML = monthFiltered.map((item) => {
+            container.innerHTML = monthFiltered.map((item, idx) => {
                 let badgeBg = 'bg-sky-100 text-sky-800';
                 if (item.shiftType === 'Mittagsschicht') badgeBg = 'bg-indigo-100 text-indigo-800';
                 if (item.shiftType === 'Freischicht') badgeBg = 'bg-slate-100 text-slate-800';
                 return `
-                    <div onclick="editShiftEntry('${item.id}')" class="p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl space-y-1.5 text-xs cursor-pointer transition-colors">
+                    <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-xs">
                         <div class="flex items-center justify-between font-bold text-slate-900">
                             <span>${item.employee}</span>
                             <span class="px-2 py-0.5 rounded-full text-[10px] ${badgeBg}">${item.shiftType}</span>
                         </div>
                         <div class="text-[11px] text-slate-600 flex items-center justify-between">
                             <span>📅 ${item.date} ${item.isDelivery ? '• 🚚 <strong>LKW / Auslieferung</strong>' : ''}</span>
-                            <button onclick="event.stopPropagation(); deleteShiftEntry('${item.id}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="deleteShiftEntry('${item.id || idx}')" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>
                 `;
@@ -2508,7 +2587,7 @@
                 db.collection('urlaube').add(newEntry).then(docRef => {
                     newEntry.id = docRef.id;
                     db.collection('kontrollen').add({ ...newEntry, vacationDocId: docRef.id }).catch(err => {});
-                }).catch(err => console.warn(err));
+                }).catch(err => {});
             }
 
             cloudVacations.unshift(newEntry);
@@ -2557,13 +2636,10 @@
             item.data.approvedBy = 'Führungskraft';
 
             if (db && item.id) {
-                db.collection('urlaube').doc(item.id).update({ 'data.status': newStatus, 'data.approvedBy': 'Führungskraft' }).catch(err => console.warn(err));
-                
+                db.collection('urlaube').doc(item.id).update({ 'data.status': newStatus, 'data.approvedBy': 'Führungskraft' }).catch(err => {});
                 db.collection('kontrollen').where('vacationDocId', '==', item.id).get().then(snapshot => {
                     snapshot.forEach(docSnap => {
                         docSnap.ref.update({ 'data.status': newStatus, 'data.approvedBy': 'Führungskraft', 'data': item.data }).catch(err => {});
-                        const histItem = cloudHistory.find(h => h.id === docSnap.id);
-                        if (histItem) { histItem.data = item.data; }
                     });
                 }).catch(err => {});
             }
@@ -2572,7 +2648,7 @@
             renderVacationList();
             renderShiftList();
             renderHistoryView();
-            showToast(newStatus === 'Genehmigt' ? (currentLang === 'ro' ? 'Concediu aprobat & actualizat!' : 'Urlaub genehmigt & im Kalender aktualisiert!') : (currentLang === 'ro' ? 'Cerere respinsă!' : 'Urlaub abgelehnt!'));
+            showToast(newStatus === 'Genehmigt' ? (currentLang === 'ro' ? 'Concediu aprobat!' : 'Urlaub genehmigt!') : (currentLang === 'ro' ? 'Cerere respinsă!' : 'Urlaub abgelehnt!'));
         }
 
         function deleteVacationEntry(key) {
@@ -2580,24 +2656,17 @@
             const idx = list.findIndex(i => i.id === key || list.indexOf(i) === parseInt(key));
             if (idx > -1) {
                 const item = list[idx];
-                if (item.id) {
-                    if (db) {
-                        db.collection('urlaube').doc(item.id).delete().catch(() => {});
-                        db.collection('kontrollen').where('vacationDocId', '==', item.id).get().then(snapshot => {
-                            snapshot.forEach(docSnap => docSnap.ref.delete().catch(() => {}));
-                        }).catch(() => {});
-                    }
+                if (item.id && db) {
+                    db.collection('urlaube').doc(item.id).delete().catch(() => {});
+                    db.collection('kontrollen').where('vacationDocId', '==', item.id).get().then(snapshot => {
+                        snapshot.forEach(docSnap => docSnap.ref.delete().catch(() => {}));
+                    }).catch(() => {});
                 }
                 list.splice(idx, 1);
-                localStorage.setItem('ecb_app_vacations', JSON.stringify(list));
-                
-                cloudHistory = cloudHistory.filter(h => h.vacationDocId !== item.id && h.id !== item.id);
-                localStorage.setItem('ecb_app_history_v3', JSON.stringify(cloudHistory));
-
                 renderVacationList();
                 renderShiftList();
                 renderHistoryView();
-                showToast(currentLang === 'ro' ? 'Șters din plan & istoric.' : 'Aus Plan & Historie gelöscht.');
+                showToast(currentLang === 'ro' ? 'Șters din plan.' : 'Aus Plan gelöscht.');
             }
         }
 
@@ -2617,7 +2686,6 @@
             const weekdayNames = (currentLang === 'ro') ? weekdayNamesRo : weekdayNamesDe;
 
             let calendarHtml = `<table class="w-full border-collapse text-base"><thead>`;
-            
             calendarHtml += `<tr class="bg-slate-100 text-slate-900 font-black border-b border-slate-200">
                 <th class="p-4 text-left sticky left-0 bg-slate-100 z-10 w-64 text-sm uppercase tracking-wider">${currentLang === 'ro' ? 'Angajat (Rămas)' : 'Mitarbeiter (Rest)'}</th>`;
             for (let d = 1; d <= daysInMonth; d++) {
@@ -3615,7 +3683,12 @@
             openModal('modal-attendance');
         }
 
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            setTimeout(() => {
+                Object.values(pads).forEach(p => { if (p) p.resize(); });
+            }, 50);
+        }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function openSettingsModal() {
             document.getElementById('setting-dropbox-token').value = localStorage.getItem('ecb_dropbox_token') || '';
