@@ -42,7 +42,7 @@
             cursor: crosshair;
             display: block;
             width: 100%;
-            height: 120px;
+            height: 130px;
             background-color: #ffffff;
         }
         .safe-bottom {
@@ -60,7 +60,7 @@
         }
     </style>
 </head>
-<body id="app-body" class="h-full bg-slate-100 text-slate-800 flex flex-col md:flex-row font-sans select-none antialiased">
+<body id="app-body" class="h-full bg-slate-100 text-slate-800 flex flex-col md:flex-row font-sans select-none antialiased overflow-hidden">
 
     <!-- PC SIDEBAR NAVIGATION -->
     <aside class="hidden md:flex flex-col w-64 bg-white border-r border-slate-200/80 p-4 shrink-0 shadow-xs z-30">
@@ -77,7 +77,7 @@
             </div>
         </div>
 
-        <nav class="space-y-1.5 flex-1">
+        <nav class="space-y-1.5 flex-1 overflow-y-auto no-scrollbar">
             <button onclick="switchView('start')" id="pc-nav-btn-start" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-sky-600 bg-sky-50 transition-colors">
                 <i class="fa-solid fa-house w-5 text-base"></i> <span data-i18n="nav_start">Start</span>
             </button>
@@ -93,14 +93,14 @@
             <button onclick="switchView('vehicle')" id="pc-nav-btn-vehicle" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
                 <i class="fa-solid fa-truck w-5 text-base text-indigo-600"></i> <span data-i18n="card_vehicle_title">Fahrzeuge</span>
             </button>
+            <button onclick="switchView('vehicle_fleet')" id="pc-nav-btn-fleet" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+                <i class="fa-solid fa-car w-5 text-base text-indigo-700"></i> <span data-i18n="nav_fleet">KFZ-Park & TÜV</span>
+            </button>
             <button onclick="switchView('vacation')" id="pc-nav-btn-vacation" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
                 <i class="fa-solid fa-umbrella-beach w-5 text-base text-ecb"></i> <span data-i18n="nav_vacation">Urlaub & Antrag</span>
             </button>
             <button onclick="switchView('shifts')" id="pc-nav-btn-shifts" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
                 <i class="fa-solid fa-clock w-5 text-base text-blue-600"></i> <span data-i18n="nav_shifts">Schichten & LKW</span>
-            </button>
-            <button onclick="switchView('vehicle_fleet')" id="pc-nav-btn-fleet" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-                <i class="fa-solid fa-car w-5 text-base text-indigo-700"></i> <span data-i18n="nav_fleet">KFZ-Park & TÜV</span>
             </button>
             <button onclick="switchView('history')" id="pc-nav-btn-history" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
                 <i class="fa-solid fa-folder-tree w-5 text-base text-slate-600"></i> <span data-i18n="nav_history">Cloud-Ordner</span>
@@ -119,7 +119,7 @@
     </aside>
 
     <!-- MOBILE HEADER -->
-    <header class="md:hidden sticky top-0 z-30 bg-white border-b border-slate-200/80 px-4 py-2.5 shadow-xs">
+    <header class="md:hidden sticky top-0 z-30 bg-white border-b border-slate-200/80 px-4 py-2.5 shadow-xs shrink-0">
         <div class="max-w-md mx-auto flex items-center justify-between">
             <div class="flex items-center gap-2.5">
                 <div class="w-9 h-9 rounded-xl bg-ecb flex flex-col items-center justify-center text-white shadow-xs p-1 cursor-pointer" onclick="switchView('start')">
@@ -150,7 +150,8 @@
         </div>
     </header>
 
-    <main id="main-container" class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 md:px-8 md:py-6 space-y-4 pb-32 md:pb-12 overflow-y-auto">
+    <!-- MAIN SCROLLABLE CONTAINER -->
+    <main id="main-container" class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 md:px-8 md:py-6 space-y-4 pb-28 md:pb-12 overflow-y-auto">
 
         <!-- START VIEW -->
         <section id="view-start" class="view-panel space-y-4">
@@ -166,24 +167,35 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div onclick="switchView('vacation')" class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-4 text-white shadow-md flex items-center justify-between cursor-pointer hover:opacity-95 transition-all">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div onclick="switchView('vehicle_fleet')" class="bg-gradient-to-r from-indigo-600 to-blue-700 rounded-2xl p-4 text-white shadow-md flex items-center justify-between cursor-pointer hover:opacity-95 transition-all">
                     <div class="flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-xl">🏖️</div>
+                        <div class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-xl">🚗</div>
                         <div>
-                            <h3 class="text-sm font-bold tracking-tight" data-i18n="vacation_title">Urlaubsplan & Antrag</h3>
-                            <p class="text-[11px] text-emerald-100" data-i18n="vacation_sub">Team-Urlaube in der Cloud verwalten</p>
+                            <h3 class="text-sm font-bold tracking-tight" data-i18n="fleet_title">Parc Auto & ITP</h3>
+                            <p class="text-[11px] text-indigo-100" data-i18n="fleet_sub">KM, TÜV & Ölwechsel</p>
                         </div>
                     </div>
                     <i class="fa-solid fa-arrow-right text-white/80"></i>
                 </div>
 
-                <div onclick="switchView('shifts')" class="bg-gradient-to-r from-indigo-500 to-blue-600 rounded-2xl p-4 text-white shadow-md flex items-center justify-between cursor-pointer hover:opacity-95 transition-all">
+                <div onclick="switchView('vacation')" class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-4 text-white shadow-md flex items-center justify-between cursor-pointer hover:opacity-95 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-xl">🏖️</div>
+                        <div>
+                            <h3 class="text-sm font-bold tracking-tight" data-i18n="vacation_title">Urlaubsplan</h3>
+                            <p class="text-[11px] text-emerald-100" data-i18n="vacation_sub">Team-Urlaube in der Cloud</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-right text-white/80"></i>
+                </div>
+
+                <div onclick="switchView('shifts')" class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-4 text-white shadow-md flex items-center justify-between cursor-pointer hover:opacity-95 transition-all">
                     <div class="flex items-center gap-3">
                         <div class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-xl">🕒</div>
                         <div>
-                            <h3 class="text-sm font-bold tracking-tight" data-i18n="shift_title">Schichtkalender & Auslieferung</h3>
-                            <p class="text-[11px] text-indigo-100" data-i18n="shift_sub">Früh-, Mittagsschichten, Freischichten & LKW</p>
+                            <h3 class="text-sm font-bold tracking-tight" data-i18n="shift_title">Schichten & LKW</h3>
+                            <p class="text-[11px] text-indigo-100" data-i18n="shift_sub">Früh-, Mittagsschichten</p>
                         </div>
                     </div>
                     <i class="fa-solid fa-arrow-right text-white/80"></i>
@@ -691,7 +703,7 @@
         <!-- VEHICLE FLEET MANAGEMENT VIEW -->
         <section id="view-vehicle_fleet" class="view-panel hidden space-y-4">
             <div class="flex items-center justify-between">
-                <button onclick="switchView('vehicle')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
+                <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
                 </button>
                 <div class="flex items-center gap-2">
@@ -888,13 +900,13 @@
                 <i class="fa-solid fa-droplet text-xl mb-0.5"></i>
                 <span class="text-[10px] font-bold" data-i18n="nav_demin">Entmin.</span>
             </button>
+            <button onclick="switchView('vehicle_fleet')" id="nav-btn-fleet" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400">
+                <i class="fa-solid fa-car text-xl mb-0.5"></i>
+                <span class="text-[10px] font-bold" data-i18n="nav_fleet">Parc Auto</span>
+            </button>
             <button onclick="switchView('vacation')" id="nav-btn-vacation" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400">
                 <i class="fa-solid fa-umbrella-beach text-xl mb-0.5"></i>
                 <span class="text-[10px] font-bold" data-i18n="nav_vacation">Urlaub</span>
-            </button>
-            <button onclick="switchView('shifts')" id="nav-btn-shifts" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400">
-                <i class="fa-solid fa-clock text-xl mb-0.5"></i>
-                <span class="text-[10px] font-bold" data-i18n="nav_shifts">Schichten</span>
             </button>
             <button onclick="switchView('history')" id="nav-btn-history" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400">
                 <i class="fa-solid fa-folder-tree text-xl mb-0.5"></i>
@@ -1170,7 +1182,6 @@
 
     <script>
         const RECIPIENT_EMAIL = "pb@ecb-system.de";
-        const DEFAULT_KEY_1 = "92e7e675-69a2-4557-8441-2c2b262e83ba";
         const MANAGER_PASSWORD_HASH = "ECB1688!";
         const TEAM_EMPLOYEES = ["Neymar", "Vasi", "Maria", "Livio", "Mario", "Mirel", "Bogdanie"];
 
@@ -1318,7 +1329,7 @@
                 no_history: "Keine Berichte in diesem Ordner.",
                 btn_csv: "CSV Export",
                 btn_clear_history: "Verlauf leeren",
-                nav_start: "Start", nav_demin: "Entmin.", nav_vacation: "Urlaub", nav_shifts: "Schichten", nav_fleet: "KFZ-Park", nav_history: "Ordner",
+                nav_start: "Start", nav_demin: "Entmin.", nav_vacation: "Urlaub", nav_shifts: "Schimente", nav_fleet: "Parc Auto", nav_history: "Ordner",
                 badge_done: "✓ Erledigt", badge_open: "Offen",
                 legend_approved: "Genehmigt", legend_pending: "Ausstehend", legend_holiday: "Feiertage", legend_sunday: "Sonntage",
                 toast_saved: "Gespeichert & gesendet!", toast_need_sig: "Bitte unterschreiben!", toast_need_photo: "Bitte Foto aufnehmen!", toast_sent: "Erfolgreich gesendet!"
@@ -1499,7 +1510,6 @@
             statusOutdoor: { trash: 'ok', tables: 'ok', grounds: 'ok' },
             statusBreakroom: { surfaces: 'ok', appliances: 'ok', trash: 'ok', floor: 'ok' },
             statusVehicle: { clean: 'ok', condition: 'ok', tirePressure: 'ok', warnings: 'ok' },
-            signatures: { demin: null, outdoor: null, breakroom: null, vehicle: null, vacation: null },
             photos: { demin: null, outdoor: null, breakroom: null, vehicle: null },
             currentDispatchContext: { type: 'Gesamtbericht', data: null, subject: '', body: '', categoryFolder: 'Tagesberichte' }
         };
@@ -1549,7 +1559,7 @@
                 if (!this.canvas) return;
                 const rect = this.canvas.getBoundingClientRect();
                 const w = rect.width > 0 ? rect.width : 300;
-                const h = 120;
+                const h = 130;
                 const dpr = Math.max(window.devicePixelRatio || 1, 1);
                 this.canvas.width = Math.round(w * dpr);
                 this.canvas.height = Math.round(h * dpr);
@@ -1793,7 +1803,7 @@
             document.getElementById(`camera-input-${domain}`).value = '';
         }
 
-        function clearSignature(type) { if (pads[type]) { pads[type].clear(); state.signatures[type] = null; } }
+        function clearSignature(type) { if (pads[type]) { pads[type].clear(); } }
 
         function saveDemin(e) {
             e.preventDefault();
@@ -2077,12 +2087,6 @@
             return Math.max(0, 24 - used);
         }
 
-        function getHolidayName(year, month, day) {
-            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const fixed = { [`${year}-01-01`]: 'Neujahr', [`${year}-05-01`]: 'Tag der Arbeit', [`${year}-10-03`]: 'Tag d. Dt. Einheit', [`${year}-12-25`]: '1. Weihnachtstag', [`${year}-12-26`]: '2. Weihnachtstag' };
-            return fixed[dateStr] || null;
-        }
-
         function updateVacationStatus(docId, newStatus) {
             const item = cloudVacations.find(i => i.id === docId);
             if (!item) return;
@@ -2226,12 +2230,8 @@
 
         function openDispatchDaySummary() {
             const d = state.data;
-            if (!d.entmineralisierung && !d.aussenbereich && !d.pausenraum && !d.fahrzeuge) {
-                showToast('Bitte mindestens eine Kontrolle erfassen!');
-                return;
-            }
             const dateStr = new Date().toLocaleDateString('de-DE');
-            state.currentDispatchContext = { type: 'Gesamtbericht', data: d, subject: `[ECB] Tagesgesamtbericht - ${dateStr}`, body: `Tagesgesamtbericht für ${dateStr}`, categoryFolder: 'Tagesberichte' };
+            state.currentDispatchContext = { type: 'Gesamtbericht', data: d, fleet: cloudFleetVehicles, subject: `[ECB] Tagesgesamtbericht & Wartung - ${dateStr}`, body: `Tagesgesamtbericht inklusive aller Wartungspunkte für ${dateStr}`, categoryFolder: 'Tagesberichte' };
             openModal('modal-dispatch');
         }
 
@@ -2314,13 +2314,14 @@
             const timeStr = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
             if (ctx.type === 'FleetSummary') return buildFleetSummaryPdf(doc, cloudFleetVehicles, dateStr, timeStr);
+            if (ctx.type === 'Gesamtbericht') return buildCompleteSummaryPdf(doc, ctx.data, cloudFleetVehicles, dateStr, timeStr);
             return buildSingleSectionPdf(doc, ctx.type, ctx.data, dateStr, timeStr);
         }
 
         function buildFleetSummaryPdf(doc, list, dateStr, timeStr) {
-            renderPdfHeader(doc, 'FAHRZEUGPARK & WARTUNG', dateStr, timeStr);
+            renderPdfHeader(doc, 'FAHRZEUGPARK & WARTUNG (TÜV / ÖLWECHSEL)', dateStr, timeStr);
             doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
-            doc.text('Übersicht aller angelegten Fahrzeuge, Kilometer und Termine', 15, 38);
+            doc.text('Zentrale Übersicht aller Fahrzeuge, Kilometerstände und Termine', 15, 38);
 
             let startY = 46;
             doc.setFillColor(241, 245, 249);
@@ -2334,7 +2335,7 @@
             startY += 8;
             doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
             list.forEach(item => {
-                doc.setFont('helvetica', 'bold'); doc.text(item.plate, 19, startY + 6);
+                doc.setFont('helvetica', 'bold'); doc.text(item.plate || '-', 19, startY + 6);
                 doc.setFont('helvetica', 'normal'); doc.text(`(${item.model || '-'})`, 19, startY + 11);
                 doc.text(`${item.km || '0'} km`, 90, startY + 8.5);
                 doc.text(item.tuev || '-', 130, startY + 8.5);
@@ -2346,6 +2347,72 @@
             return doc;
         }
 
+        function buildCompleteSummaryPdf(doc, data, fleetList, dateStr, timeStr) {
+            let pageNum = 1;
+            renderPdfHeader(doc, 'TAGESGESAMTBERICHT & WARTUNGSPUNKTE', dateStr, timeStr);
+            
+            let y = 38;
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(15, 23, 42);
+            doc.text(`Tagesprotokoll vom ${dateStr}`, 15, y);
+            y += 8;
+
+            const sections = [
+                { title: '1. Entmineralisierungsanlage', d: data.entmineralisierung },
+                { title: '2. Außenbereichskontrolle', d: data.aussenbereich },
+                { title: '3. Pausenraumkontrolle', d: data.pausenraum },
+                { title: '4. Fahrzeugkontrolle (Tagesbericht)', d: data.fahrzeuge }
+            ];
+
+            sections.forEach(sec => {
+                if (!sec.d) return;
+                if (y > 230) { doc.addPage(); pageNum++; y = 20; }
+                
+                doc.setFillColor(241, 245, 249);
+                doc.rect(15, y, 180, 7, 'F');
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(15, 23, 42);
+                doc.text(sec.title, 18, y + 5);
+                y += 10;
+
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(51, 65, 85);
+                doc.text(`Prüfer: ${sec.d.inspector || '-' } | Zeit: ${sec.d.timestamp || '-'}`, 18, y);
+                y += 5;
+                if (sec.d.conductivity) { doc.text(`Leitwert: ${sec.d.conductivity} µS/cm | Druck: ${sec.d.pressure || '-'} bar`, 18, y); y += 5; }
+                if (sec.d.plate) { doc.text(`Fahrzeug: ${sec.d.plate} | KM: ${sec.d.km || '-'}`, 18, y); y += 5; }
+                doc.text(`Notizen: ${sec.d.notes || '-'}`, 18, y);
+                y += 8;
+
+                if (sec.d.signature) {
+                    try {
+                        doc.addImage(sec.d.signature, 'PNG', 18, y, 60, 25);
+                        y += 28;
+                    } catch(e){}
+                }
+                y += 4;
+            });
+
+            // Fleet / Maintenance table summary
+            if (fleetList && fleetList.length > 0) {
+                if (y > 210) { doc.addPage(); pageNum++; y = 20; }
+                doc.setFillColor(238, 247, 234);
+                doc.rect(15, y, 180, 7, 'F');
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(45, 106, 26);
+                doc.text('ZENTRALER WARTUNGSSTAND (TÜV & ÖLWECHSEL)', 18, y + 5);
+                y += 10;
+
+                fleetList.forEach(car => {
+                    if (y > 270) { doc.addPage(); pageNum++; y = 20; }
+                    doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(15, 23, 42);
+                    doc.text(`• ${car.plate} (${car.model || '-'}):`, 18, y);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`KM: ${car.km || '0'} | TÜV: ${car.tuev || '-'} | Ölwechsel: ${car.oil || '-'}`, 75, y);
+                    y += 6;
+                });
+            }
+
+            renderPdfFooter(doc, pageNum, pageNum);
+            return doc;
+        }
+
         function buildSingleSectionPdf(doc, type, rec, dateStr, timeStr) {
             renderPdfHeader(doc, `PROTOKOLL: ${type.toUpperCase()}`, dateStr, timeStr);
             doc.setDrawColor(226, 232, 240); doc.roundedRect(15, 36, 180, 234, 3, 3, 'S');
@@ -2353,7 +2420,7 @@
             doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
             doc.text(`PROTOKOLL - ${type.toUpperCase()}`, 19, 42.5);
             doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-            doc.text(`Prüfer: ${rec.inspector || '-'}`, 23, 58);
+            doc.text(`Prüfer: ${rec.inspector || rec.employee || '-'}`, 23, 58);
             doc.text(`Zeit: ${rec.timestamp || '-'}`, 23, 65);
             doc.text(`Notizen: ${rec.notes || '-'}`, 23, 72);
             if (rec.signature) { try { doc.addImage(rec.signature, 'PNG', 35, 178, 140, 70); } catch(e){} }
@@ -2433,6 +2500,13 @@
             openModal('modal-pdf');
         }
 
+        async function openHistoryItemPdf(idx) {
+            const item = cloudHistory[idx];
+            if (!item) return;
+            state.currentDispatchContext = { type: item.type, data: item.data || item, subject: `[ECB] ${item.type} - ${item.date}`, body: 'Archivierter Bericht', categoryFolder: item.type };
+            await previewActivePdf();
+        }
+
         async function previewFleetSummaryPdf() {
             state.currentDispatchContext = { type: 'FleetSummary', data: cloudFleetVehicles, subject: `[ECB] Fahrzeugpark & Wartung`, body: 'Fahrzeugpark Übersicht', categoryFolder: 'Fahrzeuge' };
             await previewActivePdf();
@@ -2444,7 +2518,6 @@
             const a = document.createElement('a'); a.href = activePdfUrl; a.download = `ECB-Dokument-${state.todayKey}.pdf`; a.click();
         }
 
-        function getHistory() { return cloudHistory; }
         function addHistory(type, rec) {
             const newEntry = { date: new Date().toISOString().slice(0, 10), timestamp: rec.timestamp, createdAt: Date.now(), type, inspector: rec.inspector || rec.employee, data: rec };
             if (db) db.collection('kontrollen').add(newEntry).catch(() => {});
@@ -2461,16 +2534,27 @@
             const container = document.getElementById('history-items-container');
             if (!container) return;
             const list = currentHistoryFilter === 'all' ? cloudHistory : cloudHistory.filter(i => i.type === currentHistoryFilter);
+            
+            document.getElementById('count-all').innerText = cloudHistory.length;
+            document.getElementById('count-demin').innerText = cloudHistory.filter(i => i.type === 'Entmineralisierung').length;
+            document.getElementById('count-outdoor').innerText = cloudHistory.filter(i => i.type === 'Außenbereich').length;
+            document.getElementById('count-breakroom').innerText = cloudHistory.filter(i => i.type === 'Pausenraum').length;
+            document.getElementById('count-vehicle').innerText = cloudHistory.filter(i => i.type === 'Fahrzeuge').length;
+            document.getElementById('count-vacation').innerText = cloudHistory.filter(i => i.type === 'Urlaub').length;
+
             container.innerHTML = list.length === 0 ? `<div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">${t('no_history')}</div>` :
-                list.map(item => `
-                    <div class="p-4 bg-white border border-slate-200 rounded-2xl shadow-xs flex items-center justify-between text-xs">
-                        <div>
-                            <div class="font-bold text-slate-900">${item.type} • ${item.inspector || '-'}</div>
-                            <div class="text-[10px] text-slate-400 font-mono">${item.timestamp}</div>
+                list.map((item, index) => {
+                    const originalIdx = cloudHistory.indexOf(item);
+                    return `
+                        <div class="p-4 bg-white border border-slate-200 rounded-2xl shadow-xs flex items-center justify-between text-xs">
+                            <div>
+                                <div class="font-bold text-slate-900">${item.type} • ${item.inspector || '-'}</div>
+                                <div class="text-[10px] text-slate-400 font-mono">${item.timestamp}</div>
+                            </div>
+                            <button onclick="openHistoryItemPdf(${originalIdx})" class="text-sky-600 font-bold hover:underline bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-200"><i class="fa-solid fa-file-pdf"></i> PDF öffnen</button>
                         </div>
-                        <button onclick="previewActivePdf()" class="text-sky-600 font-bold hover:underline"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
         }
 
         function confirmResetAll() { cloudHistory = []; renderHistoryView(); updateDashboard(); }
