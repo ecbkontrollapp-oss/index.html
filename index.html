@@ -46,7 +46,7 @@
             background-color: #ffffff;
         }
         .safe-bottom {
-            padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+            padding-bottom: max(4.5rem, env(safe-area-inset-bottom));
         }
         .status-btn {
             transition: all 0.15s ease-in-out;
@@ -62,7 +62,6 @@
 </head>
 <body id="app-body" class="h-full bg-slate-100 text-slate-800 flex flex-col md:flex-row font-sans select-none antialiased overflow-hidden">
 
-    <!-- PC SIDEBAR NAVIGATION -->
     <aside class="hidden md:flex flex-col w-64 bg-white border-r border-slate-200/80 p-4 shrink-0 shadow-xs z-30">
         <div class="flex items-center gap-3 px-2 py-3 mb-4 cursor-pointer" onclick="switchView('start')">
             <div class="w-10 h-10 rounded-xl bg-ecb flex flex-col items-center justify-center text-white shadow-xs p-1">
@@ -83,6 +82,9 @@
             </button>
             <button onclick="switchView('demin')" id="pc-nav-btn-demin" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
                 <i class="fa-solid fa-droplet w-5 text-base text-sky-600"></i> <span data-i18n="nav_demin">Entmineralisierung</span>
+            </button>
+            <button onclick="switchView('heating')" id="pc-nav-btn-heating" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+                <i class="fa-solid fa-fire w-5 text-base text-orange-600"></i> <span data-i18n="card_heating_title">Heizungskontrolle</span>
             </button>
             <button onclick="switchView('outdoor')" id="pc-nav-btn-outdoor" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
                 <i class="fa-solid fa-tree w-5 text-base text-emerald-600"></i> <span data-i18n="card_outdoor_title">Außenbereich</span>
@@ -118,7 +120,6 @@
         </div>
     </aside>
 
-    <!-- MOBILE HEADER -->
     <header class="md:hidden sticky top-0 z-30 bg-white border-b border-slate-200/80 px-4 py-2.5 shadow-xs shrink-0">
         <div class="max-w-md mx-auto flex items-center justify-between">
             <div class="flex items-center gap-2.5">
@@ -150,8 +151,7 @@
         </div>
     </header>
 
-    <!-- MAIN SCROLLABLE CONTAINER -->
-    <main id="main-container" class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 md:px-8 md:py-6 space-y-4 pb-28 md:pb-12 overflow-y-auto">
+    <main id="main-container" class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 md:px-8 md:py-6 space-y-4 safe-bottom overflow-y-auto">
 
         <!-- START VIEW -->
         <section id="view-start" class="view-panel space-y-4">
@@ -206,11 +206,11 @@
                 <div class="flex items-center gap-2.5">
                     <span id="daily-status-dot" class="w-3 h-3 rounded-full bg-slate-300"></span>
                     <span class="text-xs font-semibold text-slate-700" data-i18n="daily_status_label">Tagesstatus:</span>
-                    <span id="daily-status-text" class="text-xs font-bold text-slate-900">0 / 4 erledigt</span>
+                    <span id="daily-status-text" class="text-xs font-bold text-slate-900">0 / 5 erledigt</span>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                 <div onclick="switchView('demin')" class="bg-white rounded-2xl p-4 border border-slate-200 hover:border-sky-400 shadow-xs hover:shadow transition-all cursor-pointer group">
                     <div class="flex items-start justify-between">
                         <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-base mb-2 group-hover:scale-105 transition-transform">
@@ -218,9 +218,23 @@
                         </div>
                         <span id="card-badge-demin" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500" data-i18n="badge_open">Offen</span>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-sky-600 transition-colors" data-i18n="card_demin_title">1. Entmineralisierungsanlage</h3>
+                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-sky-600 transition-colors" data-i18n="card_demin_title">1. Entmineralisierung</h3>
                     <p id="card-sub-demin" class="text-[11px] text-slate-500 mt-0.5" data-i18n="card_demin_desc">Tägliche Kontrolle & Messwerte</p>
                     <div class="mt-3 flex items-center text-[11px] font-semibold text-sky-600">
+                        <span data-i18n="start_control">Kontrolle starten</span> <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
+                    </div>
+                </div>
+
+                <div onclick="switchView('heating')" class="bg-white rounded-2xl p-4 border border-slate-200 hover:border-orange-400 shadow-xs hover:shadow transition-all cursor-pointer group">
+                    <div class="flex items-start justify-between">
+                        <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-base mb-2 group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-fire"></i>
+                        </div>
+                        <span id="card-badge-heating" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500" data-i18n="badge_open">Offen</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-orange-600 transition-colors" data-i18n="card_heating_title">2. Heizungskontrolle</h3>
+                    <p id="card-sub-heating" class="text-[11px] text-slate-500 mt-0.5" data-i18n="card_heating_desc">Druck, Dichtheit & Speichertemperatur</p>
+                    <div class="mt-3 flex items-center text-[11px] font-semibold text-orange-600">
                         <span data-i18n="start_control">Kontrolle starten</span> <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
                     </div>
                 </div>
@@ -232,7 +246,7 @@
                         </div>
                         <span id="card-badge-outdoor" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500" data-i18n="badge_open">Offen</span>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors" data-i18n="card_outdoor_title">2. Außenbereich</h3>
+                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors" data-i18n="card_outdoor_title">3. Außenbereich</h3>
                     <p id="card-sub-outdoor" class="text-[11px] text-slate-500 mt-0.5" data-i18n="card_outdoor_desc">Mülleimer, Tische & Sauberkeit mit Foto</p>
                     <div class="mt-3 flex items-center text-[11px] font-semibold text-emerald-700">
                         <span data-i18n="start_control">Kontrolle starten</span> <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
@@ -246,7 +260,7 @@
                         </div>
                         <span id="card-badge-breakroom" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500" data-i18n="badge_open">Offen</span>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-amber-700 transition-colors" data-i18n="card_breakroom_title">3. Pausenraum</h3>
+                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-amber-700 transition-colors" data-i18n="card_breakroom_title">4. Pausenraum</h3>
                     <p id="card-sub-breakroom" class="text-[11px] text-slate-500 mt-0.5" data-i18n="card_breakroom_desc">Ordnung, Hygiene & Müllentsorgung</p>
                     <div class="mt-3 flex items-center text-[11px] font-semibold text-amber-700">
                         <span data-i18n="start_control">Kontrolle starten</span> <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
@@ -260,7 +274,7 @@
                         </div>
                         <span id="card-badge-vehicle" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500" data-i18n="badge_open">Offen</span>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-indigo-700 transition-colors" data-i18n="card_vehicle_title">4. Fahrzeuge</h3>
+                    <h3 class="text-sm font-bold text-slate-900 group-hover:text-indigo-700 transition-colors" data-i18n="card_vehicle_title">5. Fahrzeuge</h3>
                     <p id="card-sub-vehicle" class="text-[11px] text-slate-500 mt-0.5" data-i18n="card_vehicle_desc">Zustand, Reifendruck & Sauberkeit</p>
                     <div class="mt-3 flex items-center text-[11px] font-semibold text-indigo-700">
                         <span data-i18n="start_control">Kontrolle starten</span> <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
@@ -282,12 +296,12 @@
         </section>
 
         <!-- DEMIN VIEW -->
-        <section id="view-demin" class="view-panel hidden space-y-4">
+        <section id="view-demin" class="view-panel hidden space-y-4 pb-24">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
                 </button>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100" data-i18n="step1_of_4">Bereich 1</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100">Entmineralisierung</span>
             </div>
 
             <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
@@ -378,7 +392,7 @@
                         <textarea id="demin-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-sky-500"></textarea>
                     </div>
 
-                    <div>
+                    <div class="pb-2">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('demin')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
@@ -395,13 +409,95 @@
             </div>
         </section>
 
-        <!-- OUTDOOR VIEW -->
-        <section id="view-outdoor" class="view-panel hidden space-y-4">
+        <!-- HEATING VIEW -->
+        <section id="view-heating" class="view-panel hidden space-y-4 pb-24">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
                 </button>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100" data-i18n="step2_of_4">Bereich 2</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-100" data-i18n="card_heating_title">Heizungskontrolle</span>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
+                <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+                    <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-base shrink-0">
+                        <i class="fa-solid fa-fire"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-900" data-i18n="heating_header">Heizungskontrolle (Druck, Dichtheit & Speicher)</h2>
+                        <p class="text-[10px] text-slate-400"><span data-i18n="report_to">Meldung an:</span> <strong class="text-slate-600 font-mono">pb@ecb-system.de</strong></p>
+                    </div>
+                </div>
+
+                <form id="form-heating" onsubmit="saveHeating(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
+                        <input type="text" id="heating-inspector" required placeholder="Vor- und Nachname" data-i18n-ph="ph_name"
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-orange-500 outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_heating_press">Heizungsdruck (bar)</label>
+                            <input type="number" step="0.1" id="heating-press" placeholder="z. B. 1.8" 
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-orange-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_heating_temp">Wassertemperatur Speicher (°C)</label>
+                            <input type="number" step="0.5" id="heating-temp" placeholder="z. B. 60.5" 
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-orange-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_heating_checks">Sicht- & Dichtheitsprüfung</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                                <div class="text-xs font-semibold text-slate-800" data-i18n="check_heating_leaks">Keine Undichtigkeiten / Leckagen</div>
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <button type="button" onclick="setItemStatus('heating', 'leaks', 'ok')" id="btn-heating-leaks-ok" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700"><i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">i.O.</span></button>
+                                    <button type="button" onclick="setItemStatus('heating', 'leaks', 'fail')" id="btn-heating-leaks-fail" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500"><i class="fa-solid fa-circle-xmark"></i> <span data-i18n="status_fail">Mangel</span></button>
+                                </div>
+                            </div>
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                                <div class="text-xs font-semibold text-slate-800" data-i18n="check_heating_defects">Keine Mängel / Störungen am System</div>
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <button type="button" onclick="setItemStatus('heating', 'defects', 'ok')" id="btn-heating-defects-ok" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700"><i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">i.O.</span></button>
+                                    <button type="button" onclick="setItemStatus('heating', 'defects', 'fail')" id="btn-heating-defects-fail" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500"><i class="fa-solid fa-circle-xmark"></i> <span data-i18n="status_fail">Mangel</span></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_heating_notes">Bemerkungen</label>
+                        <textarea id="heating-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-orange-500"></textarea>
+                    </div>
+
+                    <div class="pb-2">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
+                            <button type="button" onclick="clearSignature('heating')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
+                        </div>
+                        <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
+                            <canvas id="canvas-heating" class="sig-canvas"></canvas>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs">
+                        <i class="fa-solid fa-paper-plane"></i> <span data-i18n="btn_save_send_heating">Heizungskontrolle speichern & Protokoll versenden</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- OUTDOOR VIEW -->
+        <section id="view-outdoor" class="view-panel hidden space-y-4 pb-24">
+            <div class="flex items-center justify-between">
+                <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
+                    <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
+                </button>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">Außenbereich</span>
             </div>
 
             <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
@@ -471,7 +567,7 @@
                         <textarea id="outdoor-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-emerald-500"></textarea>
                     </div>
 
-                    <div>
+                    <div class="pb-2">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('outdoor')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
@@ -489,12 +585,12 @@
         </section>
 
         <!-- BREAKROOM VIEW -->
-        <section id="view-breakroom" class="view-panel hidden space-y-4">
+        <section id="view-breakroom" class="view-panel hidden space-y-4 pb-24">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
                 </button>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100" data-i18n="step3_of_4">Bereich 3</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">Pausenraum</span>
             </div>
 
             <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
@@ -569,7 +665,7 @@
                         <textarea id="breakroom-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500"></textarea>
                     </div>
 
-                    <div>
+                    <div class="pb-2">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('breakroom')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
@@ -587,7 +683,7 @@
         </section>
 
         <!-- VEHICLE VIEW -->
-        <section id="view-vehicle" class="view-panel hidden space-y-4">
+        <section id="view-vehicle" class="view-panel hidden space-y-4 pb-24">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -596,7 +692,7 @@
                     <button onclick="switchView('vehicle_fleet')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-indigo-200">
                         <i class="fa-solid fa-car"></i> <span data-i18n="btn_fleet_manage">KFZ-Park & TÜV</span>
                     </button>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100" data-i18n="step4_of_4">Bereich 4</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">Fahrzeuge</span>
                 </div>
             </div>
 
@@ -683,7 +779,7 @@
                         <textarea id="vehicle-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500"></textarea>
                     </div>
 
-                    <div>
+                    <div class="pb-2">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('vehicle')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
@@ -701,7 +797,7 @@
         </section>
 
         <!-- VEHICLE FLEET MANAGEMENT VIEW -->
-        <section id="view-vehicle_fleet" class="view-panel hidden space-y-4">
+        <section id="view-vehicle_fleet" class="view-panel hidden space-y-4 pb-24">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -733,7 +829,7 @@
         </section>
 
         <!-- VACATION VIEW -->
-        <section id="view-vacation" class="view-panel hidden space-y-4">
+        <section id="view-vacation" class="view-panel hidden space-y-4 pb-24">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="vacation_title">Urlaubsplan & Antrag</h2>
@@ -808,7 +904,7 @@
         </section>
 
         <!-- SHIFTS VIEW -->
-        <section id="view-shifts" class="view-panel hidden space-y-4">
+        <section id="view-shifts" class="view-panel hidden space-y-4 pb-24">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="shift_title">Schichtkalender & Auslieferung</h2>
@@ -857,7 +953,7 @@
         </section>
 
         <!-- HISTORY VIEW -->
-        <section id="view-history" class="view-panel hidden space-y-4">
+        <section id="view-history" class="view-panel hidden space-y-4 pb-24">
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="history_title">Historie & Ordner</h2>
@@ -871,6 +967,7 @@
             <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 pt-0.5">
                 <button onclick="setHistoryFilter('all')" id="hist-filter-all" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white shadow-xs">📁 <span data-i18n="filter_all">Alle</span> (<span id="count-all">0</span>)</button>
                 <button onclick="setHistoryFilter('Entmineralisierung')" id="hist-filter-demin" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600">💧 <span data-i18n="filter_demin">Entmin.</span> (<span id="count-demin">0</span>)</button>
+                <button onclick="setHistoryFilter('Heizungskontrolle')" id="hist-filter-heating" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600">🔥 Heizung (<span id="count-heating">0</span>)</button>
                 <button onclick="setHistoryFilter('Außenbereich')" id="hist-filter-outdoor" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600">🌳 <span data-i18n="filter_outdoor">Außen</span> (<span id="count-outdoor">0</span>)</button>
                 <button onclick="setHistoryFilter('Pausenraum')" id="hist-filter-breakroom" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600">☕ <span data-i18n="filter_breakroom">Pause</span> (<span id="count-breakroom">0</span>)</button>
                 <button onclick="setHistoryFilter('Fahrzeuge')" id="hist-filter-vehicle" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600">🚚 <span data-i18n="filter_vehicle">KFZ</span> (<span id="count-vehicle">0</span>)</button>
@@ -889,33 +986,31 @@
 
     </main>
 
-    <!-- MOBILE BOTTOM NAVIGATION (Hidden on PC) -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 safe-bottom shadow-lg">
-        <div class="max-w-md mx-auto grid grid-cols-5 px-1 pt-2 pb-3 text-center">
+        <div class="max-w-md mx-auto grid grid-cols-5 px-1 py-1 text-center">
             <button onclick="switchView('start')" id="nav-btn-start" class="nav-item flex flex-col items-center justify-center py-1 text-sky-600">
-                <i class="fa-solid fa-house text-xl mb-0.5"></i>
-                <span class="text-[10px] font-extrabold" data-i18n="nav_start">Start</span>
+                <i class="fa-solid fa-house text-base mb-0.5"></i>
+                <span class="text-[9px] font-extrabold" data-i18n="nav_start">Start</span>
             </button>
             <button onclick="switchView('demin')" id="nav-btn-demin" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400">
-                <i class="fa-solid fa-droplet text-xl mb-0.5"></i>
-                <span class="text-[10px] font-bold" data-i18n="nav_demin">Entmin.</span>
+                <i class="fa-solid fa-droplet text-base mb-0.5"></i>
+                <span class="text-[9px] font-bold" data-i18n="nav_demin">Entmin.</span>
             </button>
             <button onclick="switchView('vehicle_fleet')" id="nav-btn-fleet" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400">
-                <i class="fa-solid fa-car text-xl mb-0.5"></i>
-                <span class="text-[10px] font-bold" data-i18n="nav_fleet">Parc Auto</span>
+                <i class="fa-solid fa-car text-base mb-0.5"></i>
+                <span class="text-[9px] font-bold" data-i18n="nav_fleet">Parc Auto</span>
             </button>
             <button onclick="switchView('vacation')" id="nav-btn-vacation" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400">
-                <i class="fa-solid fa-umbrella-beach text-xl mb-0.5"></i>
-                <span class="text-[10px] font-bold" data-i18n="nav_vacation">Urlaub</span>
+                <i class="fa-solid fa-umbrella-beach text-base mb-0.5"></i>
+                <span class="text-[9px] font-bold" data-i18n="nav_vacation">Urlaub</span>
             </button>
             <button onclick="switchView('history')" id="nav-btn-history" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400">
-                <i class="fa-solid fa-folder-tree text-xl mb-0.5"></i>
-                <span class="text-[10px] font-bold" data-i18n="nav_history">Ordner</span>
+                <i class="fa-solid fa-folder-tree text-base mb-0.5"></i>
+                <span class="text-[9px] font-bold" data-i18n="nav_history">Ordner</span>
             </button>
         </div>
     </nav>
 
-    <!-- VACATION MODAL -->
     <div id="modal-vacation" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
         <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -1175,7 +1270,7 @@
         </div>
     </div>
 
-    <div id="toast" class="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2 rounded-full shadow-2xl text-xs font-medium opacity-0 pointer-events-none transition-opacity duration-300 flex items-center gap-2">
+    <div id="toast" class="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2 rounded-full shadow-2xl text-xs font-medium opacity-0 pointer-events-none transition-opacity duration-300 flex items-center gap-2">
         <i class="fa-solid fa-circle-check text-emerald-400"></i>
         <span id="toast-text">Meldung</span>
     </div>
@@ -1214,19 +1309,21 @@
                 status_on_leave: "Im Urlaub",
                 card_demin_title: "1. Entmineralisierung",
                 card_demin_desc: "Tägliche Kontrolle & Messwerte",
-                card_outdoor_title: "2. Außenbereich",
+                card_heating_title: "2. Heizungskontrolle",
+                card_heating_desc: "Druck, Dichtheit & Speichertemperatur",
+                card_outdoor_title: "3. Außenbereich",
                 card_outdoor_desc: "Mülleimer, Tische & Sauberkeit mit Foto",
-                card_breakroom_title: "3. Pausenraum",
+                card_breakroom_title: "4. Pausenraum",
                 card_breakroom_desc: "Ordnung, Hygiene & Müllentsorgung",
-                card_vehicle_title: "4. Fahrzeuge",
+                card_vehicle_title: "5. Fahrzeuge",
                 card_vehicle_desc: "Zustand, Reifendruck & Sauberkeit",
                 start_control: "Kontrolle starten",
                 latest_controls_title: "Letzte Kontrollen (Cloud-Live)",
                 btn_folders: "Zu den Ordnern",
                 no_controls_today: "Noch keine Kontrollen heute durchgeführt.",
                 back_btn: "Zurück",
-                step1_of_4: "Bereich 1", step2_of_4: "Bereich 2", step3_of_4: "Bereich 3", step4_of_4: "Bereich 4",
                 demin_header: "Entmineralisierungsanlage",
+                heating_header: "Heizungskontrolle (Druck, Dichtheit & Speicher)",
                 outdoor_header: "Außenbereichskontrolle",
                 breakroom_header: "Pausenraumkontrolle",
                 vehicle_header: "Fahrzeugkontrolle",
@@ -1245,6 +1342,12 @@
                 label_sig: "Digitale Unterschrift *",
                 btn_clear: "Löschen",
                 btn_save_send_demin: "Entmineralisierung speichern & Protokoll versenden",
+                label_heating_press: "Heizungsdruck (bar)",
+                label_heating_temp: "Wassertemperatur Speicher (°C)",
+                label_heating_checks: "Sicht- & Dichtheitsprüfung",
+                check_heating_leaks: "Keine Undichtigkeiten / Leckagen",
+                check_heating_defects: "Keine Mängel / Störungen am System",
+                btn_save_send_heating: "Heizungskontrolle speichern & Protokoll versenden",
                 label_photo: "Aktuelles Live-Foto des Außenbereichs *",
                 btn_take_photo: "Aktuelles Foto mit Kamera aufnehmen",
                 btn_delete: "Entfernen",
@@ -1325,7 +1428,7 @@
                 history_title: "Historie & Ordner",
                 history_sub: "Google Firebase Cloud-Archiv",
                 btn_daily_pdf: "Tages-PDF",
-                filter_all: "Alle", filter_demin: "Entmineral.", filter_outdoor: "Außen", filter_breakroom: "Pause", filter_vehicle: "KFZ", filter_vacation: "Urlaub",
+                filter_all: "Alle", filter_demin: "Entmineral.", filter_outdoor: "Außen", filter_breakroom: "Pauze", filter_vehicle: "KFZ", filter_vacation: "Urlaub",
                 no_history: "Keine Berichte in diesem Ordner.",
                 btn_csv: "CSV Export",
                 btn_clear_history: "Verlauf leeren",
@@ -1342,19 +1445,21 @@
                 status_on_leave: "În concediu",
                 card_demin_title: "1. Demineralizare",
                 card_demin_desc: "Control zilnic & valori",
-                card_outdoor_title: "2. Zona Exterioară",
+                card_heating_title: "2. Control Încălzire",
+                card_heating_desc: "Presiune, etanșeitate & temp. boiler",
+                card_outdoor_title: "3. Zona Exterioară",
                 card_outdoor_desc: "Coșuri, mese & curățenie cu foto",
-                card_breakroom_title: "3. Sala de Pauză",
+                card_breakroom_title: "4. Sala de Pauză",
                 card_breakroom_desc: "Ordine, igienă & deșeuri",
-                card_vehicle_title: "4. Vehicule",
+                card_vehicle_title: "5. Vehicule",
                 card_vehicle_desc: "Stare, presiune anvelope & curățenie",
                 start_control: "Începe controlul",
                 latest_controls_title: "Ultimele controale (Cloud-Live)",
                 btn_folders: "La dosare",
                 no_controls_today: "Niciun control efectuat astăzi.",
                 back_btn: "Înapoi",
-                step1_of_4: "Zona 1", step2_of_4: "Zona 2", step3_of_4: "Zona 3", step4_of_4: "Zona 4",
                 demin_header: "Instalație Demineralizare",
+                heating_header: "Control Încălzire (Presiune, Etanșeitate & Boiler)",
                 outdoor_header: "Control Zona Exterioară",
                 breakroom_header: "Control Sala de Pauză",
                 vehicle_header: "Control Vehicule",
@@ -1373,6 +1478,12 @@
                 label_sig: "Semnătură digitală *",
                 btn_clear: "Șterge",
                 btn_save_send_demin: "Salvează demineralizarea & trimite",
+                label_heating_press: "Presiune încălzire (bar)",
+                label_heating_temp: "Temperatura apei în boiler (°C)",
+                label_heating_checks: "Verificare vizuală & etanșeitate",
+                check_heating_leaks: "Fără scurgeri / pierderi de presiune",
+                check_heating_defects: "Fără defecte / anomalii la sistem",
+                btn_save_send_heating: "Salvează controlul încălzirii & trimite",
                 label_photo: "Fotografie live a zonei exterioare *",
                 btn_take_photo: "Fă o fotografie cu camera",
                 btn_delete: "Șterge",
@@ -1505,8 +1616,9 @@
 
         const state = {
             todayKey: new Date().toISOString().slice(0, 10),
-            data: { entmineralisierung: null, aussenbereich: null, pausenraum: null, fahrzeuge: null },
+            data: { entmineralisierung: null, heizungskontrolle: null, aussenbereich: null, pausenraum: null, fahrzeuge: null },
             statusDemin: { leak: 'ok', filter: 'ok', resin: 'ok', salt: 'ok' },
+            statusHeating: { leaks: 'ok', defects: 'ok' },
             statusOutdoor: { trash: 'ok', tables: 'ok', grounds: 'ok' },
             statusBreakroom: { surfaces: 'ok', appliances: 'ok', trash: 'ok', floor: 'ok' },
             statusVehicle: { clean: 'ok', condition: 'ok', tirePressure: 'ok', warnings: 'ok' },
@@ -1525,6 +1637,7 @@
 
         function setItemStatus(domain, key, status) {
             if (domain === 'demin') { state.statusDemin[key] = status; updateButtonUi(`btn-demin-${key}-ok`, `btn-demin-${key}-fail`, status); }
+            else if (domain === 'heating') { state.statusHeating[key] = status; updateButtonUi(`btn-heating-${key}-ok`, `btn-heating-${key}-fail`, status); }
             else if (domain === 'outdoor') { state.statusOutdoor[key] = status; updateButtonUi(`btn-outdoor-${key}-ok`, `btn-outdoor-${key}-fail`, status); }
             else if (domain === 'breakroom') { state.statusBreakroom[key] = status; updateButtonUi(`btn-breakroom-${key}-ok`, `btn-breakroom-${key}-fail`, status); }
             else if (domain === 'vehicle') { state.statusVehicle[key] = status; updateButtonUi(`btn-vehicle-${key}-ok`, `btn-vehicle-${key}-fail`, status); }
@@ -1647,6 +1760,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             pads.demin = new SignaturePad('canvas-demin');
+            pads.heating = new SignaturePad('canvas-heating');
             pads.outdoor = new SignaturePad('canvas-outdoor');
             pads.breakroom = new SignaturePad('canvas-breakroom');
             pads.vehicle = new SignaturePad('canvas-vehicle');
@@ -1722,6 +1836,7 @@
             let updated = false;
             todayItems.forEach(item => {
                 if (item.type === 'Entmineralisierung' && !state.data.entmineralisierung) { state.data.entmineralisierung = item.data; updated = true; }
+                if (item.type === 'Heizungskontrolle' && !state.data.heizungskontrolle) { state.data.heizungskontrolle = item.data; updated = true; }
                 if (item.type === 'Außenbereich' && !state.data.aussenbereich) { state.data.aussenbereich = item.data; updated = true; }
                 if (item.type === 'Pausenraum' && !state.data.pausenraum) { state.data.pausenraum = item.data; updated = true; }
                 if (item.type === 'Fahrzeuge' && !state.data.fahrzeuge) { state.data.fahrzeuge = item.data; updated = true; }
@@ -1825,6 +1940,28 @@
             persist(); addHistory('Entmineralisierung', rec); updateDashboard();
             showToast(t('toast_saved'));
             triggerSingleDispatch('Entmineralisierung', rec);
+        }
+
+        function saveHeating(e) {
+            e.preventDefault();
+            if (!pads.heating || pads.heating.isEmpty()) { showToast(t('toast_need_sig')); return; }
+            const now = new Date();
+            const timeFormatted = now.toLocaleDateString('de-DE') + ' · ' + now.toLocaleTimeString('de-DE');
+            const sig = pads.heating.canvas.toDataURL('image/png');
+
+            const rec = {
+                inspector: document.getElementById('heating-inspector').value.trim(),
+                pressure: document.getElementById('heating-press').value.trim() || '-',
+                temp: document.getElementById('heating-temp').value.trim() || '-',
+                statusLeaks: state.statusHeating.leaks, statusDefects: state.statusHeating.defects,
+                notes: document.getElementById('heating-notes').value.trim() || '-',
+                timestamp: timeFormatted, signature: sig
+            };
+
+            state.data.heizungskontrolle = rec;
+            persist(); addHistory('Heizungskontrolle', rec); updateDashboard();
+            showToast(t('toast_saved'));
+            triggerSingleDispatch('Heizungskontrolle', rec);
         }
 
         function saveOutdoor(e) {
@@ -2066,9 +2203,16 @@
             };
 
             const newEntry = { date: now.toISOString().slice(0, 10), timestamp: rec.timestamp, createdAt: Date.now(), type: 'Urlaub', inspector: employee, data: rec };
-            if (db) db.collection('urlaube').add(newEntry).catch(() => {});
-            cloudVacations.unshift(newEntry);
-            renderVacationList();
+            if (db) {
+                db.collection('urlaube').add(newEntry).then(ref => {
+                    newEntry.id = ref.id;
+                    cloudVacations.unshift(newEntry);
+                    renderVacationList();
+                }).catch(() => {});
+            } else {
+                cloudVacations.unshift(newEntry);
+                renderVacationList();
+            }
             closeModal('modal-vacation');
             showToast(t('toast_saved'));
             triggerSingleDispatch('Urlaub', rec);
@@ -2091,7 +2235,17 @@
             const item = cloudVacations.find(i => i.id === docId);
             if (!item) return;
             item.data.status = newStatus;
-            if (db && item.id) db.collection('urlaube').doc(item.id).update({ 'data.status': newStatus }).catch(() => {});
+            if (db && item.id) {
+                db.collection('urlaube').doc(item.id).update({ 'data.status': newStatus }).catch(() => {});
+                db.collection('kontrollen').where('type', '==', 'Urlaub').get().then(snap => {
+                    snap.forEach(docSnap => {
+                        const d = docSnap.data();
+                        if (d.data && d.data.employee === item.data.employee && d.data.startDate === item.data.startDate) {
+                            db.collection('kontrollen').doc(docSnap.id).update({ 'data.status': newStatus }).catch(() => {});
+                        }
+                    });
+                }).catch(()=>{});
+            }
             renderVacationList();
             showToast(t('toast_saved'));
         }
@@ -2166,8 +2320,8 @@
                     return `
                         <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
                             <div>
-                                <div class="font-bold text-slate-900">${d.employee} • <span class="text-emerald-700">${d.status}</span></div>
-                                <div class="text-slate-500 text-[11px]">📅 ${d.startDate} bis ${d.endDate} (${d.daysCount} Tage)</div>
+                                <div class="font-bold text-slate-900">${d.employee} • <span class="${d.status === 'Genehmigt' ? 'text-emerald-700' : d.status === 'Abgelehnt' ? 'text-rose-600' : 'text-amber-600'}">${d.status}</span></div>
+                                <div class="text-slate-500 text-[11px]">📅 Von ${d.startDate} bis ${d.endDate} (${d.daysCount} Tage)</div>
                             </div>
                             <button onclick="deleteVacationEntry('${item.id}')" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
@@ -2253,6 +2407,14 @@
                     if (d.photo) { state.photos.demin = d.photo; document.getElementById('photo-preview-img-demin').src = d.photo; document.getElementById('photo-preview-box-demin').classList.remove('hidden'); document.getElementById('photo-btns-demin').classList.add('hidden'); }
                     if (d.signature && pads.demin) pads.demin.loadDataUrl(d.signature);
                 }
+                if (state.data.heizungskontrolle) {
+                    const h = state.data.heizungskontrolle;
+                    document.getElementById('heating-inspector').value = h.inspector || '';
+                    document.getElementById('heating-press').value = h.pressure !== '-' ? h.pressure : '';
+                    document.getElementById('heating-temp').value = h.temp !== '-' ? h.temp : '';
+                    document.getElementById('heating-notes').value = h.notes !== '-' ? h.notes : '';
+                    if (h.signature && pads.heating) pads.heating.loadDataUrl(h.signature);
+                }
                 if (state.data.aussenbereich) {
                     const a = state.data.aussenbereich;
                     document.getElementById('outdoor-inspector').value = a.inspector || '';
@@ -2281,15 +2443,16 @@
 
         function updateDashboard() {
             const dDone = !!state.data.entmineralisierung;
+            const hDone = !!state.data.heizungskontrolle;
             const oDone = !!state.data.aussenbereich;
             const bDone = !!state.data.pausenraum;
             const vDone = !!state.data.fahrzeuge;
-            let count = (dDone ? 1 : 0) + (oDone ? 1 : 0) + (bDone ? 1 : 0) + (vDone ? 1 : 0);
+            let count = (dDone ? 1 : 0) + (hDone ? 1 : 0) + (oDone ? 1 : 0) + (bDone ? 1 : 0) + (vDone ? 1 : 0);
 
             const statusText = document.getElementById('daily-status-text');
             const statusDot = document.getElementById('daily-status-dot');
-            if (statusText) statusText.innerText = `${count} / 4 erledigt`;
-            if (statusDot) statusDot.className = count === 4 ? 'w-3 h-3 rounded-full bg-emerald-500' : count > 0 ? 'w-3 h-3 rounded-full bg-amber-400' : 'w-3 h-3 rounded-full bg-slate-300';
+            if (statusText) statusText.innerText = `${count} / 5 erledigt`;
+            if (statusDot) statusDot.className = count === 5 ? 'w-3 h-3 rounded-full bg-emerald-500' : count > 0 ? 'w-3 h-3 rounded-full bg-amber-400' : 'w-3 h-3 rounded-full bg-slate-300';
 
             const updateBadge = (id, subId, done, inspector) => {
                 const badge = document.getElementById(id);
@@ -2301,6 +2464,7 @@
                 if (sub && done && inspector) sub.innerHTML = `✓ Erledigt von <strong>${inspector}</strong>`;
             };
             updateBadge('card-badge-demin', 'card-sub-demin', dDone, state.data.entmineralisierung?.inspector);
+            updateBadge('card-badge-heating', 'card-sub-heating', hDone, state.data.heizungskontrolle?.inspector);
             updateBadge('card-badge-outdoor', 'card-sub-outdoor', oDone, state.data.aussenbereich?.inspector);
             updateBadge('card-badge-breakroom', 'card-sub-breakroom', bDone, state.data.pausenraum?.inspector);
             updateBadge('card-badge-vehicle', 'card-sub-vehicle', vDone, state.data.fahrzeuge?.inspector);
@@ -2315,7 +2479,45 @@
 
             if (ctx.type === 'FleetSummary') return buildFleetSummaryPdf(doc, cloudFleetVehicles, dateStr, timeStr);
             if (ctx.type === 'Gesamtbericht') return buildCompleteSummaryPdf(doc, ctx.data, cloudFleetVehicles, dateStr, timeStr);
+            if (ctx.type === 'Urlaub') return buildVacationPdf(doc, ctx.data, dateStr, timeStr);
             return buildSingleSectionPdf(doc, ctx.type, ctx.data, dateStr, timeStr);
+        }
+
+        function buildVacationPdf(doc, rec, dateStr, timeStr) {
+            renderPdfHeader(doc, 'URLAUBSANTRAG', dateStr, timeStr);
+            doc.setDrawColor(226, 232, 240); doc.roundedRect(15, 36, 180, 234, 3, 3, 'S');
+            doc.setFillColor(248, 250, 252); doc.roundedRect(15, 36, 180, 10, 3, 3, 'F');
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
+            doc.text('URLAUBSANTRAG & ZEITRAUM', 19, 42.5);
+
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+            doc.text(`Mitarbeiter: ${rec.employee || '-'}`, 23, 56);
+            doc.text(`Antrag vom: ${rec.timestamp || '-'}`, 23, 64);
+            doc.text(`Von Datum: ${rec.startDate || '-'}`, 23, 72);
+            doc.text(`Bis Datum: ${rec.endDate || '-'}`, 23, 80);
+            doc.text(`Gesamttage: ${rec.daysCount || 1} Arbeitstage`, 23, 88);
+            doc.text(`Art des Urlaubs: ${rec.vacType || 'Erholungsurlaub'}`, 23, 96);
+            doc.text(`Bemerkung: ${rec.notes || '-'}`, 23, 104);
+
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+            if (rec.status === 'Genehmigt') {
+                doc.setTextColor(16, 185, 129);
+                doc.text('STATUS: GENEHMIGT', 23, 120);
+            } else if (rec.status === 'Abgelehnt') {
+                doc.setTextColor(225, 29, 72);
+                doc.text('STATUS: ABGELEHNT', 23, 120);
+            } else {
+                doc.setTextColor(217, 119, 6);
+                doc.text('STATUS: AUSSTEHEND', 23, 120);
+            }
+
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(71, 85, 105);
+            doc.text('Unterschrift Antragsteller:', 23, 140);
+            if (rec.signature) {
+                try { doc.addImage(rec.signature, 'PNG', 23, 146, 100, 45); } catch(e){}
+            }
+            renderPdfFooter(doc, 1, 1);
+            return doc;
         }
 
         function buildFleetSummaryPdf(doc, list, dateStr, timeStr) {
@@ -2358,9 +2560,10 @@
 
             const sections = [
                 { title: '1. Entmineralisierungsanlage', d: data.entmineralisierung },
-                { title: '2. Außenbereichskontrolle', d: data.aussenbereich },
-                { title: '3. Pausenraumkontrolle', d: data.pausenraum },
-                { title: '4. Fahrzeugkontrolle (Tagesbericht)', d: data.fahrzeuge }
+                { title: '2. Heizungskontrolle', d: data.heizungskontrolle },
+                { title: '3. Außenbereichskontrolle', d: data.aussenbereich },
+                { title: '4. Pausenraumkontrolle', d: data.pausenraum },
+                { title: '5. Fahrzeugkontrolle (Tagesbericht)', d: data.fahrzeuge }
             ];
 
             sections.forEach(sec => {
@@ -2377,6 +2580,7 @@
                 doc.text(`Prüfer: ${sec.d.inspector || '-' } | Zeit: ${sec.d.timestamp || '-'}`, 18, y);
                 y += 5;
                 if (sec.d.conductivity) { doc.text(`Leitwert: ${sec.d.conductivity} µS/cm | Druck: ${sec.d.pressure || '-'} bar`, 18, y); y += 5; }
+                if (sec.d.pressure && !sec.d.conductivity) { doc.text(`Heizungsdruck: ${sec.d.pressure} bar | Speichertemperatur: ${sec.d.temp || '-'} °C`, 18, y); y += 5; }
                 if (sec.d.plate) { doc.text(`Fahrzeug: ${sec.d.plate} | KM: ${sec.d.km || '-'}`, 18, y); y += 5; }
                 doc.text(`Notizen: ${sec.d.notes || '-'}`, 18, y);
                 y += 8;
@@ -2390,7 +2594,6 @@
                 y += 4;
             });
 
-            // Fleet / Maintenance table summary
             if (fleetList && fleetList.length > 0) {
                 if (y > 210) { doc.addPage(); pageNum++; y = 20; }
                 doc.setFillColor(238, 247, 234);
@@ -2422,7 +2625,13 @@
             doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
             doc.text(`Prüfer: ${rec.inspector || rec.employee || '-'}`, 23, 58);
             doc.text(`Zeit: ${rec.timestamp || '-'}`, 23, 65);
-            doc.text(`Notizen: ${rec.notes || '-'}`, 23, 72);
+            if (rec.pressure && rec.temp) {
+                doc.text(`Heizungsdruck: ${rec.pressure} bar`, 23, 72);
+                doc.text(`Wassertemperatur Speicher: ${rec.temp} °C`, 23, 79);
+                doc.text(`Notizen: ${rec.notes || '-'}`, 23, 86);
+            } else {
+                doc.text(`Notizen: ${rec.notes || '-'}`, 23, 72);
+            }
             if (rec.signature) { try { doc.addImage(rec.signature, 'PNG', 35, 178, 140, 70); } catch(e){} }
             renderPdfFooter(doc, 1, 1);
             return doc;
@@ -2537,6 +2746,7 @@
             
             document.getElementById('count-all').innerText = cloudHistory.length;
             document.getElementById('count-demin').innerText = cloudHistory.filter(i => i.type === 'Entmineralisierung').length;
+            document.getElementById('count-heating').innerText = cloudHistory.filter(i => i.type === 'Heizungskontrolle').length;
             document.getElementById('count-outdoor').innerText = cloudHistory.filter(i => i.type === 'Außenbereich').length;
             document.getElementById('count-breakroom').innerText = cloudHistory.filter(i => i.type === 'Pausenraum').length;
             document.getElementById('count-vehicle').innerText = cloudHistory.filter(i => i.type === 'Fahrzeuge').length;
