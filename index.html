@@ -42,11 +42,11 @@
             cursor: crosshair;
             display: block;
             width: 100%;
-            height: 130px;
+            height: 120px;
             background-color: #ffffff;
         }
         .safe-bottom {
-            padding-bottom: max(4.5rem, env(safe-area-inset-bottom));
+            padding-bottom: max(0.2rem, env(safe-area-inset-bottom));
         }
         .status-btn {
             transition: all 0.15s ease-in-out;
@@ -151,7 +151,7 @@
         </div>
     </header>
 
-    <main id="main-container" class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 md:px-8 md:py-6 space-y-4 safe-bottom overflow-y-auto">
+    <main id="main-container" class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 md:px-8 md:py-6 space-y-4 pb-20 md:pb-8 overflow-y-auto">
 
         <!-- START VIEW -->
         <section id="view-start" class="view-panel space-y-4">
@@ -296,7 +296,7 @@
         </section>
 
         <!-- DEMIN VIEW -->
-        <section id="view-demin" class="view-panel hidden space-y-4 pb-24">
+        <section id="view-demin" class="view-panel hidden space-y-4">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -410,7 +410,7 @@
         </section>
 
         <!-- HEATING VIEW -->
-        <section id="view-heating" class="view-panel hidden space-y-4 pb-24">
+        <section id="view-heating" class="view-panel hidden space-y-4">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -492,7 +492,7 @@
         </section>
 
         <!-- OUTDOOR VIEW -->
-        <section id="view-outdoor" class="view-panel hidden space-y-4 pb-24">
+        <section id="view-outdoor" class="view-panel hidden space-y-4">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -585,7 +585,7 @@
         </section>
 
         <!-- BREAKROOM VIEW -->
-        <section id="view-breakroom" class="view-panel hidden space-y-4 pb-24">
+        <section id="view-breakroom" class="view-panel hidden space-y-4">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -683,7 +683,7 @@
         </section>
 
         <!-- VEHICLE VIEW -->
-        <section id="view-vehicle" class="view-panel hidden space-y-4 pb-24">
+        <section id="view-vehicle" class="view-panel hidden space-y-4">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -797,7 +797,7 @@
         </section>
 
         <!-- VEHICLE FLEET MANAGEMENT VIEW -->
-        <section id="view-vehicle_fleet" class="view-panel hidden space-y-4 pb-24">
+        <section id="view-vehicle_fleet" class="view-panel hidden space-y-4">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -829,15 +829,20 @@
         </section>
 
         <!-- VACATION VIEW -->
-        <section id="view-vacation" class="view-panel hidden space-y-4 pb-24">
+        <section id="view-vacation" class="view-panel hidden space-y-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="vacation_title">Urlaubsplan & Antrag</h2>
                     <p class="text-xs text-slate-500 flex items-center gap-1"><i class="fa-solid fa-cloud text-emerald-600"></i> <span data-i18n="vacation_sub">Gemeinsamer Cloud-Urlaubsplan</span></p>
                 </div>
-                <button onclick="openNewVacationModal()" class="px-4 py-2.5 bg-ecb hover:bg-ecb-dark text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
-                    <i class="fa-solid fa-plus"></i> <span data-i18n="btn_new_vacation">Urlaub beantragen</span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="previewTeamVacationSummaryPdf()" class="px-3.5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs" title="PDF">
+                        <i class="fa-solid fa-file-pdf text-rose-400"></i> <span data-i18n="btn_team_vacation_pdf">Gesamt-PDF</span>
+                    </button>
+                    <button onclick="openNewVacationModal()" class="px-4 py-2.5 bg-ecb hover:bg-ecb-dark text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                        <i class="fa-solid fa-plus"></i> <span data-i18n="btn_new_vacation">Urlaub beantragen</span>
+                    </button>
+                </div>
             </div>
 
             <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-md space-y-3">
@@ -879,9 +884,6 @@
                             <option value="05">Mai</option><option value="06">Juni</option><option value="07">Juli</option><option value="08">August</option>
                             <option value="09">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Dezember</option>
                         </select>
-                        <button onclick="previewTeamVacationSummaryPdf()" class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 shadow-xs" title="PDF">
-                            <i class="fa-solid fa-file-pdf text-rose-400"></i> PDF
-                        </button>
                     </div>
                 </div>
 
@@ -904,7 +906,7 @@
         </section>
 
         <!-- SHIFTS VIEW -->
-        <section id="view-shifts" class="view-panel hidden space-y-4 pb-24">
+        <section id="view-shifts" class="view-panel hidden space-y-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="shift_title">Schichtkalender & Auslieferung</h2>
@@ -953,7 +955,7 @@
         </section>
 
         <!-- HISTORY VIEW -->
-        <section id="view-history" class="view-panel hidden space-y-4 pb-24">
+        <section id="view-history" class="view-panel hidden space-y-4">
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="history_title">Historie & Ordner</h2>
@@ -988,29 +990,30 @@
 
     <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 safe-bottom shadow-lg">
         <div class="max-w-md mx-auto grid grid-cols-5 px-1 py-1 text-center">
-            <button onclick="switchView('start')" id="nav-btn-start" class="nav-item flex flex-col items-center justify-center py-1 text-sky-600">
-                <i class="fa-solid fa-house text-base mb-0.5"></i>
+            <button onclick="switchView('start')" id="nav-btn-start" class="nav-item flex flex-col items-center justify-center py-0.5 text-sky-600">
+                <i class="fa-solid fa-house text-xs mb-0.5"></i>
                 <span class="text-[9px] font-extrabold" data-i18n="nav_start">Start</span>
             </button>
-            <button onclick="switchView('demin')" id="nav-btn-demin" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400">
-                <i class="fa-solid fa-droplet text-base mb-0.5"></i>
+            <button onclick="switchView('demin')" id="nav-btn-demin" class="nav-item flex flex-col items-center justify-center py-0.5 text-slate-400">
+                <i class="fa-solid fa-droplet text-xs mb-0.5"></i>
                 <span class="text-[9px] font-bold" data-i18n="nav_demin">Entmin.</span>
             </button>
-            <button onclick="switchView('vehicle_fleet')" id="nav-btn-fleet" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400">
-                <i class="fa-solid fa-car text-base mb-0.5"></i>
+            <button onclick="switchView('vehicle_fleet')" id="nav-btn-fleet" class="nav-item flex flex-col items-center justify-center py-0.5 text-slate-400">
+                <i class="fa-solid fa-car text-xs mb-0.5"></i>
                 <span class="text-[9px] font-bold" data-i18n="nav_fleet">Parc Auto</span>
             </button>
-            <button onclick="switchView('vacation')" id="nav-btn-vacation" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400">
-                <i class="fa-solid fa-umbrella-beach text-base mb-0.5"></i>
+            <button onclick="switchView('vacation')" id="nav-btn-vacation" class="nav-item flex flex-col items-center justify-center py-0.5 text-slate-400">
+                <i class="fa-solid fa-umbrella-beach text-xs mb-0.5"></i>
                 <span class="text-[9px] font-bold" data-i18n="nav_vacation">Urlaub</span>
             </button>
-            <button onclick="switchView('history')" id="nav-btn-history" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400">
-                <i class="fa-solid fa-folder-tree text-base mb-0.5"></i>
+            <button onclick="switchView('history')" id="nav-btn-history" class="nav-item flex flex-col items-center justify-center py-0.5 text-slate-400">
+                <i class="fa-solid fa-folder-tree text-xs mb-0.5"></i>
                 <span class="text-[9px] font-bold" data-i18n="nav_history">Ordner</span>
             </button>
         </div>
     </nav>
 
+    <!-- Modals -->
     <div id="modal-vacation" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
         <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -1060,7 +1063,7 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Unterschrift Antragsteller *</label>
-                        <button type="button" onclick="clearSignature('vacation')" class="text-[11px] text-rose-600 font-semibold">Löschen</button>
+                        <button type="button" onclick="clearSignature('vacation')" class="text-[11px] text-rose-600 font-semibold" data-i18n="btn_clear">Löschen</button>
                     </div>
                     <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
                         <canvas id="canvas-vacation" class="sig-canvas"></canvas>
@@ -1270,7 +1273,7 @@
         </div>
     </div>
 
-    <div id="toast" class="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2 rounded-full shadow-2xl text-xs font-medium opacity-0 pointer-events-none transition-opacity duration-300 flex items-center gap-2">
+    <div id="toast" class="fixed bottom-14 md:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2 rounded-full shadow-2xl text-xs font-medium opacity-0 pointer-events-none transition-opacity duration-300 flex items-center gap-2">
         <i class="fa-solid fa-circle-check text-emerald-400"></i>
         <span id="toast-text">Meldung</span>
     </div>
@@ -1389,6 +1392,7 @@
                 vacation_title: "Urlaubsplan & Antrag",
                 vacation_sub: "Gemeinsamer Cloud-Urlaubsplan",
                 btn_new_vacation: "Urlaub beantragen",
+                btn_team_vacation_pdf: "Gesamt-PDF",
                 team_vacation_title: "Urlaubsanträge & Status",
                 monthly_calendar_title: "Monatskalender & Team-Übersicht",
                 shift_title: "Schichtkalender & Auslieferung",
@@ -1435,7 +1439,8 @@
                 nav_start: "Start", nav_demin: "Entmin.", nav_vacation: "Urlaub", nav_shifts: "Schimente", nav_fleet: "Parc Auto", nav_history: "Ordner",
                 badge_done: "✓ Erledigt", badge_open: "Offen",
                 legend_approved: "Genehmigt", legend_pending: "Ausstehend", legend_holiday: "Feiertage", legend_sunday: "Sonntage",
-                toast_saved: "Gespeichert & gesendet!", toast_need_sig: "Bitte unterschreiben!", toast_need_photo: "Bitte Foto aufnehmen!", toast_sent: "Erfolgreich gesendet!"
+                toast_saved: "Gespeichert & gesendet!", toast_need_sig: "Bitte unterschreiben!", toast_need_photo: "Bitte Foto aufnehmen!", toast_sent: "Erfolgreich gesendet!",
+                btn_approve: "Genehmigen", btn_reject: "Ablehnen"
             },
             ro: {
                 app_title: "Aplicație Control ECB",
@@ -1525,6 +1530,7 @@
                 vacation_title: "Planificare Concediu & Cerere",
                 vacation_sub: "Planificator concedii Cloud în echipă",
                 btn_new_vacation: "Cerere concediu",
+                btn_team_vacation_pdf: "PDF General",
                 team_vacation_title: "Cereri & Status Concedii",
                 monthly_calendar_title: "Calendar lunar & Prezentare generală",
                 shift_title: "Calendar Schimente & Livrări",
@@ -1571,7 +1577,8 @@
                 nav_start: "Start", nav_demin: "Demin.", nav_vacation: "Concediu", nav_shifts: "Schimente", nav_fleet: "Parc Auto", nav_history: "Dosare",
                 badge_done: "✓ Efectuat", badge_open: "Deschis",
                 legend_approved: "Aprobat", legend_pending: "În așteptare", legend_holiday: "Sărbători", legend_sunday: "Duminici",
-                toast_saved: "Salvat & trimis!", toast_need_sig: "Vă rugăm semnați!", toast_need_photo: "Vă rugăm faceți o poză!", toast_sent: "Trimis cu succes!"
+                toast_saved: "Salvat & trimis!", toast_need_sig: "Vă rugăm semnați!", toast_need_photo: "Vă rugăm faceți o poză!", toast_sent: "Trimis cu succes!",
+                btn_approve: "Genehmigen", btn_reject: "Ablehnen"
             }
         };
 
@@ -1612,6 +1619,7 @@
                 if (flagEl) flagEl.innerText = '🇩🇪';
                 if (settingsLangText) settingsLangText.innerText = 'Română 🇷🇴';
             }
+            renderVacationList();
         }
 
         const state = {
@@ -1672,7 +1680,7 @@
                 if (!this.canvas) return;
                 const rect = this.canvas.getBoundingClientRect();
                 const w = rect.width > 0 ? rect.width : 300;
-                const h = 130;
+                const h = 120;
                 const dpr = Math.max(window.devicePixelRatio || 1, 1);
                 this.canvas.width = Math.round(w * dpr);
                 this.canvas.height = Math.round(h * dpr);
@@ -1862,10 +1870,10 @@
             if (target) target.classList.remove('hidden');
 
             document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.className = 'nav-item flex flex-col items-center justify-center py-1 text-slate-400';
+                btn.className = 'nav-item flex flex-col items-center justify-center py-0.5 text-slate-400';
             });
             const activeBtn = document.getElementById('nav-btn-' + viewName);
-            if (activeBtn) activeBtn.className = 'nav-item flex flex-col items-center justify-center py-1 text-sky-600';
+            if (activeBtn) activeBtn.className = 'nav-item flex flex-col items-center justify-center py-0.5 text-sky-600';
 
             document.querySelectorAll('aside nav button').forEach(btn => {
                 btn.className = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors';
@@ -2119,7 +2127,7 @@
             if (!container) return;
             const list = cloudFleetVehicles;
             if (!list.length) {
-                container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">${t('no_fleet_cars')}</div>`;
+                container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_fleet_cars">Keine Fahrzeuge angelegt.</div>`;
                 return;
             }
             container.innerHTML = list.map(item => `
@@ -2207,10 +2215,12 @@
                 db.collection('urlaube').add(newEntry).then(ref => {
                     newEntry.id = ref.id;
                     cloudVacations.unshift(newEntry);
+                    db.collection('kontrollen').add(newEntry).catch(()=>{});
                     renderVacationList();
                 }).catch(() => {});
             } else {
                 cloudVacations.unshift(newEntry);
+                cloudHistory.unshift(newEntry);
                 renderVacationList();
             }
             closeModal('modal-vacation');
@@ -2235,6 +2245,21 @@
             const item = cloudVacations.find(i => i.id === docId);
             if (!item) return;
             item.data.status = newStatus;
+            
+            // If approved, automatically add vacation days (U) to shift calendar
+            if (newStatus === 'Genehmigt' && item.data.startDate && item.data.endDate) {
+                const start = new Date(item.data.startDate);
+                const end = new Date(item.data.endDate);
+                let cur = new Date(start);
+                while (cur <= end) {
+                    const dateIso = cur.toISOString().slice(0, 10);
+                    const shiftRec = { date: dateIso, employee: item.data.employee, shiftType: 'Urlaub', isDelivery: false, timestamp: new Date().toLocaleDateString('de-DE'), createdAt: Date.now() };
+                    if (db) db.collection('schichten').add(shiftRec).catch(() => {});
+                    else cloudShifts.unshift(shiftRec);
+                    cur.setDate(cur.getDate() + 1);
+                }
+            }
+
             if (db && item.id) {
                 db.collection('urlaube').doc(item.id).update({ 'data.status': newStatus }).catch(() => {});
                 db.collection('kontrollen').where('type', '==', 'Urlaub').get().then(snap => {
@@ -2247,6 +2272,8 @@
                 }).catch(()=>{});
             }
             renderVacationList();
+            renderShiftList();
+            renderHistoryView();
             showToast(t('toast_saved'));
         }
 
@@ -2272,7 +2299,7 @@
 
             let calendarHtml = `<table class="w-full border-collapse text-base"><thead>`;
             calendarHtml += `<tr class="bg-slate-100 text-slate-900 font-black border-b border-slate-200">
-                <th class="p-3 text-left sticky left-0 bg-slate-100 z-10 w-48 text-xs uppercase">Mitarbeiter</th>`;
+                <th class="p-3 text-left sticky left-0 bg-slate-100 z-10 w-48 text-xs uppercase">${currentLang === 'de' ? 'Mitarbeiter' : 'Angajat'}</th>`;
             for (let d = 1; d <= daysInMonth; d++) {
                 calendarHtml += `<th class="p-1 text-center font-mono w-9 text-xs border-l border-slate-200">${d}</th>`;
             }
@@ -2300,14 +2327,14 @@
 
             if (approvalContainer) {
                 const pending = cloudVacations.filter(i => (i.data || i).status === 'Ausstehend');
-                approvalContainer.innerHTML = pending.length === 0 ? '<div class="text-[11px] text-slate-400">Keine offenen Anträge.</div>' : pending.map(item => {
+                approvalContainer.innerHTML = pending.length === 0 ? `<div class="text-[11px] text-slate-400">${currentLang === 'de' ? 'Keine offenen Anträge.' : 'Nicio cerere în așteptare.'}</div>` : pending.map(item => {
                     const d = item.data || item;
                     return `
                         <div class="p-3 bg-slate-800 border border-slate-700 rounded-xl space-y-1.5 text-xs text-white">
                             <div class="font-bold">${d.employee} (${d.startDate} ➔ ${d.endDate})</div>
                             <div class="flex gap-2 pt-1">
-                                <button onclick="updateVacationStatus('${item.id}', 'Genehmigt')" class="px-3 py-1 bg-emerald-600 rounded text-xs font-bold">Aprobă</button>
-                                <button onclick="updateVacationStatus('${item.id}', 'Abgelehnt')" class="px-3 py-1 bg-rose-600 rounded text-xs font-bold">Respinse</button>
+                                <button onclick="updateVacationStatus('${item.id}', 'Genehmigt')" class="px-3 py-1 bg-emerald-600 rounded text-xs font-bold">${t('btn_approve')}</button>
+                                <button onclick="updateVacationStatus('${item.id}', 'Abgelehnt')" class="px-3 py-1 bg-rose-600 rounded text-xs font-bold">${t('btn_reject')}</button>
                             </div>
                         </div>
                     `;
@@ -2323,7 +2350,10 @@
                                 <div class="font-bold text-slate-900">${d.employee} • <span class="${d.status === 'Genehmigt' ? 'text-emerald-700' : d.status === 'Abgelehnt' ? 'text-rose-600' : 'text-amber-600'}">${d.status}</span></div>
                                 <div class="text-slate-500 text-[11px]">📅 Von ${d.startDate} bis ${d.endDate} (${d.daysCount} Tage)</div>
                             </div>
-                            <button onclick="deleteVacationEntry('${item.id}')" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash-can"></i></button>
+                            <div class="flex items-center gap-2">
+                                <button onclick="previewSpecificVacationPdf('${item.id}')" class="text-sky-600 hover:text-sky-800 font-bold px-2 py-1 bg-sky-50 rounded-lg border border-sky-200"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                                <button onclick="deleteVacationEntry('${item.id}')" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -2349,13 +2379,46 @@
                     const dateObj = new Date(selectedYear, selectedMonth - 1, d);
                     const dateIso = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
                     let sCode = '';
-                    cloudShifts.forEach(item => {
-                        if (item.employee === emp && item.date === dateIso) {
-                            sCode = item.shiftType === 'Frühschicht' ? 'F' : item.shiftType === 'Mittagsschicht' ? 'M' : 'FS';
-                            if (item.isDelivery) sCode += ' 🚚';
+                    let bgClass = '';
+                    
+                    // Check approved vacations first (U - green)
+                    cloudVacations.forEach(vItem => {
+                        const rec = vItem.data || vItem;
+                        if ((rec.employee === emp || vItem.inspector === emp) && rec.status === 'Genehmigt' && rec.startDate && rec.endDate && dateIso >= rec.startDate && dateIso <= rec.endDate) {
+                            sCode = 'U';
+                            bgClass = 'bg-emerald-500 text-white font-bold rounded';
                         }
                     });
-                    calendarHtml += `<td class="p-1 text-center border-l border-slate-200 text-[10px] font-bold text-indigo-700">${sCode}</td>`;
+
+                    // Check shifts if no vacation
+                    if (!sCode) {
+                        cloudShifts.forEach(item => {
+                            if (item.employee === emp && item.date === dateIso) {
+                                if (item.shiftType.includes('Früh')) {
+                                    sCode = 'F';
+                                    bgClass = 'bg-sky-500 text-white font-bold rounded';
+                                } else if (item.shiftType.includes('Mittag')) {
+                                    sCode = 'M';
+                                    bgClass = 'bg-indigo-500 text-white font-bold rounded';
+                                } else {
+                                    sCode = 'FS';
+                                    bgClass = 'bg-slate-400 text-white font-bold rounded';
+                                }
+                                if (item.isDelivery) {
+                                    sCode += ' 🚚';
+                                }
+                            }
+                        });
+                    } else {
+                        // Check if vacation day also has LKW delivery flag in shifts
+                        cloudShifts.forEach(item => {
+                            if (item.employee === emp && item.date === dateIso && item.isDelivery) {
+                                sCode += ' 🚚';
+                            }
+                        });
+                    }
+
+                    calendarHtml += `<td class="p-1 text-center border-l border-slate-200 text-[10px] font-bold ${bgClass}">${sCode}</td>`;
                 }
                 calendarHtml += `</tr>`;
             });
@@ -2372,6 +2435,11 @@
                         <button onclick="deleteShiftEntry('${item.id}')" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash-can"></i></button>
                     </div>
                 `).join('');
+        }
+
+        function previewShiftSummaryPdf() {
+            state.currentDispatchContext = { type: 'ShiftSummary', data: cloudShifts, subject: `[ECB] Schichtkalender & Auslieferung`, body: 'Schichtkalender Übersicht', categoryFolder: 'Schichten' };
+            previewActivePdf();
         }
 
         function triggerSingleDispatch(type, rec) {
@@ -2477,10 +2545,70 @@
             const dateStr = now.toLocaleDateString('de-DE');
             const timeStr = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
+            if (ctx.type === 'ShiftSummary') return buildShiftSummaryPdf(doc, cloudShifts, dateStr, timeStr);
             if (ctx.type === 'FleetSummary') return buildFleetSummaryPdf(doc, cloudFleetVehicles, dateStr, timeStr);
+            if (ctx.type === 'TeamVacationSummary') return buildTeamVacationSummaryPdf(doc, cloudVacations, dateStr, timeStr);
             if (ctx.type === 'Gesamtbericht') return buildCompleteSummaryPdf(doc, ctx.data, cloudFleetVehicles, dateStr, timeStr);
             if (ctx.type === 'Urlaub') return buildVacationPdf(doc, ctx.data, dateStr, timeStr);
             return buildSingleSectionPdf(doc, ctx.type, ctx.data, dateStr, timeStr);
+        }
+
+        function buildShiftSummaryPdf(doc, list, dateStr, timeStr) {
+            renderPdfHeader(doc, 'SCHICHTKALENDER & AUSLIEFERUNG', dateStr, timeStr);
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
+            doc.text('Übersicht aller Schichten und LKW-Auslieferungen', 15, 38);
+
+            let startY = 46;
+            doc.setFillColor(241, 245, 249);
+            doc.rect(15, startY, 180, 8, 'F');
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(71, 85, 105);
+            doc.text('Datum', 19, startY + 5.5);
+            doc.text('Mitarbeiter', 60, startY + 5.5);
+            doc.text('Schichtart', 120, startY + 5.5);
+            doc.text('LKW', 165, startY + 5.5);
+
+            startY += 8;
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+            list.forEach(item => {
+                doc.text(item.date || '-', 19, startY + 6);
+                doc.setFont('helvetica', 'bold'); doc.text(item.employee || '-', 60, startY + 6);
+                doc.setFont('helvetica', 'normal'); doc.text(item.shiftType || '-', 120, startY + 6);
+                doc.text(item.isDelivery ? 'Ja 🚚' : 'Nein', 165, startY + 6);
+                doc.setDrawColor(226, 232, 240); doc.line(15, startY + 10, 195, startY + 10);
+                startY += 12;
+            });
+            renderPdfFooter(doc, 1, 1);
+            return doc;
+        }
+
+        function buildTeamVacationSummaryPdf(doc, list, dateStr, timeStr) {
+            renderPdfHeader(doc, 'TEAM-URLAUBSPLAN & ÜBERSICHT', dateStr, timeStr);
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
+            doc.text('Übersicht aller eingetragenen Urlaube und Status im Team', 15, 38);
+
+            let startY = 46;
+            doc.setFillColor(241, 245, 249);
+            doc.rect(15, startY, 180, 8, 'F');
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(71, 85, 105);
+            doc.text('Mitarbeiter / Art', 19, startY + 5.5);
+            doc.text('Zeitraum (Von - Bis)', 85, startY + 5.5);
+            doc.text('Tage', 145, startY + 5.5);
+            doc.text('Status', 165, startY + 5.5);
+
+            startY += 8;
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+            list.forEach(item => {
+                const rec = item.data || item;
+                doc.setFont('helvetica', 'bold'); doc.text(rec.employee || '-', 19, startY + 6);
+                doc.setFont('helvetica', 'normal'); doc.text(`(${rec.vacType || 'Urlaub'})`, 19, startY + 11);
+                doc.text(`${rec.startDate || '-'} bis ${rec.endDate || '-'}`, 85, startY + 8.5);
+                doc.text(`${rec.daysCount || 1} T.`, 145, startY + 8.5);
+                doc.text(rec.status || 'Ausstehend', 165, startY + 8.5);
+                doc.setDrawColor(226, 232, 240); doc.line(15, startY + 14, 195, startY + 14);
+                startY += 15;
+            });
+            renderPdfFooter(doc, 1, 1);
+            return doc;
         }
 
         function buildVacationPdf(doc, rec, dateStr, timeStr) {
@@ -2716,8 +2844,21 @@
             await previewActivePdf();
         }
 
+        async function previewSpecificVacationPdf(docId) {
+            const item = cloudVacations.find(i => i.id === docId);
+            if (!item) return;
+            const rec = item.data || item;
+            state.currentDispatchContext = { type: 'Urlaub', data: rec, subject: `[ECB] Urlaubsantrag - ${rec.employee}`, body: 'Urlaubsantrag PDF', categoryFolder: 'Urlaub' };
+            await previewActivePdf();
+        }
+
         async function previewFleetSummaryPdf() {
             state.currentDispatchContext = { type: 'FleetSummary', data: cloudFleetVehicles, subject: `[ECB] Fahrzeugpark & Wartung`, body: 'Fahrzeugpark Übersicht', categoryFolder: 'Fahrzeuge' };
+            await previewActivePdf();
+        }
+
+        async function previewTeamVacationSummaryPdf() {
+            state.currentDispatchContext = { type: 'TeamVacationSummary', data: cloudVacations, subject: `[ECB] Team-Urlaubsplan`, body: 'Team Urlaubsübersicht', categoryFolder: 'Urlaub' };
             await previewActivePdf();
         }
 
@@ -2758,7 +2899,7 @@
                     return `
                         <div class="p-4 bg-white border border-slate-200 rounded-2xl shadow-xs flex items-center justify-between text-xs">
                             <div>
-                                <div class="font-bold text-slate-900">${item.type} • ${item.inspector || '-'}</div>
+                                <div class="font-bold text-slate-900">${item.type} • ${item.inspector || item.data?.employee || '-'}</div>
                                 <div class="text-[10px] text-slate-400 font-mono">${item.timestamp}</div>
                             </div>
                             <button onclick="openHistoryItemPdf(${originalIdx})" class="text-sky-600 font-bold hover:underline bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-200"><i class="fa-solid fa-file-pdf"></i> PDF öffnen</button>
