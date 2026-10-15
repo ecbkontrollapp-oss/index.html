@@ -110,6 +110,9 @@
         </nav>
 
         <div class="pt-4 border-t border-slate-200 space-y-2">
+            <button onclick="forceCloudSync()" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-sky-50 border border-sky-200 text-xs font-bold text-sky-800">
+                <i class="fa-solid fa-rotate"></i> <span>Cloud-Sync erzwingen</span>
+            </button>
             <button onclick="openAttendanceModal()" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800">
                 <i class="fa-solid fa-users"></i> <span data-i18n="attendance_btn">Anwesende</span>
             </button>
@@ -135,6 +138,9 @@
             </div>
             
             <div class="flex items-center gap-1.5">
+                <button onclick="forceCloudSync()" class="flex items-center justify-center text-[10px] text-sky-700 font-semibold bg-sky-50 px-2 py-1.5 rounded-lg border border-sky-200" title="Sync erzwingen">
+                    <i class="fa-solid fa-rotate"></i>
+                </button>
                 <button onclick="showCloudDiagnostic()" class="flex items-center justify-center text-[9px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-1.5 rounded-lg border border-emerald-200">
                     <i class="fa-solid fa-cloud"></i>
                 </button>
@@ -161,6 +167,9 @@
                     <p class="text-xs text-slate-500" data-i18n="overview_desc">Tägliche Kontrollen einzeln erfassen, unterschreiben und sofort melden.</p>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button onclick="forceCloudSync()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                        <i class="fa-solid fa-rotate"></i> <span>Sync erzwingen</span>
+                    </button>
                     <button onclick="openDispatchDaySummary()" class="px-3.5 py-2 bg-ecb hover:bg-ecb-dark text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
                         <i class="fa-solid fa-file-pdf"></i> <span data-i18n="send_all_btn">Gesamt-PDF</span>
                     </button>
@@ -304,7 +313,7 @@
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100">Entmineralisierung</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-12">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-droplet"></i>
@@ -418,7 +427,7 @@
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-100" data-i18n="card_heating_title">Heizungskontrolle</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-12">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-fire"></i>
@@ -500,7 +509,7 @@
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">Außenbereich</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-12">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-tree"></i>
@@ -593,7 +602,7 @@
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">Pausenraum</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-12">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-mug-saucer"></i>
@@ -696,7 +705,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-12">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-truck"></i>
@@ -812,7 +821,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-12">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                     <div>
                         <h2 class="text-base font-black text-slate-900 tracking-tight" data-i18n="fleet_title">Fahrzeugpark & Wartung (TÜV / Ölwechsel)</h2>
@@ -897,7 +906,7 @@
                 <div id="monthly-calendar-grid" class="overflow-x-auto no-scrollbar pb-1 text-base"></div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 pb-12">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider" data-i18n="team_vacation_title">Urlaubsanträge & Status</h3>
                 <div id="vacation-list-container" class="space-y-2">
                     <div class="p-4 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_vacations">Keine Urlaube eingetragen.</div>
@@ -946,7 +955,7 @@
                 <div id="monthly-shift-calendar-grid" class="overflow-x-auto no-scrollbar pb-1 text-sm"></div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 pb-12">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider" data-i18n="shift_list_title">Aktuelle Schicht-Einträge</h3>
                 <div id="shift-list-container" class="space-y-2">
                     <div class="p-4 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_shifts">Keine Schichten eingetragen.</div>
@@ -976,7 +985,7 @@
                 <button onclick="setHistoryFilter('Urlaub')" id="hist-filter-vacation" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600">🏖️ <span data-i18n="filter_vacation">Urlaub</span> (<span id="count-vacation">0</span>)</button>
             </div>
 
-            <div id="history-items-container" class="space-y-2.5">
+            <div id="history-items-container" class="space-y-2.5 pb-12">
                 <div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl" data-i18n="no_history">Lade Kontrollberichte aus der Cloud...</div>
             </div>
 
@@ -1241,6 +1250,9 @@
                     </div>
                 </div>
             </div>
+            <button onclick="forceCloudSync()" class="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs">
+                <i class="fa-solid fa-rotate"></i> <span>Nicht synchronisierte Daten jetzt hochladen</span>
+            </button>
             <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
                 <div>
                     <div class="text-[9px] uppercase font-bold text-slate-400">App-Sprache / Limba aplicației</div>
@@ -1836,6 +1848,33 @@
                 cloudFleetVehicles = items;
                 renderFleetVehiclesList();
             }, () => {});
+        }
+
+        function forceCloudSync() {
+            if (!db) { showToast('Keine Cloud-Verbindung verfügbar.'); return; }
+            let count = 0;
+            // Push local storage items or pending entries
+            if (state.data.entmineralisierung) {
+                db.collection('kontrollen').add({ date: state.todayKey, timestamp: state.data.entmineralisierung.timestamp, createdAt: Date.now(), type: 'Entmineralisierung', inspector: state.data.entmineralisierung.inspector, data: state.data.entmineralisierung }).catch(()=>{});
+                count++;
+            }
+            if (state.data.heizungskontrolle) {
+                db.collection('kontrollen').add({ date: state.todayKey, timestamp: state.data.heizungskontrolle.timestamp, createdAt: Date.now(), type: 'Heizungskontrolle', inspector: state.data.heizungskontrolle.inspector, data: state.data.heizungskontrolle }).catch(()=>{});
+                count++;
+            }
+            if (state.data.aussenbereich) {
+                db.collection('kontrollen').add({ date: state.todayKey, timestamp: state.data.aussenbereich.timestamp, createdAt: Date.now(), type: 'Außenbereich', inspector: state.data.aussenbereich.inspector, data: state.data.aussenbereich }).catch(()=>{});
+                count++;
+            }
+            if (state.data.pausenraum) {
+                db.collection('kontrollen').add({ date: state.todayKey, timestamp: state.data.pausenraum.timestamp, createdAt: Date.now(), type: 'Pausenraum', inspector: state.data.pausenraum.inspector, data: state.data.pausenraum }).catch(()=>{});
+                count++;
+            }
+            if (state.data.fahrzeuge) {
+                db.collection('kontrollen').add({ date: state.todayKey, timestamp: state.data.fahrzeuge.timestamp, createdAt: Date.now(), type: 'Fahrzeuge', inspector: state.data.fahrzeuge.inspector, data: state.data.fahrzeuge }).catch(()=>{});
+                count++;
+            }
+            showToast(`Cloud-Sync erfolgreich ausgeführt! (${count} Elemente synchronisiert)`);
         }
 
         function syncTodayControlsFromCloud(items) {
