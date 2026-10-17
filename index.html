@@ -102,7 +102,7 @@
                 <i class="fa-solid fa-umbrella-beach w-5 text-base text-ecb"></i> <span data-i18n="nav_vacation">Urlaub & Antrag</span>
             </button>
             <button onclick="switchView('shifts')" id="pc-nav-btn-shifts" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-                <i class="fa-solid fa-clock w-5 text-base text-blue-600"></i> <span data-i18n="nav_shifts">Schichten & LKW</span>
+                <i class="fa-solid fa-clock w-5 text-base text-blue-600"></i> <span data-i18n="nav_shifts">Schichten</span>
             </button>
             <button onclick="switchView('admin')" id="pc-nav-btn-admin" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
                 <i class="fa-solid fa-shield-halved w-5 text-base text-emerald-600"></i> <span data-i18n="nav_admin">Admin-Bereich</span>
@@ -157,10 +157,10 @@
         </div>
     </header>
 
-    <main id="main-container" class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 md:px-8 md:py-6 space-y-4 pb-24 md:pb-8 overflow-y-auto">
+    <main id="main-container" class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 md:px-8 md:py-6 space-y-4 pb-20 md:pb-8 overflow-y-auto box-border">
 
         <!-- START VIEW -->
-        <section id="view-start" class="view-panel space-y-4">
+        <section id="view-start" class="view-panel space-y-4 w-full max-w-full">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="overview_title">Übersicht & Kontrollen</h2>
@@ -203,7 +203,7 @@
                     <div class="flex items-center gap-3">
                         <div class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-xl">🕒</div>
                         <div>
-                            <h3 class="text-sm font-bold tracking-tight" data-i18n="shift_title">Schichten & LKW</h3>
+                            <h3 class="text-sm font-bold tracking-tight" data-i18n="shift_title">Schichten</h3>
                             <p class="text-[11px] text-indigo-100" data-i18n="shift_sub">Früh-, Mittagsschichten</p>
                         </div>
                     </div>
@@ -256,7 +256,7 @@
                         <span id="card-badge-outdoor" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500" data-i18n="badge_open">Offen</span>
                     </div>
                     <h3 class="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors" data-i18n="card_outdoor_title">3. Außenbereich</h3>
-                    <p id="card-sub-outdoor" class="text-[11px] text-slate-500 mt-0.5" data-i18n="card_outdoor_desc">Mülleimer, Tische & Sauberkeit mit Foto</p>
+                    <p id="card-sub-outdoor" class="text-[11px] text-slate-500 mt-0.5" data-i18n="card_outdoor_desc">Mülleimer, Tische & Sauberkeit mit Fotos</p>
                     <div class="mt-3 flex items-center text-[11px] font-semibold text-emerald-700">
                         <span data-i18n="start_control">Kontrolle starten</span> <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
                     </div>
@@ -305,7 +305,7 @@
         </section>
 
         <!-- DEMIN VIEW -->
-        <section id="view-demin" class="view-panel hidden space-y-4">
+        <section id="view-demin" class="view-panel hidden space-y-4 w-full max-w-full">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -313,7 +313,7 @@
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100" data-i18n="nav_demin">Entmineralisierung</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 w-full max-w-full box-border">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-droplet"></i>
@@ -324,15 +324,15 @@
                     </div>
                 </div>
 
-                <form id="form-demin" onsubmit="saveDemin(event)" class="space-y-4 max-w-full">
-                    <div class="w-full max-w-full">
+                <form id="form-demin" onsubmit="saveDemin(event)" class="space-y-4 w-full max-w-full box-border">
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
                         <select id="demin-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                             <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full box-border">
                         <div class="w-full max-w-full box-border">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_cond">Leitwert (&micro;S/cm)</label>
                             <input type="number" step="0.1" id="demin-cond" placeholder="z. B. 0.8" data-i18n-ph="ph_cond"
@@ -345,27 +345,22 @@
                         </div>
                     </div>
 
-                    <div class="w-full max-w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photo_demin">Foto der Anlage / Messwerte</label>
-                        <input type="file" id="camera-input-demin" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'demin')">
-                        <div id="photo-btns-demin" class="w-full max-w-full">
+                    <div class="w-full max-w-full box-border">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photos">Fotos der Anlage / Messwerte (Mehrfachauswahl)</label>
+                        <input type="file" id="camera-input-demin" accept="image/*" multiple capture="environment" class="hidden" onchange="handleMultiplePhotos(event, 'demin')">
+                        <div class="w-full max-w-full space-y-2 box-border">
                             <button type="button" onclick="document.getElementById('camera-input-demin').click()" 
                                     class="w-full py-2.5 px-3 bg-sky-50 hover:bg-sky-100 border-2 border-dashed border-sky-300 rounded-xl text-xs font-bold text-sky-800 flex items-center justify-center gap-2 box-border max-w-full">
                                 <i class="fa-solid fa-camera text-base text-sky-600"></i>
-                                <span data-i18n="btn_take_photo_demin">Foto mit Kamera aufnehmen</span>
+                                <span data-i18n="btn_take_photos">Weitere Fotos aufnehmen / hinzufügen</span>
                             </button>
-                        </div>
-                        <div id="photo-preview-box-demin" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900 w-full max-w-full box-border">
-                            <img id="photo-preview-img-demin" src="" alt="Anlagenfoto" class="w-full h-40 object-cover">
-                            <button type="button" onclick="removePhoto('demin')" class="absolute top-2 right-2 px-2 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold">
-                                <i class="fa-solid fa-trash-can mr-1"></i> <span data-i18n="btn_delete">Entfernen</span>
-                            </button>
+                            <div id="photo-gallery-demin" class="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full max-w-full"></div>
                         </div>
                     </div>
 
-                    <div class="space-y-2 w-full max-w-full">
+                    <div class="space-y-2 w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_demin_checks">Sicht- & Funktionsprüfung</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-full">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-full box-border">
                             <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1 w-full max-w-full box-border">
                                 <div class="text-xs font-semibold text-slate-800" data-i18n="check_leak">Dichtheit der Anlage</div>
                                 <div class="grid grid-cols-2 gap-1.5">
@@ -397,12 +392,12 @@
                         </div>
                     </div>
 
-                    <div class="w-full max-w-full">
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_demin_notes">Bemerkungen</label>
                         <textarea id="demin-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-sky-500 box-border max-w-full"></textarea>
                     </div>
 
-                    <div class="pb-2 w-full max-w-full">
+                    <div class="pb-2 w-full max-w-full box-border">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('demin')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
@@ -420,7 +415,7 @@
         </section>
 
         <!-- HEATING VIEW -->
-        <section id="view-heating" class="view-panel hidden space-y-4">
+        <section id="view-heating" class="view-panel hidden space-y-4 w-full max-w-full">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -428,7 +423,7 @@
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-100" data-i18n="card_heating_title">Heizungskontrolle</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 w-full max-w-full box-border">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-fire"></i>
@@ -439,15 +434,15 @@
                     </div>
                 </div>
 
-                <form id="form-heating" onsubmit="saveHeating(event)" class="space-y-4 max-w-full">
-                    <div class="w-full max-w-full">
+                <form id="form-heating" onsubmit="saveHeating(event)" class="space-y-4 w-full max-w-full box-border">
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
                         <select id="heating-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                             <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full box-border">
                         <div class="w-full max-w-full box-border">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_heating_press">Heizungsdruck (bar)</label>
                             <input type="number" step="0.1" id="heating-press" placeholder="z. B. 1.8" 
@@ -460,9 +455,22 @@
                         </div>
                     </div>
 
-                    <div class="space-y-2 w-full max-w-full">
+                    <div class="w-full max-w-full box-border">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photos">Fotos der Heizungsanlage (Mehrfachauswahl)</label>
+                        <input type="file" id="camera-input-heating" accept="image/*" multiple capture="environment" class="hidden" onchange="handleMultiplePhotos(event, 'heating')">
+                        <div class="w-full max-w-full space-y-2 box-border">
+                            <button type="button" onclick="document.getElementById('camera-input-heating').click()" 
+                                    class="w-full py-2.5 px-3 bg-orange-50 hover:bg-orange-100 border-2 border-dashed border-orange-300 rounded-xl text-xs font-bold text-orange-800 flex items-center justify-center gap-2 box-border max-w-full">
+                                <i class="fa-solid fa-camera text-base text-orange-600"></i>
+                                <span data-i18n="btn_take_photos">Weitere Fotos aufnehmen / hinzufügen</span>
+                            </button>
+                            <div id="photo-gallery-heating" class="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full max-w-full"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_heating_checks">Sicht- & Dichtheitsprüfung</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-full">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-full box-border">
                             <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1 w-full max-w-full box-border">
                                 <div class="text-xs font-semibold text-slate-800" data-i18n="check_heating_leaks">Keine Undichtigkeiten / Leckagen</div>
                                 <div class="grid grid-cols-2 gap-1.5">
@@ -480,12 +488,12 @@
                         </div>
                     </div>
 
-                    <div class="w-full max-w-full">
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_heating_notes">Bemerkungen</label>
                         <textarea id="heating-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-orange-500 box-border max-w-full"></textarea>
                     </div>
 
-                    <div class="pb-2 w-full max-w-full">
+                    <div class="pb-2 w-full max-w-full box-border">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('heating')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
@@ -503,7 +511,7 @@
         </section>
 
         <!-- OUTDOOR VIEW -->
-        <section id="view-outdoor" class="view-panel hidden space-y-4">
+        <section id="view-outdoor" class="view-panel hidden space-y-4 w-full max-w-full">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -511,7 +519,7 @@
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100" data-i18n="card_outdoor_title">Außenbereich</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 w-full max-w-full box-border">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-tree"></i>
@@ -522,35 +530,30 @@
                     </div>
                 </div>
 
-                <form id="form-outdoor" onsubmit="saveOutdoor(event)" class="space-y-4 max-w-full">
-                    <div class="w-full max-w-full">
+                <form id="form-outdoor" onsubmit="saveOutdoor(event)" class="space-y-4 w-full max-w-full box-border">
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
                         <select id="outdoor-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                             <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                         </select>
                     </div>
 
-                    <div class="w-full max-w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photo">Aktuelles Live-Foto des Außenbereichs *</label>
-                        <input type="file" id="camera-input-outdoor" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'outdoor')">
-                        <div id="photo-btns-outdoor" class="w-full max-w-full">
+                    <div class="w-full max-w-full box-border">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photos">Fotos des Außenbereichs * (Mehrfachauswahl)</label>
+                        <input type="file" id="camera-input-outdoor" accept="image/*" multiple capture="environment" class="hidden" onchange="handleMultiplePhotos(event, 'outdoor')">
+                        <div class="w-full max-w-full space-y-2 box-border">
                             <button type="button" onclick="document.getElementById('camera-input-outdoor').click()" 
                                     class="w-full py-3 px-3 bg-emerald-50 hover:bg-emerald-100 border-2 border-dashed border-emerald-300 rounded-xl text-xs font-bold text-emerald-800 flex items-center justify-center gap-2 box-border max-w-full">
                                 <i class="fa-solid fa-camera text-base text-emerald-600"></i>
-                                <span data-i18n="btn_take_photo">Aktuelles Foto mit Kamera aufnehmen</span>
+                                <span data-i18n="btn_take_photos">Live-Fotos mit Kamera aufnehmen / hinzufügen</span>
                             </button>
-                        </div>
-                        <div id="photo-preview-box-outdoor" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900 w-full max-w-full box-border">
-                            <img id="photo-preview-img-outdoor" src="" alt="Kontrollfoto" class="w-full h-40 object-cover">
-                            <button type="button" onclick="removePhoto('outdoor')" class="absolute top-2 right-2 px-2 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold">
-                                <i class="fa-solid fa-trash-can mr-1"></i> <span data-i18n="btn_delete">Entfernen</span>
-                            </button>
+                            <div id="photo-gallery-outdoor" class="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full max-w-full"></div>
                         </div>
                     </div>
 
-                    <div class="space-y-2 w-full max-w-full">
+                    <div class="space-y-2 w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_outdoor_checks">Zustandskriterien</label>
-                        <div class="space-y-2 w-full max-w-full">
+                        <div class="space-y-2 w-full max-w-full box-border">
                             <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_trash_cigs">Mülleimer geleert & Zigarettenstummel</span>
                                 <div class="flex gap-1.5 shrink-0">
@@ -575,12 +578,12 @@
                         </div>
                     </div>
 
-                    <div class="w-full max-w-full">
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_outdoor_notes">Bemerkungen</label>
                         <textarea id="outdoor-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-emerald-500 box-border max-w-full"></textarea>
                     </div>
 
-                    <div class="pb-2 w-full max-w-full">
+                    <div class="pb-2 w-full max-w-full box-border">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('outdoor')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
@@ -598,7 +601,7 @@
         </section>
 
         <!-- BREAKROOM VIEW -->
-        <section id="view-breakroom" class="view-panel hidden space-y-4">
+        <section id="view-breakroom" class="view-panel hidden space-y-4 w-full max-w-full">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -606,7 +609,7 @@
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100" data-i18n="card_breakroom_title">Pausenraum</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 w-full max-w-full box-border">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-mug-saucer"></i>
@@ -617,33 +620,30 @@
                     </div>
                 </div>
 
-                <form id="form-breakroom" onsubmit="saveBreakroom(event)" class="space-y-4 max-w-full">
-                    <div class="w-full max-w-full">
+                <form id="form-breakroom" onsubmit="saveBreakroom(event)" class="space-y-4 w-full max-w-full box-border">
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
                         <select id="breakroom-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                             <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                         </select>
                     </div>
 
-                    <div class="w-full max-w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photo_breakroom">Foto des Pausenraums</label>
-                        <input type="file" id="camera-input-breakroom" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'breakroom')">
-                        <div id="photo-btns-breakroom" class="w-full max-w-full">
+                    <div class="w-full max-w-full box-border">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photos">Fotos des Pausenraums (Mehrfachauswahl)</label>
+                        <input type="file" id="camera-input-breakroom" accept="image/*" multiple capture="environment" class="hidden" onchange="handleMultiplePhotos(event, 'breakroom')">
+                        <div class="w-full max-w-full space-y-2 box-border">
                             <button type="button" onclick="document.getElementById('camera-input-breakroom').click()" 
                                     class="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 border-2 border-dashed border-amber-300 rounded-xl text-xs font-bold text-amber-800 flex items-center justify-center gap-2 box-border max-w-full">
                                 <i class="fa-solid fa-camera text-base text-amber-600"></i>
-                                <span data-i18n="btn_take_photo_breakroom">Foto mit Kamera aufnehmen</span>
+                                <span data-i18n="btn_take_photos">Fotos aufnehmen / hinzufügen</span>
                             </button>
-                        </div>
-                        <div id="photo-preview-box-breakroom" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900 w-full max-w-full box-border">
-                            <img id="photo-preview-img-breakroom" src="" alt="Foto" class="w-full h-40 object-cover">
-                            <button type="button" onclick="removePhoto('breakroom')" class="absolute top-2 right-2 px-2 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold">Entfernen</button>
+                            <div id="photo-gallery-breakroom" class="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full max-w-full"></div>
                         </div>
                     </div>
 
-                    <div class="space-y-2 w-full max-w-full">
+                    <div class="space-y-2 w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_breakroom_checks">Hygiene & Ordnung</label>
-                        <div class="space-y-2 w-full max-w-full">
+                        <div class="space-y-2 w-full max-w-full box-border">
                             <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_br_surfaces">Tische, Arbeitsflächen & Spüle sauber</span>
                                 <div class="flex gap-1.5 shrink-0">
@@ -675,12 +675,12 @@
                         </div>
                     </div>
 
-                    <div class="w-full max-w-full">
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_breakroom_notes">Bemerkungen</label>
                         <textarea id="breakroom-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500 box-border max-w-full"></textarea>
                     </div>
 
-                    <div class="pb-2 w-full max-w-full">
+                    <div class="pb-2 w-full max-w-full box-border">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('breakroom')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
@@ -698,7 +698,7 @@
         </section>
 
         <!-- VEHICLE VIEW -->
-        <section id="view-vehicle" class="view-panel hidden space-y-4">
+        <section id="view-vehicle" class="view-panel hidden space-y-4 w-full max-w-full">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -711,7 +711,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 w-full max-w-full box-border">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-truck"></i>
@@ -722,15 +722,15 @@
                     </div>
                 </div>
 
-                <form id="form-vehicle" onsubmit="saveVehicle(event)" class="space-y-4 max-w-full">
-                    <div class="w-full max-w-full">
+                <form id="form-vehicle" onsubmit="saveVehicle(event)" class="space-y-4 w-full max-w-full box-border">
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
                         <select id="vehicle-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                             <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full box-border">
                         <div class="w-full max-w-full box-border">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_vehicle_plate">Fahrzeug / Kennzeichen *</label>
                             <input type="text" id="vehicle-plate" required placeholder="z. B. HP-EC 101" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500 box-border max-w-full">
@@ -741,25 +741,22 @@
                         </div>
                     </div>
 
-                    <div class="w-full max-w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photo_vehicle">Foto des Fahrzeugs</label>
-                        <input type="file" id="camera-input-vehicle" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'vehicle')">
-                        <div id="photo-btns-vehicle" class="w-full max-w-full">
+                    <div class="w-full max-w-full box-border">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photos">Fotos des Fahrzeugs (Mehrfachauswahl)</label>
+                        <input type="file" id="camera-input-vehicle" accept="image/*" multiple capture="environment" class="hidden" onchange="handleMultiplePhotos(event, 'vehicle')">
+                        <div class="w-full max-w-full space-y-2 box-border">
                             <button type="button" onclick="document.getElementById('camera-input-vehicle').click()" 
                                     class="w-full py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100 border-2 border-dashed border-indigo-300 rounded-xl text-xs font-bold text-indigo-800 flex items-center justify-center gap-2 box-border max-w-full">
                                 <i class="fa-solid fa-camera text-base text-indigo-600"></i>
-                                <span data-i18n="btn_take_photo_vehicle">Fahrzeugfoto mit Kamera aufnehmen</span>
+                                <span data-i18n="btn_take_photos">Fahrzeugfotos aufnehmen / hinzufügen</span>
                             </button>
-                        </div>
-                        <div id="photo-preview-box-vehicle" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900 w-full max-w-full box-border">
-                            <img id="photo-preview-img-vehicle" src="" alt="Foto" class="w-full h-40 object-cover">
-                            <button type="button" onclick="removePhoto('vehicle')" class="absolute top-2 right-2 px-2 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold">Entfernen</button>
+                            <div id="photo-gallery-vehicle" class="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full max-w-full"></div>
                         </div>
                     </div>
 
-                    <div class="space-y-2 w-full max-w-full">
+                    <div class="space-y-2 w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_vehicle_checks">Fahrzeugzustand & Sicherheit</label>
-                        <div class="space-y-2 w-full max-w-full">
+                        <div class="space-y-2 w-full max-w-full box-border">
                             <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_veh_clean">Fahrzeug sauber (Kabine & Außen)</span>
                                 <div class="flex gap-1.5 shrink-0">
@@ -791,12 +788,12 @@
                         </div>
                     </div>
 
-                    <div class="w-full max-w-full">
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_vehicle_notes">Bemerkungen / Schäden</label>
                         <textarea id="vehicle-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500 box-border max-w-full"></textarea>
                     </div>
 
-                    <div class="pb-2 w-full max-w-full">
+                    <div class="pb-2 w-full max-w-full box-border">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('vehicle')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
@@ -814,7 +811,7 @@
         </section>
 
         <!-- VEHICLE FLEET MANAGEMENT VIEW -->
-        <section id="view-vehicle_fleet" class="view-panel hidden space-y-4">
+        <section id="view-vehicle_fleet" class="view-panel hidden space-y-4 w-full max-w-full">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -829,7 +826,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 w-full max-w-full box-border">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                     <div>
                         <h2 class="text-base font-black text-slate-900 tracking-tight" data-i18n="fleet_title">Fahrzeugpark & Wartung (TÜV / Ölwechsel)</h2>
@@ -837,7 +834,7 @@
                     </div>
                 </div>
 
-                <div id="fleet-vehicles-container" class="space-y-3 w-full max-w-full">
+                <div id="fleet-vehicles-container" class="space-y-3 w-full max-w-full box-border">
                     <div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_fleet_cars">
                         Keine Fahrzeuge angelegt.
                     </div>
@@ -846,7 +843,7 @@
         </section>
 
         <!-- VACATION VIEW -->
-        <section id="view-vacation" class="view-panel hidden space-y-4">
+        <section id="view-vacation" class="view-panel hidden space-y-4 w-full max-w-full">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="vacation_title">Urlaubsplan & Antrag</h2>
@@ -862,7 +859,7 @@
                 </div>
             </div>
 
-            <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-md space-y-3">
+            <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-md space-y-3 w-full max-w-full box-border">
                 <div onclick="toggleManagerLogin()" class="flex items-center justify-between cursor-pointer select-none">
                     <div class="flex items-center gap-2.5">
                         <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm">
@@ -879,20 +876,20 @@
                     </div>
                 </div>
 
-                <div id="manager-login-dropdown" class="hidden pt-3 border-t border-slate-800 space-y-3">
+                <div id="manager-login-dropdown" class="hidden pt-3 border-t border-slate-800 space-y-3 w-full max-w-full box-border">
                     <div id="manager-login-form" class="flex items-center gap-2 max-w-full">
                         <input type="password" id="manager-pwd-input" placeholder="Passwort..." class="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white outline-none focus:border-emerald-500 box-border max-w-full">
                         <button type="button" onclick="verifyManagerLogin()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs shrink-0">Entsperren</button>
                     </div>
 
-                    <div id="manager-pending-list" class="space-y-2.5 hidden pt-2">
+                    <div id="manager-pending-list" class="space-y-2.5 hidden pt-2 w-full max-w-full box-border">
                         <div class="text-[11px] font-bold text-slate-300 uppercase tracking-wider" data-i18n="manager_pending_title">Offene Anträge zur Prüfung:</div>
-                        <div id="manager-approval-items" class="space-y-2"></div>
+                        <div id="manager-approval-items" class="space-y-2 w-full max-w-full box-border"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full box-border">
                 <div class="flex items-center justify-between">
                     <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider" data-i18n="monthly_calendar_title">Monatskalender & Team-Übersicht</h3>
                     <div class="flex items-center gap-1.5">
@@ -915,19 +912,19 @@
                 <div id="monthly-calendar-grid" class="overflow-x-auto no-scrollbar pb-1 text-base w-full"></div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full box-border">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider" data-i18n="team_vacation_title">Urlaubsanträge & Status</h3>
-                <div id="vacation-list-container" class="space-y-2 w-full max-w-full">
+                <div id="vacation-list-container" class="space-y-2 w-full max-w-full box-border">
                     <div class="p-4 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_vacations">Keine Urlaube eingetragen.</div>
                 </div>
             </div>
         </section>
 
         <!-- SHIFTS VIEW -->
-        <section id="view-shifts" class="view-panel hidden space-y-4">
+        <section id="view-shifts" class="view-panel hidden space-y-4 w-full max-w-full">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
-                    <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="shift_title">Schichtkalender & Auslieferung</h2>
+                    <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="shift_title">Schichten</h2>
                     <p class="text-xs text-slate-500 flex items-center gap-1"><i class="fa-solid fa-cloud text-emerald-600"></i> <span data-i18n="shift_sub">Früh-, Mittagsschichten, Freischichten & LKW</span></p>
                 </div>
                 <div class="flex items-center gap-2">
@@ -940,7 +937,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full box-border">
                 <div class="flex items-center justify-between">
                     <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider" data-i18n="shift_calendar_title">Schicht-Übersicht & Auslieferung</h3>
                     <div class="flex items-center gap-1.5">
@@ -964,16 +961,16 @@
                 <div id="monthly-shift-calendar-grid" class="overflow-x-auto no-scrollbar pb-1 text-sm w-full"></div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full box-border">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider" data-i18n="shift_list_title">Aktuelle Schicht-Einträge</h3>
-                <div id="shift-list-container" class="space-y-2 w-full max-w-full">
+                <div id="shift-list-container" class="space-y-2 w-full max-w-full box-border">
                     <div class="p-4 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_shifts">Keine Schichten eingetragen.</div>
                 </div>
             </div>
         </section>
 
         <!-- ADMIN VIEW -->
-        <section id="view-admin" class="view-panel hidden space-y-4">
+        <section id="view-admin" class="view-panel hidden space-y-4 w-full max-w-full">
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="admin_panel_title">Admin-Steuerzentrale</h2>
@@ -982,7 +979,7 @@
                 <span id="admin-status-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700">Gesperrt</span>
             </div>
 
-            <div id="admin-locked-box" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4 text-center">
+            <div id="admin-locked-box" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4 text-center w-full max-w-full box-border">
                 <div class="w-12 h-12 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center text-xl mx-auto"><i class="fa-solid fa-lock"></i></div>
                 <h3 class="text-sm font-bold text-slate-900">Bitte Administrator-Passwort eingeben</h3>
                 <div class="max-w-xs mx-auto space-y-3 w-full">
@@ -992,16 +989,16 @@
             </div>
 
             <div id="admin-unlocked-box" class="space-y-4 hidden w-full max-w-full">
-                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full">
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full box-border">
                     <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider"><i class="fa-solid fa-user-plus text-sky-600 mr-1.5"></i> Neuen Mitarbeiter hinzufügen</h3>
-                    <div class="flex gap-2 w-full max-w-full">
+                    <div class="flex gap-2 w-full max-w-full box-border">
                         <input type="text" id="admin-new-emp" placeholder="Vollständiger Name..." class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                         <button onclick="adminAddNewEmployee()" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shrink-0">Hinzufügen</button>
                     </div>
                     <div id="admin-employees-list" class="flex flex-wrap gap-2 pt-2"></div>
                 </div>
 
-                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full">
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full box-border">
                     <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider"><i class="fa-solid fa-folder-tree text-emerald-600 mr-1.5"></i> Dokumenten-Ordner in der Historie einsehen</h3>
                     <p class="text-xs text-slate-500">Klicken Sie auf einen Bereich, um direkt in die gefilterte Historienansicht zu gelangen und Dokumente einzusehen oder zu löschen:</p>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 w-full max-w-full">
@@ -1026,7 +1023,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full">
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full box-border">
                     <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider"><i class="fa-solid fa-database text-rose-600 mr-1.5"></i> Daten- & Archivpflege</h3>
                     <p class="text-xs text-slate-500">Hier können Sie die gesamte Cloud-Historie aller Protokolle und Urlaube bereinigen.</p>
                     <button onclick="confirmResetAll()" class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-xs box-border">
@@ -1037,7 +1034,7 @@
         </section>
 
         <!-- HISTORY VIEW -->
-        <section id="view-history" class="view-panel hidden space-y-4">
+        <section id="view-history" class="view-panel hidden space-y-4 w-full max-w-full">
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="history_title">Historie & Ordner</h2>
@@ -1048,7 +1045,7 @@
                 </button>
             </div>
 
-            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 pt-0.5">
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 pt-0.5 w-full max-w-full">
                 <button onclick="setHistoryFilter('all')" id="hist-filter-all" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white shadow-xs">📁 <span data-i18n="filter_all">Alle</span> (<span id="count-all">0</span>)</button>
                 <button onclick="setHistoryFilter('Entmineralisierung')" id="hist-filter-demin" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600">💧 <span data-i18n="filter_demin">Entmin.</span> (<span id="count-demin">0</span>)</button>
                 <button onclick="setHistoryFilter('Heizungskontrolle')" id="hist-filter-heating" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600">🔥 Heizung (<span id="count-heating">0</span>)</button>
@@ -1103,14 +1100,14 @@
                 </h3>
                 <button onclick="closeModal('modal-vacation')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form id="form-vacation-request" onsubmit="submitVacationRequest(event)" class="space-y-3 w-full max-w-full">
-                <div class="w-full max-w-full">
+            <form id="form-vacation-request" onsubmit="submitVacationRequest(event)" class="space-y-3 w-full max-w-full box-border">
+                <div class="w-full max-w-full box-border">
                     <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="vac_label_name">Mitarbeiter *</label>
                     <select id="vac-employee" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                         <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                     </select>
                 </div>
-                <div class="grid grid-cols-2 gap-2 w-full max-w-full">
+                <div class="grid grid-cols-2 gap-2 w-full max-w-full box-border">
                     <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="vac_label_start">Von Datum *</label>
                         <input type="date" id="vac-start" required class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
@@ -1120,7 +1117,7 @@
                         <input type="date" id="vac-end" required class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                     </div>
                 </div>
-                <div class="w-full max-w-full">
+                <div class="w-full max-w-full box-border">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="vac_label_type">Art des Urlaubs</label>
                     <select id="vac-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                         <option value="Erholungsurlaub" data-i18n="vac_type_recreation">Erholungsurlaub / Urlaub</option>
@@ -1128,18 +1125,18 @@
                         <option value="Krankheit / Freistellung" data-i18n="vac_type_sick">Krankheit / Freistellung</option>
                     </select>
                 </div>
-                <div class="w-full max-w-full">
+                <div class="w-full max-w-full box-border">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="vac_label_lang">PDF-Sprache</label>
                     <select id="vac-lang" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                         <option value="de">Deutsch 🇩🇪</option>
                         <option value="ro">Română 🇷🇴</option>
                     </select>
                 </div>
-                <div class="w-full max-w-full">
+                <div class="w-full max-w-full box-border">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="vac_label_notes">Bemerkung / Vertretung</label>
                     <textarea id="vac-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full"></textarea>
                 </div>
-                <div class="w-full max-w-full">
+                <div class="w-full max-w-full box-border">
                     <div class="flex items-center justify-between mb-1">
                         <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Unterschrift Antragsteller *</label>
                         <button type="button" onclick="clearSignature('vacation')" class="text-[11px] text-rose-600 font-semibold" data-i18n="btn_clear">Löschen</button>
@@ -1164,8 +1161,8 @@
                 </h3>
                 <button onclick="closeModal('modal-shift')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form id="form-shift-request" onsubmit="submitShift(event)" class="space-y-3 w-full max-w-full">
-                <div class="grid grid-cols-2 gap-2 w-full max-w-full">
+            <form id="form-shift-request" onsubmit="submitShift(event)" class="space-y-3 w-full max-w-full box-border">
+                <div class="grid grid-cols-2 gap-2 w-full max-w-full box-border">
                     <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="shift_label_date_from">Von Datum *</label>
                         <input type="date" id="shift-date-start" required class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
@@ -1175,13 +1172,13 @@
                         <input type="date" id="shift-date-end" required class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                     </div>
                 </div>
-                <div class="w-full max-w-full">
+                <div class="w-full max-w-full box-border">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="shift_label_emp">Mitarbeiter *</label>
                     <select id="shift-employee" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                         <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                     </select>
                 </div>
-                <div class="w-full max-w-full">
+                <div class="w-full max-w-full box-border">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="shift_label_type">Schichtart *</label>
                     <select id="shift-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                         <option value="Frühschicht" data-i18n="shift_early">Frühschicht (F)</option>
@@ -1210,25 +1207,25 @@
                 <button onclick="closeModal('modal-fleet-vehicle')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="form-fleet-vehicle" onsubmit="submitFleetVehicle(event)" class="space-y-3 w-full max-w-full overflow-hidden box-border">
-                <div class="w-full max-w-full">
+                <div class="w-full max-w-full box-border">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="fleet_label_plate">Kennzeichen / Name *</label>
                     <input type="text" id="fleet-input-plate" required placeholder="z. B. HP-EC 101" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                 </div>
-                <div class="w-full max-w-full">
+                <div class="w-full max-w-full box-border">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="fleet_label_model">Fahrzeugmodell / Typ</label>
                     <input type="text" id="fleet-input-model" placeholder="z. B. VW Transporter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                 </div>
-                <div class="grid grid-cols-2 gap-2 w-full max-w-full">
-                    <div class="overflow-hidden w-full max-w-full">
+                <div class="grid grid-cols-2 gap-2 w-full max-w-full box-border">
+                    <div class="overflow-hidden w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1 truncate" data-i18n="fleet_label_km">Kilometerstand (km)</label>
                         <input type="number" id="fleet-input-km" placeholder="z. B. 124500" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                     </div>
-                    <div class="overflow-hidden w-full max-w-full">
+                    <div class="overflow-hidden w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1 truncate" data-i18n="fleet_label_tuev">Nächster TÜV</label>
                         <input type="date" id="fleet-input-tuev" class="w-full px-1.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[11px] outline-none box-border max-w-full">
                     </div>
                 </div>
-                <div class="w-full max-w-full">
+                <div class="w-full max-w-full box-border">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="fleet_label_oil">Nächster Ölwechsel</label>
                     <input type="date" id="fleet-input-oil" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                 </div>
@@ -1248,7 +1245,7 @@
                 </h3>
                 <button onclick="closeModal('modal-attendance')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="attendance-list-container" class="space-y-2 max-h-[60vh] overflow-y-auto w-full max-w-full"></div>
+            <div id="attendance-list-container" class="space-y-2 max-h-[60vh] overflow-y-auto w-full max-w-full box-border"></div>
             <button onclick="closeModal('modal-attendance')" class="w-full py-2 bg-slate-900 text-white rounded-xl font-bold text-xs box-border">Schließen</button>
         </div>
     </div>
@@ -1276,7 +1273,7 @@
                     <i class="fa-solid fa-file-pdf text-sm"></i> Protokoll jetzt versenden
                 </button>
             </div>
-            <div class="flex gap-2 pt-1 w-full max-w-full">
+            <div class="flex gap-2 pt-1 w-full max-w-full box-border">
                 <button onclick="previewActivePdf(false)" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-eye"></i> PDF ansehen</button>
                 <button onclick="savePdfDownload()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-download"></i> Speichern</button>
             </div>
@@ -1296,7 +1293,7 @@
             <div class="flex-1 w-full bg-slate-100 rounded-xl overflow-hidden border border-slate-200 my-1 min-h-[340px]">
                 <iframe id="pdf-viewer-frame" class="w-full h-full min-h-[340px] border-none" src="about:blank"></iframe>
             </div>
-            <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 w-full max-w-full">
+            <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 w-full max-w-full box-border">
                 <button onclick="openPdfInNewTab()" class="py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 box-border"><i class="fa-solid fa-arrow-up-right-from-square"></i> In neuem Tab</button>
                 <button onclick="savePdfDownload()" class="py-2.5 bg-ecb text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 box-border"><i class="fa-solid fa-download"></i> Herunterladen</button>
             </div>
@@ -1401,7 +1398,7 @@
                 card_heating_title: "2. Heizungskontrolle",
                 card_heating_desc: "Druck, Dichtheit & Speichertemperatur",
                 card_outdoor_title: "3. Außenbereich",
-                card_outdoor_desc: "Mülleimer, Tische & Sauberkeit mit Foto",
+                card_outdoor_desc: "Mülleimer, Tische & Sauberkeit mit Fotos",
                 card_breakroom_title: "4. Pausenraum",
                 card_breakroom_desc: "Ordnung, Hygiene & Müllentsorgung",
                 card_vehicle_title: "5. Fahrzeuge",
@@ -1437,16 +1434,14 @@
                 check_heating_leaks: "Keine Undichtigkeiten / Leckagen",
                 check_heating_defects: "Keine Mängel / Störungen am System",
                 btn_save_send_heating: "Heizungskontrolle speichern & Protokoll versenden",
-                label_photo: "Aktuelles Live-Foto des Außenbereichs *",
-                btn_take_photo: "Aktuelles Foto mit Kamera aufnehmen",
+                label_photos: "Fotos aufnehmen / hochladen",
+                btn_take_photos: "Fotos mit Kamera aufnehmen",
                 btn_delete: "Entfernen",
                 label_outdoor_checks: "Zustandskriterien",
                 check_trash_cigs: "Mülleimer geleert & Zigarettenstummel",
                 check_tables_cans: "Kein Essen auf Tischen, leere Dosen",
                 check_outdoor_grounds: "Sauberkeit der Flächen & Abläufe frei",
                 btn_save_send_outdoor: "Außenbereich speichern & Protokoll versenden",
-                label_photo_breakroom: "Foto des Pausenraums",
-                btn_take_photo_breakroom: "Foto aufnehmen",
                 label_breakroom_checks: "Hygiene & Ordnung",
                 check_br_surfaces: "Tische, Arbeitsflächen & Spüle",
                 check_br_appliances: "Kühlschrank & Geräte sauber / leer",
@@ -1455,8 +1450,6 @@
                 btn_save_send_breakroom: "Pausenraum speichern & Protokoll versenden",
                 label_vehicle_plate: "Fahrzeug / Kennzeichen *",
                 label_vehicle_km: "Kilometerstand (km) *",
-                label_photo_vehicle: "Foto des Fahrzeugs",
-                btn_take_photo_vehicle: "Fahrzeugfoto aufnehmen",
                 label_vehicle_checks: "Fahrzeugzustand & Sicherheit",
                 check_veh_clean: "Fahrzeug sauber (Kabine & Außen)",
                 check_veh_condition: "Beleuchtung & Blinker i.O.",
@@ -1481,7 +1474,7 @@
                 btn_team_vacation_pdf: "Gesamt-PDF",
                 team_vacation_title: "Urlaubsanträge & Status",
                 monthly_calendar_title: "Monatskalender & Team-Übersicht",
-                shift_title: "Schichtkalender & Auslieferung",
+                shift_title: "Schichten",
                 shift_sub: "Früh-, Mittagsschichten, Freischichten & LKW",
                 btn_new_shift: "Schicht eintragen",
                 shift_calendar_title: "Schicht-Übersicht & Auslieferung",
@@ -1526,7 +1519,7 @@
                 admin_panel_title: "Admin-Steuerzentrale",
                 badge_done: "✓ Erledigt", badge_open: "Offen",
                 legend_approved: "Genehmigt", legend_pending: "Ausstehend", legend_holiday: "Feiertage", legend_sunday: "Sonntage",
-                toast_saved: "Gespeichert & gesendet!", toast_need_sig: "Bitte unterschreiben!", toast_need_photo: "Bitte Foto aufnehmen!", toast_sent: "Erfolgreich gesendet!",
+                toast_saved: "Gespeichert & gesendet!", toast_need_sig: "Bitte unterschreiben!", toast_need_photo: "Bitte mindestens ein Foto aufnehmen!", toast_sent: "Erfolgreich gesendet!",
                 btn_approve: "Genehmigen", btn_reject: "Ablehnen",
                 sync_force: "Cloud-Sync erzwingen"
             },
@@ -1536,7 +1529,7 @@
                 attendance_modal_title: "Cine este prezent azi?",
                 status_working: "Prezent",
                 status_on_leave: "În concediu",
-                card_demin_title: "1. Demineralizare",
+                card_demin_title: "1. Demineralizator",
                 card_demin_desc: "Control zilnic & valori",
                 card_heating_title: "2. Control Încălzire",
                 card_heating_desc: "Presiune, etanșeitate & temp. boiler",
@@ -1577,16 +1570,14 @@
                 check_heating_leaks: "Fără scurgeri / pierderi de presiune",
                 check_heating_defects: "Fără defecte / anomalii la sistem",
                 btn_save_send_heating: "Salvează controlul încălzirii & trimite",
-                label_photo: "Fotografie live a zonei exterioare *",
-                btn_take_photo: "Fă o fotografie cu camera",
+                label_photos: "Fotografii / încărcare imagini",
+                btn_take_photos: "Fă fotografii cu camera",
                 btn_delete: "Șterge",
                 label_outdoor_checks: "Criterii de verificare",
                 check_trash_cigs: "Coșuri golite & chiștoace",
                 check_tables_cans: "Fără mâncare pe mese, doze goale",
                 check_outdoor_grounds: "Curățenie platformă & rigole libere",
                 btn_save_send_outdoor: "Salvează zona exterioară & trimite",
-                label_photo_breakroom: "Fotografie sală de pauză",
-                btn_take_photo_breakroom: "Fă o fotografie",
                 label_breakroom_checks: "Igienă & Ordine",
                 check_br_surfaces: "Mese, blaturi & chiuvetă curate",
                 check_br_appliances: "Frigider & electrocasnice curate",
@@ -1595,8 +1586,6 @@
                 btn_save_send_breakroom: "Salvează sala de pauză & trimite",
                 label_vehicle_plate: "Vehicul / Nr. Înmatriculare *",
                 label_vehicle_km: "Kilometraj (km) *",
-                label_photo_vehicle: "Fotografie vehicul",
-                btn_take_photo_vehicle: "Fotografiază vehiculul",
                 label_vehicle_checks: "Starea vehiculului & Siguranță",
                 check_veh_clean: "Vehicul curat (cabină & exterior)",
                 check_veh_condition: "Iluminare & semnalizatoare i.O.",
@@ -1621,7 +1610,7 @@
                 btn_team_vacation_pdf: "PDF General",
                 team_vacation_title: "Cereri & Status Concedii",
                 monthly_calendar_title: "Calendar lunar & Prezentare generală",
-                shift_title: "Calendar Schimente & Livrări",
+                shift_title: "Schimente",
                 shift_sub: "Tură dimineață, prânz, libere și LKW",
                 btn_new_shift: "Adaugă tură",
                 shift_calendar_title: "Prezentare generală tură & Livrare",
@@ -1666,7 +1655,7 @@
                 admin_panel_title: "Panou Admin",
                 badge_done: "✓ Efectuat", badge_open: "Deschis",
                 legend_approved: "Aprobat", legend_pending: "În așteptare", legend_holiday: "Sărbători", legend_sunday: "Duminici",
-                toast_saved: "Salvat & trimis!", toast_need_sig: "Vă rugăm semnați!", toast_need_photo: "Vă rugăm faceți o poză!", toast_sent: "Trimis cu succes!",
+                toast_saved: "Salvat & trimis!", toast_need_sig: "Vă rugăm semnați!", toast_need_photo: "Vă rugăm adăugați cel puțin o poză!", toast_sent: "Trimis cu succes!",
                 btn_approve: "Genehmigen", btn_reject: "Ablehnen",
                 sync_force: "Sincronizare Cloud"
             }
@@ -1720,7 +1709,7 @@
             statusOutdoor: { trash: 'ok', tables: 'ok', grounds: 'ok' },
             statusBreakroom: { surfaces: 'ok', appliances: 'ok', trash: 'ok', floor: 'ok' },
             statusVehicle: { clean: 'ok', condition: 'ok', tirePressure: 'ok', warnings: 'ok' },
-            photos: { demin: null, outdoor: null, breakroom: null, vehicle: null },
+            photos: { demin: [], heating: [], outdoor: [], breakroom: [], vehicle: [] },
             currentDispatchContext: { type: 'Gesamtbericht', data: null, subject: '', body: '', categoryFolder: 'Tagesberichte' }
         };
 
@@ -2003,45 +1992,62 @@
             switchView('history');
         }
 
-        function handlePhoto(e, domain) {
-            const file = e.target.files && e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                const img = new Image();
-                img.onload = () => {
-                    const maxDim = 800;
-                    let w = img.width, h = img.height;
-                    if (w > maxDim || h > maxDim) {
-                        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
-                        else { w = Math.round((w * maxDim) / h); h = maxDim; }
-                    }
-                    const c = document.createElement('canvas'); c.width = w; c.height = h;
-                    const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, w, h);
-                    const compressed = c.toDataURL('image/jpeg', 0.65);
-                    state.photos[domain] = compressed;
-                    document.getElementById(`photo-preview-img-${domain}`).src = compressed;
-                    document.getElementById(`photo-preview-box-${domain}`).classList.remove('hidden');
-                    document.getElementById(`photo-btns-${domain}`).classList.add('hidden');
-                    showToast('Foto aufgenommen');
+        function handleMultiplePhotos(e, domain) {
+            const files = e.target.files;
+            if (!files || files.length === 0) return;
+            
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const maxDim = 800;
+                        let w = img.width, h = img.height;
+                        if (w > maxDim || h > maxDim) {
+                            if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                            else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                        }
+                        const c = document.createElement('canvas'); c.width = w; c.height = h;
+                        const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, w, h);
+                        const compressed = c.toDataURL('image/jpeg', 0.65);
+                        state.photos[domain].push(compressed);
+                        renderPhotoGallery(domain);
+                        showToast('Foto hinzugefügt');
+                    };
+                    img.src = evt.target.result;
                 };
-                img.src = evt.target.result;
-            };
-            reader.readAsDataURL(file);
+                reader.readAsDataURL(file);
+            });
         }
 
-        function removePhoto(domain) {
-            state.photos[domain] = null;
-            document.getElementById(`photo-preview-img-${domain}`).src = '';
-            document.getElementById(`photo-preview-box-${domain}`).classList.add('hidden');
-            document.getElementById(`photo-btns-${domain}`).classList.remove('hidden');
-            document.getElementById(`camera-input-${domain}`).value = '';
+        function renderPhotoGallery(domain) {
+            const gallery = document.getElementById(`photo-gallery-${domain}`);
+            if (!gallery) return;
+            const photos = state.photos[domain] || [];
+            if (photos.length === 0) {
+                gallery.innerHTML = '';
+                return;
+            }
+            gallery.innerHTML = photos.map((src, idx) => `
+                <div class="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-900 h-28">
+                    <img src="${src}" alt="Foto ${idx + 1}" class="w-full h-full object-cover">
+                    <button type="button" onclick="removePhotoIndex('${domain}', ${idx})" class="absolute top-1 right-1 px-1.5 py-0.5 bg-rose-600 text-white rounded-md text-[9px] font-bold">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function removePhotoIndex(domain, index) {
+            state.photos[domain].splice(index, 1);
+            renderPhotoGallery(domain);
         }
 
         function clearSignature(type) { if (pads[type]) { pads[type].clear(); } }
 
         function saveDemin(e) {
             e.preventDefault();
+            if (!state.photos.demin || state.photos.demin.length === 0) { showToast(t('toast_need_photo')); return; }
             if (!pads.demin || pads.demin.isEmpty()) { showToast(t('toast_need_sig')); return; }
             const now = new Date();
             const timeFormatted = now.toLocaleDateString('de-DE') + ' · ' + now.toLocaleTimeString('de-DE');
@@ -2053,7 +2059,7 @@
                 pressure: document.getElementById('demin-press').value.trim() || '-',
                 statusLeak: state.statusDemin.leak, statusFilter: state.statusDemin.filter, statusResin: state.statusDemin.resin, statusSalt: state.statusDemin.salt,
                 notes: document.getElementById('demin-notes').value.trim() || '-',
-                photo: state.photos.demin, timestamp: timeFormatted, signature: sig
+                photos: [...state.photos.demin], timestamp: timeFormatted, signature: sig
             };
 
             state.data.entmineralisierung = rec;
@@ -2075,7 +2081,7 @@
                 temp: document.getElementById('heating-temp').value.trim() || '-',
                 statusLeaks: state.statusHeating.leaks, statusDefects: state.statusHeating.defects,
                 notes: document.getElementById('heating-notes').value.trim() || '-',
-                timestamp: timeFormatted, signature: sig
+                photos: [...(state.photos.heating || [])], timestamp: timeFormatted, signature: sig
             };
 
             state.data.heizungskontrolle = rec;
@@ -2086,7 +2092,7 @@
 
         function saveOutdoor(e) {
             e.preventDefault();
-            if (!state.photos.outdoor) { showToast(t('toast_need_photo')); return; }
+            if (!state.photos.outdoor || state.photos.outdoor.length === 0) { showToast(t('toast_need_photo')); return; }
             if (!pads.outdoor || pads.outdoor.isEmpty()) { showToast(t('toast_need_sig')); return; }
             const now = new Date();
             const timeFormatted = now.toLocaleDateString('de-DE') + ' · ' + now.toLocaleTimeString('de-DE');
@@ -2096,7 +2102,7 @@
                 inspector: document.getElementById('outdoor-inspector').value.trim(),
                 statusTrash: state.statusOutdoor.trash, statusTables: state.statusOutdoor.tables, statusGrounds: state.statusOutdoor.grounds,
                 notes: document.getElementById('outdoor-notes').value.trim() || '-',
-                photo: state.photos.outdoor, signature: sig, timestamp: timeFormatted
+                photos: [...state.photos.outdoor], signature: sig, timestamp: timeFormatted
             };
 
             state.data.aussenbereich = rec;
@@ -2117,7 +2123,7 @@
                 statusSurfaces: state.statusBreakroom.surfaces, statusAppliances: state.statusBreakroom.appliances,
                 statusTrash: state.statusBreakroom.trash, statusFloor: state.statusBreakroom.floor,
                 notes: document.getElementById('breakroom-notes').value.trim() || '-',
-                photo: state.photos.breakroom, signature: sig, timestamp: timeFormatted
+                photos: [...(state.photos.breakroom || [])], signature: sig, timestamp: timeFormatted
             };
 
             state.data.pausenraum = rec;
@@ -2140,7 +2146,7 @@
                 statusClean: state.statusVehicle.clean, statusCondition: state.statusVehicle.condition,
                 statusTirePressure: state.statusVehicle.tirePressure, statusWarnings: state.statusVehicle.warnings,
                 notes: document.getElementById('vehicle-notes').value.trim() || '-',
-                photo: state.photos.vehicle, signature: sig, timestamp: timeFormatted
+                photos: [...(state.photos.vehicle || [])], signature: sig, timestamp: timeFormatted
             };
 
             state.data.fahrzeuge = rec;
@@ -2248,7 +2254,7 @@
                         <span class="text-sm">🚚 ${item.plate} <span class="text-xs text-slate-500 font-normal">(${item.model})</span></span>
                         <button onclick="deleteFleetVehicle('${item.id || ''}')" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash-can"></i></button>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-[11px] text-slate-700 w-full max-w-full">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-[11px] text-slate-700 w-full max-w-full box-border">
                         <div class="bg-white p-2 rounded-lg border border-slate-200 w-full max-w-full box-border">
                             <div class="text-[9px] text-slate-400 uppercase font-bold">Kilometerstand</div>
                             <div class="font-bold text-slate-900">${item.km || '0'} km</div>
@@ -2490,7 +2496,7 @@
                 approvalContainer.innerHTML = pending.length === 0 ? `<div class="text-[11px] text-slate-400">${currentLang === 'de' ? 'Keine offenen Anträge.' : 'Nicio cerere în așteptare.'}</div>` : pending.map(item => {
                     const d = item.data || item;
                     return `
-                        <div class="p-3 bg-slate-800 border border-slate-700 rounded-xl space-y-1.5 text-xs text-white">
+                        <div class="p-3 bg-slate-800 border border-slate-700 rounded-xl space-y-1.5 text-xs text-white w-full max-w-full box-border">
                             <div class="font-bold">${d.employee} (${d.startDate} ➔ ${d.endDate})</div>
                             <div class="flex gap-2 pt-1">
                                 <button onclick="updateVacationStatus('${item.id}', 'Genehmigt')" class="px-3 py-1 bg-emerald-600 rounded text-xs font-bold">${t('btn_approve')}</button>
@@ -2610,6 +2616,12 @@
 
         function loadState() {
             try {
+                const todayStr = new Date().toISOString().slice(0, 10);
+                if (state.todayKey !== todayStr) {
+                    state.todayKey = todayStr;
+                    state.data = { entmineralisierung: null, heizungskontrolle: null, aussenbereich: null, pausenraum: null, fahrzeuge: null };
+                    localStorage.removeItem('ecb_app_data_v4_' + todayStr);
+                }
                 const raw = localStorage.getItem('ecb_app_data_v4_' + state.todayKey);
                 if (!raw) return;
                 state.data = JSON.parse(raw);
@@ -2619,7 +2631,7 @@
                     document.getElementById('demin-cond').value = d.conductivity !== '-' ? d.conductivity : '';
                     document.getElementById('demin-press').value = d.pressure !== '-' ? d.pressure : '';
                     document.getElementById('demin-notes').value = d.notes !== '-' ? d.notes : '';
-                    if (d.photo) { state.photos.demin = d.photo; document.getElementById('photo-preview-img-demin').src = d.photo; document.getElementById('photo-preview-box-demin').classList.remove('hidden'); document.getElementById('photo-btns-demin').classList.add('hidden'); }
+                    if (d.photos && Array.isArray(d.photos)) { state.photos.demin = d.photos; renderPhotoGallery('demin'); }
                     if (d.signature && pads.demin) pads.demin.loadDataUrl(d.signature);
                 }
                 if (state.data.heizungskontrolle) {
@@ -2628,20 +2640,21 @@
                     document.getElementById('heating-press').value = h.pressure !== '-' ? h.pressure : '';
                     document.getElementById('heating-temp').value = h.temp !== '-' ? h.temp : '';
                     document.getElementById('heating-notes').value = h.notes !== '-' ? h.notes : '';
+                    if (h.photos && Array.isArray(h.photos)) { state.photos.heating = h.photos; renderPhotoGallery('heating'); }
                     if (h.signature && pads.heating) pads.heating.loadDataUrl(h.signature);
                 }
                 if (state.data.aussenbereich) {
                     const a = state.data.aussenbereich;
                     document.getElementById('outdoor-inspector').value = a.inspector || '';
                     document.getElementById('outdoor-notes').value = a.notes !== '-' ? a.notes : '';
-                    if (a.photo) { state.photos.outdoor = a.photo; document.getElementById('photo-preview-img-outdoor').src = a.photo; document.getElementById('photo-preview-box-outdoor').classList.remove('hidden'); document.getElementById('photo-btns-outdoor').classList.add('hidden'); }
+                    if (a.photos && Array.isArray(a.photos)) { state.photos.outdoor = a.photos; renderPhotoGallery('outdoor'); }
                     if (a.signature && pads.outdoor) pads.outdoor.loadDataUrl(a.signature);
                 }
                 if (state.data.pausenraum) {
                     const p = state.data.pausenraum;
                     document.getElementById('breakroom-inspector').value = p.inspector || '';
                     document.getElementById('breakroom-notes').value = p.notes !== '-' ? p.notes : '';
-                    if (p.photo) { state.photos.breakroom = p.photo; document.getElementById('photo-preview-img-breakroom').src = p.photo; document.getElementById('photo-preview-box-breakroom').classList.remove('hidden'); document.getElementById('photo-btns-breakroom').classList.add('hidden'); }
+                    if (p.photos && Array.isArray(p.photos)) { state.photos.breakroom = p.photos; renderPhotoGallery('breakroom'); }
                     if (p.signature && pads.breakroom) pads.breakroom.loadDataUrl(p.signature);
                 }
                 if (state.data.fahrzeuge) {
@@ -2650,13 +2663,19 @@
                     document.getElementById('vehicle-plate').value = v.plate || '';
                     document.getElementById('vehicle-km').value = v.km || '';
                     document.getElementById('vehicle-notes').value = v.notes !== '-' ? v.notes : '';
-                    if (v.photo) { state.photos.vehicle = v.photo; document.getElementById('photo-preview-img-vehicle').src = v.photo; document.getElementById('photo-preview-box-vehicle').classList.remove('hidden'); document.getElementById('photo-btns-vehicle').classList.add('hidden'); }
+                    if (v.photos && Array.isArray(v.photos)) { state.photos.vehicle = v.photos; renderPhotoGallery('vehicle'); }
                     if (v.signature && pads.vehicle) pads.vehicle.loadDataUrl(v.signature);
                 }
             } catch(e){}
         }
 
         function updateDashboard() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            if (state.todayKey !== todayStr) {
+                state.todayKey = todayStr;
+                state.data = { entmineralisierung: null, heizungskontrolle: null, aussenbereich: null, pausenraum: null, fahrzeuge: null };
+            }
+
             const dDone = !!state.data.entmineralisierung;
             const hDone = !!state.data.heizungskontrolle;
             const oDone = !!state.data.aussenbereich;
@@ -2914,7 +2933,7 @@
 
             sections.forEach(sec => {
                 if (!sec.d) return;
-                if (y > 230) { doc.addPage(); pageNum++; y = 20; }
+                if (y > 220) { doc.addPage(); pageNum++; y = 20; }
                 
                 doc.setFillColor(241, 245, 249);
                 doc.rect(15, y, 180, 7, 'F');
@@ -2931,10 +2950,18 @@
                 doc.text(`Notizen: ${sec.d.notes || '-'}`, 18, y);
                 y += 8;
 
+                if (sec.d.photos && Array.isArray(sec.d.photos)) {
+                    sec.d.photos.forEach(photoUrl => {
+                        if (y > 230) { doc.addPage(); pageNum++; y = 20; }
+                        try { doc.addImage(photoUrl, 'JPEG', 18, y, 45, 22); y += 24; } catch(e){}
+                    });
+                }
+
                 if (sec.d.signature) {
+                    if (y > 230) { doc.addPage(); pageNum++; y = 20; }
                     try {
-                        doc.addImage(sec.d.signature, 'PNG', 18, y, 60, 25);
-                        y += 28;
+                        doc.addImage(sec.d.signature, 'PNG', 18, y, 60, 22);
+                        y += 25;
                     } catch(e){}
                 }
                 y += 4;
@@ -3019,17 +3046,18 @@
 
             doc.text(`Bemerkungen: ${rec.notes || '-'}`, 23, y); y += 10;
 
-            if (rec.photo) {
-                try {
-                    doc.addImage(rec.photo, 'JPEG', 23, y, 65, 32);
-                    y += 35;
-                } catch(e){}
+            if (rec.photos && Array.isArray(rec.photos)) {
+                rec.photos.forEach(photoUrl => {
+                    if (y > 220) { doc.addPage(); y = 20; }
+                    try { doc.addImage(photoUrl, 'JPEG', 23, y, 55, 26); y += 29; } catch(e){}
+                });
             }
 
             if (rec.signature) { 
+                if (y > 220) { doc.addPage(); y = 20; }
                 try { 
                     doc.setFont('helvetica', 'bold'); doc.text('Digitale Unterschrift des Prüfers:', 23, y);
-                    doc.addImage(rec.signature, 'PNG', 23, y + 4, 90, 32); 
+                    doc.addImage(rec.signature, 'PNG', 23, y + 4, 85, 28); 
                 } catch(e){} 
             }
             renderPdfFooter(doc, 1, 1);
