@@ -62,7 +62,6 @@
 </head>
 <body id="app-body" class="h-full bg-slate-100 text-slate-800 flex flex-col md:flex-row font-sans select-none antialiased overflow-hidden">
 
-    <!-- SIDEBAR FOR PC -->
     <aside class="hidden md:flex flex-col w-64 bg-white border-r border-slate-200/80 p-4 shrink-0 shadow-xs z-30">
         <div class="flex items-center gap-3 px-2 py-3 mb-4 cursor-pointer" onclick="switchView('start')">
             <div class="w-10 h-10 rounded-xl bg-ecb flex flex-col items-center justify-center text-white shadow-xs p-1">
@@ -105,6 +104,9 @@
             <button onclick="switchView('shifts')" id="pc-nav-btn-shifts" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
                 <i class="fa-solid fa-clock w-5 text-base text-blue-600"></i> <span data-i18n="nav_shifts">Schichten & LKW</span>
             </button>
+            <button onclick="switchView('admin')" id="pc-nav-btn-admin" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+                <i class="fa-solid fa-shield-halved w-5 text-base text-emerald-600"></i> <span data-i18n="nav_admin">Admin-Bereich</span>
+            </button>
             <button onclick="switchView('history')" id="pc-nav-btn-history" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
                 <i class="fa-solid fa-folder-tree w-5 text-base text-slate-600"></i> <span data-i18n="nav_history">Cloud-Ordner</span>
             </button>
@@ -124,7 +126,6 @@
         </div>
     </aside>
 
-    <!-- HEADER FOR MOBILE -->
     <header class="md:hidden sticky top-0 z-30 bg-white border-b border-slate-200/80 px-4 py-2.5 shadow-xs shrink-0">
         <div class="max-w-md mx-auto flex items-center justify-between">
             <div class="flex items-center gap-2.5">
@@ -156,8 +157,7 @@
         </div>
     </header>
 
-    <!-- MAIN CONTAINER WITH COMPACT BOTTOM PADDING -->
-    <main id="main-container" class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 md:px-8 md:py-6 space-y-4 pb-20 md:pb-8 overflow-y-auto">
+    <main id="main-container" class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 md:px-8 md:py-6 space-y-4 pb-24 md:pb-8 overflow-y-auto">
 
         <!-- START VIEW -->
         <section id="view-start" class="view-panel space-y-4">
@@ -167,10 +167,10 @@
                     <p class="text-xs text-slate-500" data-i18n="overview_desc">Tägliche Kontrollen einzeln erfassen, unterschreiben und sofort melden.</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="forceCloudSync()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
-                        <i class="fa-solid fa-rotate"></i> <span data-i18n="sync_force">Sync erzwingen</span>
+                    <button onclick="switchView('admin')" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                        <i class="fa-solid fa-shield-halved"></i> <span data-i18n="nav_admin">Admin-Bereich</span>
                     </button>
-                    <button onclick="openDispatchDaySummary()" class="px-3.5 py-2 bg-ecb hover:bg-ecb-dark text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                    <button onclick="openDispatchDaySummary()" class="px-3.5 py-2.5 bg-ecb hover:bg-ecb-dark text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
                         <i class="fa-solid fa-file-pdf"></i> <span data-i18n="send_all_btn">Gesamt-PDF</span>
                     </button>
                 </div>
@@ -310,10 +310,10 @@
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
                 </button>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100">Entmineralisierung</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100" data-i18n="nav_demin">Entmineralisierung</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-8">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-droplet"></i>
@@ -324,38 +324,38 @@
                     </div>
                 </div>
 
-                <form id="form-demin" onsubmit="saveDemin(event)" class="space-y-4">
-                    <div>
+                <form id="form-demin" onsubmit="saveDemin(event)" class="space-y-4 max-w-full">
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
-                        <select id="demin-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                        <select id="demin-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                             <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
+                        <div class="w-full max-w-full box-border">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_cond">Leitwert (&micro;S/cm)</label>
                             <input type="number" step="0.1" id="demin-cond" placeholder="z. B. 0.8" data-i18n-ph="ph_cond"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-sky-500 outline-none">
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-sky-500 outline-none box-border max-w-full">
                         </div>
-                        <div>
+                        <div class="w-full max-w-full box-border">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_press">Druck (bar)</label>
                             <input type="number" step="0.1" id="demin-press" placeholder="z. B. 3.5" data-i18n-ph="ph_press"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-sky-500 outline-none">
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-sky-500 outline-none box-border max-w-full">
                         </div>
                     </div>
 
-                    <div>
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photo_demin">Foto der Anlage / Messwerte</label>
                         <input type="file" id="camera-input-demin" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'demin')">
-                        <div id="photo-btns-demin">
+                        <div id="photo-btns-demin" class="w-full max-w-full">
                             <button type="button" onclick="document.getElementById('camera-input-demin').click()" 
-                                    class="w-full py-2.5 px-3 bg-sky-50 hover:bg-sky-100 border-2 border-dashed border-sky-300 rounded-xl text-xs font-bold text-sky-800 flex items-center justify-center gap-2">
+                                    class="w-full py-2.5 px-3 bg-sky-50 hover:bg-sky-100 border-2 border-dashed border-sky-300 rounded-xl text-xs font-bold text-sky-800 flex items-center justify-center gap-2 box-border max-w-full">
                                 <i class="fa-solid fa-camera text-base text-sky-600"></i>
                                 <span data-i18n="btn_take_photo_demin">Foto mit Kamera aufnehmen</span>
                             </button>
                         </div>
-                        <div id="photo-preview-box-demin" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900">
+                        <div id="photo-preview-box-demin" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900 w-full max-w-full box-border">
                             <img id="photo-preview-img-demin" src="" alt="Anlagenfoto" class="w-full h-40 object-cover">
                             <button type="button" onclick="removePhoto('demin')" class="absolute top-2 right-2 px-2 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold">
                                 <i class="fa-solid fa-trash-can mr-1"></i> <span data-i18n="btn_delete">Entfernen</span>
@@ -363,31 +363,31 @@
                         </div>
                     </div>
 
-                    <div class="space-y-2">
+                    <div class="space-y-2 w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_demin_checks">Sicht- & Funktionsprüfung</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-full">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1 w-full max-w-full box-border">
                                 <div class="text-xs font-semibold text-slate-800" data-i18n="check_leak">Dichtheit der Anlage</div>
                                 <div class="grid grid-cols-2 gap-1.5">
                                     <button type="button" onclick="setItemStatus('demin', 'leak', 'ok')" id="btn-demin-leak-ok" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700"><i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">i.O.</span></button>
                                     <button type="button" onclick="setItemStatus('demin', 'leak', 'fail')" id="btn-demin-leak-fail" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500"><i class="fa-solid fa-circle-xmark"></i> <span data-i18n="status_fail">Nicht</span></button>
                                 </div>
                             </div>
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1 w-full max-w-full box-border">
                                 <div class="text-xs font-semibold text-slate-800" data-i18n="check_filter">Vorfilter & Patronen</div>
                                 <div class="grid grid-cols-2 gap-1.5">
                                     <button type="button" onclick="setItemStatus('demin', 'filter', 'ok')" id="btn-demin-filter-ok" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700"><i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">i.O.</span></button>
                                     <button type="button" onclick="setItemStatus('demin', 'filter', 'fail')" id="btn-demin-filter-fail" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500"><i class="fa-solid fa-circle-xmark"></i> <span data-i18n="status_fail">Nicht</span></button>
                                 </div>
                             </div>
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1 w-full max-w-full box-border">
                                 <div class="text-xs font-semibold text-slate-800" data-i18n="check_resin">Harzkapazität</div>
                                 <div class="grid grid-cols-2 gap-1.5">
                                     <button type="button" onclick="setItemStatus('demin', 'resin', 'ok')" id="btn-demin-resin-ok" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700"><i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">i.O.</span></button>
                                     <button type="button" onclick="setItemStatus('demin', 'resin', 'fail')" id="btn-demin-resin-fail" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500"><i class="fa-solid fa-circle-xmark"></i> <span data-i18n="status_fail">Nicht</span></button>
                                 </div>
                             </div>
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1 w-full max-w-full box-border">
                                 <div class="text-xs font-semibold text-slate-800" data-i18n="check_salt">Salz aufgefüllt</div>
                                 <div class="grid grid-cols-2 gap-1.5">
                                     <button type="button" onclick="setItemStatus('demin', 'salt', 'ok')" id="btn-demin-salt-ok" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700"><i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">i.O.</span></button>
@@ -397,22 +397,22 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_demin_notes">Bemerkungen</label>
-                        <textarea id="demin-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-sky-500"></textarea>
+                        <textarea id="demin-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-sky-500 box-border max-w-full"></textarea>
                     </div>
 
-                    <div class="pb-2">
+                    <div class="pb-2 w-full max-w-full">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('demin')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
                         </div>
-                        <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
+                        <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner w-full max-w-full box-border">
                             <canvas id="canvas-demin" class="sig-canvas"></canvas>
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs">
+                    <button type="submit" class="w-full py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs box-border">
                         <i class="fa-solid fa-paper-plane"></i> <span data-i18n="btn_save_send_demin">Entmineralisierung speichern & Protokoll versenden</span>
                     </button>
                 </form>
@@ -428,7 +428,7 @@
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-100" data-i18n="card_heating_title">Heizungskontrolle</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-8">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-fire"></i>
@@ -439,38 +439,38 @@
                     </div>
                 </div>
 
-                <form id="form-heating" onsubmit="saveHeating(event)" class="space-y-4">
-                    <div>
+                <form id="form-heating" onsubmit="saveHeating(event)" class="space-y-4 max-w-full">
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
-                        <select id="heating-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                        <select id="heating-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                             <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
+                        <div class="w-full max-w-full box-border">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_heating_press">Heizungsdruck (bar)</label>
                             <input type="number" step="0.1" id="heating-press" placeholder="z. B. 1.8" 
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-orange-500 outline-none">
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-orange-500 outline-none box-border max-w-full">
                         </div>
-                        <div>
+                        <div class="w-full max-w-full box-border">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_heating_temp">Wassertemperatur Speicher (°C)</label>
                             <input type="number" step="0.5" id="heating-temp" placeholder="z. B. 60.5" 
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-orange-500 outline-none">
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-orange-500 outline-none box-border max-w-full">
                         </div>
                     </div>
 
-                    <div class="space-y-2">
+                    <div class="space-y-2 w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_heating_checks">Sicht- & Dichtheitsprüfung</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-full">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1 w-full max-w-full box-border">
                                 <div class="text-xs font-semibold text-slate-800" data-i18n="check_heating_leaks">Keine Undichtigkeiten / Leckagen</div>
                                 <div class="grid grid-cols-2 gap-1.5">
                                     <button type="button" onclick="setItemStatus('heating', 'leaks', 'ok')" id="btn-heating-leaks-ok" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700"><i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">i.O.</span></button>
                                     <button type="button" onclick="setItemStatus('heating', 'leaks', 'fail')" id="btn-heating-leaks-fail" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500"><i class="fa-solid fa-circle-xmark"></i> <span data-i18n="status_fail">Mangel</span></button>
                                 </div>
                             </div>
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1 w-full max-w-full box-border">
                                 <div class="text-xs font-semibold text-slate-800" data-i18n="check_heating_defects">Keine Mängel / Störungen am System</div>
                                 <div class="grid grid-cols-2 gap-1.5">
                                     <button type="button" onclick="setItemStatus('heating', 'defects', 'ok')" id="btn-heating-defects-ok" class="status-btn py-1.5 px-2 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700"><i class="fa-solid fa-circle-check"></i> <span data-i18n="status_ok">i.O.</span></button>
@@ -480,22 +480,22 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_heating_notes">Bemerkungen</label>
-                        <textarea id="heating-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-orange-500"></textarea>
+                        <textarea id="heating-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-orange-500 box-border max-w-full"></textarea>
                     </div>
 
-                    <div class="pb-2">
+                    <div class="pb-2 w-full max-w-full">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('heating')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
                         </div>
-                        <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
+                        <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner w-full max-w-full box-border">
                             <canvas id="canvas-heating" class="sig-canvas"></canvas>
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs">
+                    <button type="submit" class="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs box-border">
                         <i class="fa-solid fa-paper-plane"></i> <span data-i18n="btn_save_send_heating">Heizungskontrolle speichern & Protokoll versenden</span>
                     </button>
                 </form>
@@ -508,10 +508,10 @@
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
                 </button>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">Außenbereich</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100" data-i18n="card_outdoor_title">Außenbereich</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-8">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-tree"></i>
@@ -522,25 +522,25 @@
                     </div>
                 </div>
 
-                <form id="form-outdoor" onsubmit="saveOutdoor(event)" class="space-y-4">
-                    <div>
+                <form id="form-outdoor" onsubmit="saveOutdoor(event)" class="space-y-4 max-w-full">
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
-                        <select id="outdoor-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                        <select id="outdoor-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                             <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                         </select>
                     </div>
 
-                    <div>
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photo">Aktuelles Live-Foto des Außenbereichs *</label>
                         <input type="file" id="camera-input-outdoor" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'outdoor')">
-                        <div id="photo-btns-outdoor">
+                        <div id="photo-btns-outdoor" class="w-full max-w-full">
                             <button type="button" onclick="document.getElementById('camera-input-outdoor').click()" 
-                                    class="w-full py-3 px-3 bg-emerald-50 hover:bg-emerald-100 border-2 border-dashed border-emerald-300 rounded-xl text-xs font-bold text-emerald-800 flex items-center justify-center gap-2">
+                                    class="w-full py-3 px-3 bg-emerald-50 hover:bg-emerald-100 border-2 border-dashed border-emerald-300 rounded-xl text-xs font-bold text-emerald-800 flex items-center justify-center gap-2 box-border max-w-full">
                                 <i class="fa-solid fa-camera text-base text-emerald-600"></i>
                                 <span data-i18n="btn_take_photo">Aktuelles Foto mit Kamera aufnehmen</span>
                             </button>
                         </div>
-                        <div id="photo-preview-box-outdoor" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900">
+                        <div id="photo-preview-box-outdoor" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900 w-full max-w-full box-border">
                             <img id="photo-preview-img-outdoor" src="" alt="Kontrollfoto" class="w-full h-40 object-cover">
                             <button type="button" onclick="removePhoto('outdoor')" class="absolute top-2 right-2 px-2 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold">
                                 <i class="fa-solid fa-trash-can mr-1"></i> <span data-i18n="btn_delete">Entfernen</span>
@@ -548,24 +548,24 @@
                         </div>
                     </div>
 
-                    <div class="space-y-2">
+                    <div class="space-y-2 w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_outdoor_checks">Zustandskriterien</label>
-                        <div class="space-y-2">
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                        <div class="space-y-2 w-full max-w-full">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_trash_cigs">Mülleimer geleert & Zigarettenstummel</span>
                                 <div class="flex gap-1.5 shrink-0">
                                     <button type="button" onclick="setItemStatus('outdoor', 'trash', 'ok')" id="btn-outdoor-trash-ok" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700">i.O.</button>
                                     <button type="button" onclick="setItemStatus('outdoor', 'trash', 'fail')" id="btn-outdoor-trash-fail" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500">Nicht</button>
                                 </div>
                             </div>
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_tables_cans">Kein Essen auf Tischen, leere Dosen</span>
                                 <div class="flex gap-1.5 shrink-0">
                                     <button type="button" onclick="setItemStatus('outdoor', 'tables', 'ok')" id="btn-outdoor-tables-ok" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700">i.O.</button>
                                     <button type="button" onclick="setItemStatus('outdoor', 'tables', 'fail')" id="btn-outdoor-tables-fail" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500">Nicht</button>
                                 </div>
                             </div>
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_outdoor_grounds">Sauberkeit der Flächen & Abläufe frei</span>
                                 <div class="flex gap-1.5 shrink-0">
                                     <button type="button" onclick="setItemStatus('outdoor', 'grounds', 'ok')" id="btn-outdoor-grounds-ok" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700">i.O.</button>
@@ -575,22 +575,22 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_outdoor_notes">Bemerkungen</label>
-                        <textarea id="outdoor-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-emerald-500"></textarea>
+                        <textarea id="outdoor-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-emerald-500 box-border max-w-full"></textarea>
                     </div>
 
-                    <div class="pb-2">
+                    <div class="pb-2 w-full max-w-full">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('outdoor')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
                         </div>
-                        <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
+                        <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner w-full max-w-full box-border">
                             <canvas id="canvas-outdoor" class="sig-canvas"></canvas>
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs">
+                    <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs box-border">
                         <i class="fa-solid fa-paper-plane"></i> <span data-i18n="btn_save_send_outdoor">Außenbereich speichern & Protokoll versenden</span>
                     </button>
                 </form>
@@ -603,10 +603,10 @@
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
                 </button>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">Pausenraum</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100" data-i18n="card_breakroom_title">Pausenraum</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-8">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-mug-saucer"></i>
@@ -617,55 +617,55 @@
                     </div>
                 </div>
 
-                <form id="form-breakroom" onsubmit="saveBreakroom(event)" class="space-y-4">
-                    <div>
+                <form id="form-breakroom" onsubmit="saveBreakroom(event)" class="space-y-4 max-w-full">
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
-                        <select id="breakroom-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                        <select id="breakroom-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                             <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                         </select>
                     </div>
 
-                    <div>
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photo_breakroom">Foto des Pausenraums</label>
                         <input type="file" id="camera-input-breakroom" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'breakroom')">
-                        <div id="photo-btns-breakroom">
+                        <div id="photo-btns-breakroom" class="w-full max-w-full">
                             <button type="button" onclick="document.getElementById('camera-input-breakroom').click()" 
-                                    class="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 border-2 border-dashed border-amber-300 rounded-xl text-xs font-bold text-amber-800 flex items-center justify-center gap-2">
+                                    class="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 border-2 border-dashed border-amber-300 rounded-xl text-xs font-bold text-amber-800 flex items-center justify-center gap-2 box-border max-w-full">
                                 <i class="fa-solid fa-camera text-base text-amber-600"></i>
                                 <span data-i18n="btn_take_photo_breakroom">Foto mit Kamera aufnehmen</span>
                             </button>
                         </div>
-                        <div id="photo-preview-box-breakroom" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900">
+                        <div id="photo-preview-box-breakroom" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900 w-full max-w-full box-border">
                             <img id="photo-preview-img-breakroom" src="" alt="Foto" class="w-full h-40 object-cover">
                             <button type="button" onclick="removePhoto('breakroom')" class="absolute top-2 right-2 px-2 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold">Entfernen</button>
                         </div>
                     </div>
 
-                    <div class="space-y-2">
+                    <div class="space-y-2 w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_breakroom_checks">Hygiene & Ordnung</label>
-                        <div class="space-y-2">
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                        <div class="space-y-2 w-full max-w-full">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_br_surfaces">Tische, Arbeitsflächen & Spüle sauber</span>
                                 <div class="flex gap-1.5 shrink-0">
                                     <button type="button" onclick="setItemStatus('breakroom', 'surfaces', 'ok')" id="btn-breakroom-surfaces-ok" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700">i.O.</button>
                                     <button type="button" onclick="setItemStatus('breakroom', 'surfaces', 'fail')" id="btn-breakroom-surfaces-fail" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500">Nicht</button>
                                 </div>
                             </div>
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_br_appliances">Kühlschrank & Geräte sauber / leer</span>
                                 <div class="flex gap-1.5 shrink-0">
                                     <button type="button" onclick="setItemStatus('breakroom', 'appliances', 'ok')" id="btn-breakroom-appliances-ok" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700">i.O.</button>
                                     <button type="button" onclick="setItemStatus('breakroom', 'appliances', 'fail')" id="btn-breakroom-appliances-fail" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500">Nicht</button>
                                 </div>
                             </div>
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_br_trash">Mülleimer geleert & Mülltrennung</span>
                                 <div class="flex gap-1.5 shrink-0">
                                     <button type="button" onclick="setItemStatus('breakroom', 'trash', 'ok')" id="btn-breakroom-trash-ok" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700">i.O.</button>
                                     <button type="button" onclick="setItemStatus('breakroom', 'trash', 'fail')" id="btn-breakroom-trash-fail" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500">Nicht</button>
                                 </div>
                             </div>
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_br_floor">Fußboden sauber / gewischt</span>
                                 <div class="flex gap-1.5 shrink-0">
                                     <button type="button" onclick="setItemStatus('breakroom', 'floor', 'ok')" id="btn-breakroom-floor-ok" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700">i.O.</button>
@@ -675,22 +675,22 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_breakroom_notes">Bemerkungen</label>
-                        <textarea id="breakroom-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500"></textarea>
+                        <textarea id="breakroom-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500 box-border max-w-full"></textarea>
                     </div>
 
-                    <div class="pb-2">
+                    <div class="pb-2 w-full max-w-full">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('breakroom')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
                         </div>
-                        <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
+                        <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner w-full max-w-full box-border">
                             <canvas id="canvas-breakroom" class="sig-canvas"></canvas>
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs">
+                    <button type="submit" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs box-border">
                         <i class="fa-solid fa-paper-plane"></i> <span data-i18n="btn_save_send_breakroom">Pausenraum speichern & Protokoll versenden</span>
                     </button>
                 </form>
@@ -707,11 +707,11 @@
                     <button onclick="switchView('vehicle_fleet')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-indigo-200">
                         <i class="fa-solid fa-car"></i> <span data-i18n="btn_fleet_manage">Fahrzeugpark</span>
                     </button>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">Fahrzeuge</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100" data-i18n="card_vehicle_title">Fahrzeuge</span>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-8">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-truck"></i>
@@ -722,66 +722,66 @@
                     </div>
                 </div>
 
-                <form id="form-vehicle" onsubmit="saveVehicle(event)" class="space-y-4">
-                    <div>
+                <form id="form-vehicle" onsubmit="saveVehicle(event)" class="space-y-4 max-w-full">
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
-                        <select id="vehicle-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                        <select id="vehicle-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                             <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
+                        <div class="w-full max-w-full box-border">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_vehicle_plate">Fahrzeug / Kennzeichen *</label>
-                            <input type="text" id="vehicle-plate" required placeholder="z. B. HP-EC 101" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
+                            <input type="text" id="vehicle-plate" required placeholder="z. B. HP-EC 101" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500 box-border max-w-full">
                         </div>
-                        <div>
+                        <div class="w-full max-w-full box-border">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_vehicle_km">Kilometerstand (km) *</label>
-                            <input type="number" id="vehicle-km" required placeholder="z. B. 124500" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
+                            <input type="number" id="vehicle-km" required placeholder="z. B. 124500" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500 box-border max-w-full">
                         </div>
                     </div>
 
-                    <div>
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photo_vehicle">Foto des Fahrzeugs</label>
                         <input type="file" id="camera-input-vehicle" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(event, 'vehicle')">
-                        <div id="photo-btns-vehicle">
+                        <div id="photo-btns-vehicle" class="w-full max-w-full">
                             <button type="button" onclick="document.getElementById('camera-input-vehicle').click()" 
-                                    class="w-full py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100 border-2 border-dashed border-indigo-300 rounded-xl text-xs font-bold text-indigo-800 flex items-center justify-center gap-2">
+                                    class="w-full py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100 border-2 border-dashed border-indigo-300 rounded-xl text-xs font-bold text-indigo-800 flex items-center justify-center gap-2 box-border max-w-full">
                                 <i class="fa-solid fa-camera text-base text-indigo-600"></i>
                                 <span data-i18n="btn_take_photo_vehicle">Fahrzeugfoto mit Kamera aufnehmen</span>
                             </button>
                         </div>
-                        <div id="photo-preview-box-vehicle" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900">
+                        <div id="photo-preview-box-vehicle" class="hidden relative rounded-xl overflow-hidden border border-slate-200 mt-2 bg-slate-900 w-full max-w-full box-border">
                             <img id="photo-preview-img-vehicle" src="" alt="Foto" class="w-full h-40 object-cover">
                             <button type="button" onclick="removePhoto('vehicle')" class="absolute top-2 right-2 px-2 py-1 bg-rose-600 text-white rounded-lg text-[10px] font-bold">Entfernen</button>
                         </div>
                     </div>
 
-                    <div class="space-y-2">
+                    <div class="space-y-2 w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_vehicle_checks">Fahrzeugzustand & Sicherheit</label>
-                        <div class="space-y-2">
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                        <div class="space-y-2 w-full max-w-full">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_veh_clean">Fahrzeug sauber (Kabine & Außen)</span>
                                 <div class="flex gap-1.5 shrink-0">
                                     <button type="button" onclick="setItemStatus('vehicle', 'clean', 'ok')" id="btn-vehicle-clean-ok" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700">i.O.</button>
                                     <button type="button" onclick="setItemStatus('vehicle', 'clean', 'fail')" id="btn-vehicle-clean-fail" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500">Nicht</button>
                                 </div>
                             </div>
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_veh_condition">Beleuchtung & Blinker in Ordnung</span>
                                 <div class="flex gap-1.5 shrink-0">
                                     <button type="button" onclick="setItemStatus('vehicle', 'condition', 'ok')" id="btn-vehicle-condition-ok" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700">i.O.</button>
                                     <button type="button" onclick="setItemStatus('vehicle', 'condition', 'fail')" id="btn-vehicle-condition-fail" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500">Nicht</button>
                                 </div>
                             </div>
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_veh_tire_pressure">Reifendruck prüfen & korrigieren</span>
                                 <div class="flex gap-1.5 shrink-0">
                                     <button type="button" onclick="setItemStatus('vehicle', 'tirePressure', 'ok')" id="btn-vehicle-tirePressure-ok" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700">i.O.</button>
                                     <button type="button" onclick="setItemStatus('vehicle', 'tirePressure', 'fail')" id="btn-vehicle-tirePressure-fail" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-white border-slate-200 text-slate-500">Nicht</button>
                                 </div>
                             </div>
-                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                                 <span class="text-xs font-semibold text-slate-800" data-i18n="check_veh_warnings">Keine Warnleuchten / Kratzer</span>
                                 <div class="flex gap-1.5 shrink-0">
                                     <button type="button" onclick="setItemStatus('vehicle', 'warnings', 'ok')" id="btn-vehicle-warnings-ok" class="status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-emerald-50 border-emerald-500 text-emerald-700">i.O.</button>
@@ -791,22 +791,22 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="w-full max-w-full">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_vehicle_notes">Bemerkungen / Schäden</label>
-                        <textarea id="vehicle-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500"></textarea>
+                        <textarea id="vehicle-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500 box-border max-w-full"></textarea>
                     </div>
 
-                    <div class="pb-2">
+                    <div class="pb-2 w-full max-w-full">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Digitale Unterschrift *</label>
                             <button type="button" onclick="clearSignature('vehicle')" class="text-[11px] text-rose-600 font-semibold"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_clear">Löschen</span></button>
                         </div>
-                        <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
+                        <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner w-full max-w-full box-border">
                             <canvas id="canvas-vehicle" class="sig-canvas"></canvas>
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs">
+                    <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs box-border">
                         <i class="fa-solid fa-paper-plane"></i> <span data-i18n="btn_save_send_vehicle">Fahrzeug speichern & Protokoll versenden</span>
                     </button>
                 </form>
@@ -829,7 +829,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-8">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                     <div>
                         <h2 class="text-base font-black text-slate-900 tracking-tight" data-i18n="fleet_title">Fahrzeugpark & Wartung (TÜV / Ölwechsel)</h2>
@@ -837,7 +837,7 @@
                     </div>
                 </div>
 
-                <div id="fleet-vehicles-container" class="space-y-3">
+                <div id="fleet-vehicles-container" class="space-y-3 w-full max-w-full">
                     <div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_fleet_cars">
                         Keine Fahrzeuge angelegt.
                     </div>
@@ -862,7 +862,6 @@
                 </div>
             </div>
 
-            <!-- ADMIN / MANAGER CARD -->
             <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-md space-y-3">
                 <div onclick="toggleManagerLogin()" class="flex items-center justify-between cursor-pointer select-none">
                     <div class="flex items-center gap-2.5">
@@ -881,20 +880,9 @@
                 </div>
 
                 <div id="manager-login-dropdown" class="hidden pt-3 border-t border-slate-800 space-y-3">
-                    <div id="manager-login-form" class="flex items-center gap-2">
-                        <input type="password" id="manager-pwd-input" placeholder="Passwort..." class="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white outline-none focus:border-emerald-500">
-                        <button type="button" onclick="verifyManagerLogin()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs">Entsperren</button>
-                    </div>
-
-                    <!-- ADMIN CONTROLS (Add Employee) -->
-                    <div id="admin-controls-panel" class="space-y-3 hidden pt-2 border-t border-slate-800">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-emerald-400"><i class="fa-solid fa-user-gear mr-1"></i> Mitarbeiter-Verwaltung</span>
-                        </div>
-                        <div class="flex gap-2">
-                            <input type="text" id="new-employee-name" placeholder="Neuer Mitarbeiter Name..." class="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white outline-none">
-                            <button type="button" onclick="addNewEmployee()" class="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold">Hinzufügen</button>
-                        </div>
+                    <div id="manager-login-form" class="flex items-center gap-2 max-w-full">
+                        <input type="password" id="manager-pwd-input" placeholder="Passwort..." class="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white outline-none focus:border-emerald-500 box-border max-w-full">
+                        <button type="button" onclick="verifyManagerLogin()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs shrink-0">Entsperren</button>
                     </div>
 
                     <div id="manager-pending-list" class="space-y-2.5 hidden pt-2">
@@ -924,12 +912,12 @@
                     <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-indigo-500 inline-block"></span> <span data-i18n="legend_sunday">Sonntage</span></span>
                 </div>
 
-                <div id="monthly-calendar-grid" class="overflow-x-auto no-scrollbar pb-1 text-base"></div>
+                <div id="monthly-calendar-grid" class="overflow-x-auto no-scrollbar pb-1 text-base w-full"></div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 pb-8">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider" data-i18n="team_vacation_title">Urlaubsanträge & Status</h3>
-                <div id="vacation-list-container" class="space-y-2">
+                <div id="vacation-list-container" class="space-y-2 w-full max-w-full">
                     <div class="p-4 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_vacations">Keine Urlaube eingetragen.</div>
                 </div>
             </div>
@@ -973,13 +961,77 @@
                     <span class="flex items-center gap-1.5 font-bold text-slate-700">🚚 <span>LKW / Auslieferung</span></span>
                 </div>
 
-                <div id="monthly-shift-calendar-grid" class="overflow-x-auto no-scrollbar pb-1 text-sm"></div>
+                <div id="monthly-shift-calendar-grid" class="overflow-x-auto no-scrollbar pb-1 text-sm w-full"></div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 pb-8">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider" data-i18n="shift_list_title">Aktuelle Schicht-Einträge</h3>
-                <div id="shift-list-container" class="space-y-2">
+                <div id="shift-list-container" class="space-y-2 w-full max-w-full">
                     <div class="p-4 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_shifts">Keine Schichten eingetragen.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ADMIN VIEW -->
+        <section id="view-admin" class="view-panel hidden space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="admin_panel_title">Admin-Steuerzentrale</h2>
+                    <p class="text-xs text-slate-500">Mitarbeiterverwaltung, System-Reset & Cloud-Kontrolle</p>
+                </div>
+                <span id="admin-status-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700">Gesperrt</span>
+            </div>
+
+            <div id="admin-locked-box" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4 text-center">
+                <div class="w-12 h-12 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center text-xl mx-auto"><i class="fa-solid fa-lock"></i></div>
+                <h3 class="text-sm font-bold text-slate-900">Bitte Administrator-Passwort eingeben</h3>
+                <div class="max-w-xs mx-auto space-y-3 w-full">
+                    <input type="password" id="dedicated-admin-pwd" placeholder="Passwort..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none text-center box-border max-w-full">
+                    <button onclick="verifyDedicatedAdminLogin()" class="w-full py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-xs">Admin entsperren</button>
+                </div>
+            </div>
+
+            <div id="admin-unlocked-box" class="space-y-4 hidden w-full max-w-full">
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full">
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider"><i class="fa-solid fa-user-plus text-sky-600 mr-1.5"></i> Neuen Mitarbeiter hinzufügen</h3>
+                    <div class="flex gap-2 w-full max-w-full">
+                        <input type="text" id="admin-new-emp" placeholder="Vollständiger Name..." class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
+                        <button onclick="adminAddNewEmployee()" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shrink-0">Hinzufügen</button>
+                    </div>
+                    <div id="admin-employees-list" class="flex flex-wrap gap-2 pt-2"></div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full">
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider"><i class="fa-solid fa-folder-tree text-emerald-600 mr-1.5"></i> Dokumenten-Ordner in der Historie einsehen</h3>
+                    <p class="text-xs text-slate-500">Klicken Sie auf einen Bereich, um direkt in die gefilterte Historienansicht zu gelangen und Dokumente einzusehen oder zu löschen:</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 w-full max-w-full">
+                        <button onclick="switchViewToHistoryFilter('Entmineralisierung')" class="p-3 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-xl text-xs font-bold text-sky-900 text-left flex items-center justify-between box-border max-w-full">
+                            <span>💧 Entmin.</span> <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <button onclick="switchViewToHistoryFilter('Heizungskontrolle')" class="p-3 bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-xl text-xs font-bold text-orange-900 text-left flex items-center justify-between box-border max-w-full">
+                            <span>🔥 Heizung</span> <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <button onclick="switchViewToHistoryFilter('Außenbereich')" class="p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-900 text-left flex items-center justify-between box-border max-w-full">
+                            <span>🌳 Außen</span> <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <button onclick="switchViewToHistoryFilter('Pausenraum')" class="p-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl text-xs font-bold text-amber-900 text-left flex items-center justify-between box-border max-w-full">
+                            <span>☕ Pause</span> <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <button onclick="switchViewToHistoryFilter('Fahrzeuge')" class="p-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl text-xs font-bold text-indigo-900 text-left flex items-center justify-between box-border max-w-full">
+                            <span>🚚 KFZ</span> <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <button onclick="switchViewToHistoryFilter('Urlaub')" class="p-3 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-xl text-xs font-bold text-teal-900 text-left flex items-center justify-between box-border max-w-full">
+                            <span>🏖️ Urlaub</span> <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full">
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider"><i class="fa-solid fa-database text-rose-600 mr-1.5"></i> Daten- & Archivpflege</h3>
+                    <p class="text-xs text-slate-500">Hier können Sie die gesamte Cloud-Historie aller Protokolle und Urlaube bereinigen.</p>
+                    <button onclick="confirmResetAll()" class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-xs box-border">
+                        <i class="fa-solid fa-trash-can"></i> Gesamte Historie & Archive unwiderruflich leeren
+                    </button>
                 </div>
             </div>
         </section>
@@ -1006,19 +1058,18 @@
                 <button onclick="setHistoryFilter('Urlaub')" id="hist-filter-vacation" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600">🏖️ <span data-i18n="filter_vacation">Urlaub</span> (<span id="count-vacation">0</span>)</button>
             </div>
 
-            <div id="history-items-container" class="space-y-2.5 pb-8">
+            <div id="history-items-container" class="space-y-2.5 w-full max-w-full">
                 <div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl" data-i18n="no_history">Lade Kontrollberichte aus der Cloud...</div>
             </div>
 
             <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-200">
                 <button onclick="exportHistoryCsv()" class="text-slate-600 hover:text-slate-900 font-semibold flex items-center gap-1"><i class="fa-solid fa-file-csv"></i> <span data-i18n="btn_csv">CSV Export</span></button>
-                <button onclick="confirmResetAll()" class="text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-trash"></i> <span data-i18n="btn_clear_history">Verlauf leeren</span></button>
+                <button onclick="confirmResetAll()" class="text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-trash"></i> <span data-i18n="btn_clear_history">Verlauf leeren (Admin)</span></button>
             </div>
         </section>
 
     </main>
 
-    <!-- COMPACT MOBILE NAVIGATION BAR -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 safe-bottom shadow-lg">
         <div class="max-w-md mx-auto grid grid-cols-5 px-1 py-1 text-center">
             <button onclick="switchView('start')" id="nav-btn-start" class="nav-item flex flex-col items-center justify-center py-0.5 text-sky-600">
@@ -1044,61 +1095,60 @@
         </div>
     </nav>
 
-    <!-- Modals -->
     <div id="modal-vacation" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto box-border">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                     <i class="fa-solid fa-umbrella-beach text-ecb"></i> <span data-i18n="vacation_modal_title">Urlaubsantrag erfassen</span>
                 </h3>
                 <button onclick="closeModal('modal-vacation')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form id="form-vacation-request" onsubmit="submitVacationRequest(event)" class="space-y-3">
-                <div>
+            <form id="form-vacation-request" onsubmit="submitVacationRequest(event)" class="space-y-3 w-full max-w-full">
+                <div class="w-full max-w-full">
                     <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="vac_label_name">Mitarbeiter *</label>
-                    <select id="vac-employee" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                    <select id="vac-employee" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                         <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                     </select>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
+                <div class="grid grid-cols-2 gap-2 w-full max-w-full">
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="vac_label_start">Von Datum *</label>
-                        <input type="date" id="vac-start" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none">
+                        <input type="date" id="vac-start" required class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                     </div>
-                    <div>
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="vac_label_end">Bis Datum *</label>
-                        <input type="date" id="vac-end" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none">
+                        <input type="date" id="vac-end" required class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                     </div>
                 </div>
-                <div>
+                <div class="w-full max-w-full">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="vac_label_type">Art des Urlaubs</label>
-                    <select id="vac-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none">
+                    <select id="vac-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                         <option value="Erholungsurlaub" data-i18n="vac_type_recreation">Erholungsurlaub / Urlaub</option>
                         <option value="Sonderurlaub" data-i18n="vac_type_special">Sonderurlaub</option>
                         <option value="Krankheit / Freistellung" data-i18n="vac_type_sick">Krankheit / Freistellung</option>
                     </select>
                 </div>
-                <div>
+                <div class="w-full max-w-full">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="vac_label_lang">PDF-Sprache</label>
-                    <select id="vac-lang" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                    <select id="vac-lang" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                         <option value="de">Deutsch 🇩🇪</option>
                         <option value="ro">Română 🇷🇴</option>
                     </select>
                 </div>
-                <div>
+                <div class="w-full max-w-full">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="vac_label_notes">Bemerkung / Vertretung</label>
-                    <textarea id="vac-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none"></textarea>
+                    <textarea id="vac-notes" rows="2" placeholder="Optional..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full"></textarea>
                 </div>
-                <div>
+                <div class="w-full max-w-full">
                     <div class="flex items-center justify-between mb-1">
                         <label class="text-[11px] font-bold text-slate-700 uppercase tracking-wider" data-i18n="label_sig">Unterschrift Antragsteller *</label>
                         <button type="button" onclick="clearSignature('vacation')" class="text-[11px] text-rose-600 font-semibold" data-i18n="btn_clear">Löschen</button>
                     </div>
-                    <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner">
+                    <div class="relative bg-white border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner w-full max-w-full box-border">
                         <canvas id="canvas-vacation" class="sig-canvas"></canvas>
                     </div>
                 </div>
-                <button type="submit" class="w-full py-2.5 bg-ecb hover:bg-ecb-dark text-white rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-2">
+                <button type="submit" class="w-full py-2.5 bg-ecb hover:bg-ecb-dark text-white rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-2 box-border">
                     <i class="fa-solid fa-paper-plane"></i> <span data-i18n="vac_btn_save_send">Urlaub speichern & PDF-Antrag senden</span>
                 </button>
             </form>
@@ -1107,43 +1157,43 @@
 
     <!-- SHIFT EDIT / NEW MODAL -->
     <div id="modal-shift" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 box-border">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                     <i class="fa-solid fa-clock text-indigo-600"></i> <span data-i18n="shift_modal_title">Schicht & Auslieferung eintragen</span>
                 </h3>
                 <button onclick="closeModal('modal-shift')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form id="form-shift-request" onsubmit="submitShift(event)" class="space-y-3">
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
+            <form id="form-shift-request" onsubmit="submitShift(event)" class="space-y-3 w-full max-w-full">
+                <div class="grid grid-cols-2 gap-2 w-full max-w-full">
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="shift_label_date_from">Von Datum *</label>
-                        <input type="date" id="shift-date-start" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none">
+                        <input type="date" id="shift-date-start" required class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                     </div>
-                    <div>
+                    <div class="w-full max-w-full box-border">
                         <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="shift_label_date_to">Bis Datum *</label>
-                        <input type="date" id="shift-date-end" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none">
+                        <input type="date" id="shift-date-end" required class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                     </div>
                 </div>
-                <div>
+                <div class="w-full max-w-full">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="shift_label_emp">Mitarbeiter *</label>
-                    <select id="shift-employee" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                    <select id="shift-employee" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                         <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                     </select>
                 </div>
-                <div>
+                <div class="w-full max-w-full">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="shift_label_type">Schichtart *</label>
-                    <select id="shift-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                    <select id="shift-type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                         <option value="Frühschicht" data-i18n="shift_early">Frühschicht (F)</option>
                         <option value="Mittagsschicht" data-i18n="shift_mid">Mittagsschicht (M)</option>
                         <option value="Freischicht" data-i18n="shift_free">Freischicht (FS)</option>
                     </select>
                 </div>
-                <div class="p-3 bg-indigo-50 rounded-xl border border-indigo-200 flex items-center gap-2.5">
+                <div class="p-3 bg-indigo-50 rounded-xl border border-indigo-200 flex items-center gap-2.5 w-full max-w-full box-border">
                     <input type="checkbox" id="shift-delivery" class="w-4 h-4 text-indigo-600 rounded">
                     <label for="shift-delivery" class="text-xs font-bold text-indigo-900 cursor-pointer" data-i18n="shift_label_delivery">🚚 Übernimmt LKW / Auslieferung</label>
                 </div>
-                <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-xs">
+                <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-xs box-border">
                     <span data-i18n="shift_btn_save">Schicht speichern</span>
                 </button>
             </form>
@@ -1152,37 +1202,37 @@
 
     <!-- FLEET VEHICLE MODAL -->
     <div id="modal-fleet-vehicle" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-4 sm:p-5 shadow-2xl space-y-3.5 box-border overflow-hidden">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                     <i class="fa-solid fa-car text-indigo-600"></i> <span data-i18n="fleet_modal_title">Neues Fahrzeug anlegen</span>
                 </h3>
                 <button onclick="closeModal('modal-fleet-vehicle')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form id="form-fleet-vehicle" onsubmit="submitFleetVehicle(event)" class="space-y-3">
-                <div>
+            <form id="form-fleet-vehicle" onsubmit="submitFleetVehicle(event)" class="space-y-3 w-full max-w-full overflow-hidden box-border">
+                <div class="w-full max-w-full">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="fleet_label_plate">Kennzeichen / Name *</label>
-                    <input type="text" id="fleet-input-plate" required placeholder="z. B. HP-EC 101" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                    <input type="text" id="fleet-input-plate" required placeholder="z. B. HP-EC 101" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
                 </div>
-                <div>
+                <div class="w-full max-w-full">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="fleet_label_model">Fahrzeugmodell / Typ</label>
-                    <input type="text" id="fleet-input-model" placeholder="z. B. VW Transporter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none">
+                    <input type="text" id="fleet-input-model" placeholder="z. B. VW Transporter" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="fleet_label_km">Kilometerstand (km)</label>
-                        <input type="number" id="fleet-input-km" placeholder="z. B. 124500" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none">
+                <div class="grid grid-cols-2 gap-2 w-full max-w-full">
+                    <div class="overflow-hidden w-full max-w-full">
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1 truncate" data-i18n="fleet_label_km">Kilometerstand (km)</label>
+                        <input type="number" id="fleet-input-km" placeholder="z. B. 124500" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                     </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="fleet_label_tuev">Nächster TÜV</label>
-                        <input type="date" id="fleet-input-tuev" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none">
+                    <div class="overflow-hidden w-full max-w-full">
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1 truncate" data-i18n="fleet_label_tuev">Nächster TÜV</label>
+                        <input type="date" id="fleet-input-tuev" class="w-full px-1.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[11px] outline-none box-border max-w-full">
                     </div>
                 </div>
-                <div>
+                <div class="w-full max-w-full">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="fleet_label_oil">Nächster Ölwechsel</label>
-                    <input type="date" id="fleet-input-oil" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none">
+                    <input type="date" id="fleet-input-oil" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                 </div>
-                <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-xs">
+                <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-xs mt-1 box-border">
                     <span data-i18n="fleet_btn_save">Fahrzeug speichern</span>
                 </button>
             </form>
@@ -1191,21 +1241,21 @@
 
     <!-- ATTENDANCE MODAL -->
     <div id="modal-attendance" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 box-border">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                     <i class="fa-solid fa-users text-ecb"></i> <span data-i18n="attendance_modal_title">Wer ist heute da?</span>
                 </h3>
                 <button onclick="closeModal('modal-attendance')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="attendance-list-container" class="space-y-2 max-h-[60vh] overflow-y-auto"></div>
-            <button onclick="closeModal('modal-attendance')" class="w-full py-2 bg-slate-900 text-white rounded-xl font-bold text-xs">Schließen</button>
+            <div id="attendance-list-container" class="space-y-2 max-h-[60vh] overflow-y-auto w-full max-w-full"></div>
+            <button onclick="closeModal('modal-attendance')" class="w-full py-2 bg-slate-900 text-white rounded-xl font-bold text-xs box-border">Schließen</button>
         </div>
     </div>
 
     <!-- DISPATCH MODAL -->
     <div id="modal-dispatch" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto box-border">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-xl bg-ecb text-white flex items-center justify-center text-xs shadow-xs"><i class="fa-solid fa-paper-plane"></i></div>
@@ -1216,17 +1266,17 @@
                 </div>
                 <button onclick="closeModal('modal-dispatch')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
-            <div id="dispatch-status-msg" class="hidden p-3 rounded-xl text-xs"></div>
-            <div class="p-3 bg-emerald-50/80 border-2 border-ecb/40 rounded-2xl space-y-2.5 shadow-xs">
+            <div id="dispatch-status-msg" class="hidden p-3 rounded-xl text-xs w-full max-w-full"></div>
+            <div class="p-3 bg-emerald-50/80 border-2 border-ecb/40 rounded-2xl space-y-2.5 shadow-xs w-full max-w-full box-border">
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-black text-emerald-950 flex items-center gap-1.5"><i class="fa-solid fa-cloud-arrow-up text-ecb"></i> Sofort an pb@ecb-system.de</span>
                     <span class="text-[9px] bg-ecb text-white px-2 py-0.5 rounded-full font-bold">Empfohlen</span>
                 </div>
-                <button id="btn-send-pdf-direct" onclick="executeWebServiceSend()" class="w-full py-3 bg-ecb hover:bg-ecb-dark text-white rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2">
+                <button id="btn-send-pdf-direct" onclick="executeWebServiceSend()" class="w-full py-3 bg-ecb hover:bg-ecb-dark text-white rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 box-border">
                     <i class="fa-solid fa-file-pdf text-sm"></i> Protokoll jetzt versenden
                 </button>
             </div>
-            <div class="flex gap-2 pt-1">
+            <div class="flex gap-2 pt-1 w-full max-w-full">
                 <button onclick="previewActivePdf(false)" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-eye"></i> PDF ansehen</button>
                 <button onclick="savePdfDownload()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-download"></i> Speichern</button>
             </div>
@@ -1235,7 +1285,7 @@
 
     <!-- PDF VIEWER MODAL -->
     <div id="modal-pdf" class="fixed inset-0 bg-black/80 z-50 hidden flex flex-col items-center justify-center p-3">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-4 shadow-2xl flex flex-col max-h-[92vh]">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-4 shadow-2xl flex flex-col max-h-[92vh] box-border">
             <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-2">
                 <div class="flex items-center gap-2">
                     <div class="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-xs font-bold"><i class="fa-solid fa-file-pdf"></i></div>
@@ -1246,21 +1296,21 @@
             <div class="flex-1 w-full bg-slate-100 rounded-xl overflow-hidden border border-slate-200 my-1 min-h-[340px]">
                 <iframe id="pdf-viewer-frame" class="w-full h-full min-h-[340px] border-none" src="about:blank"></iframe>
             </div>
-            <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2">
-                <button onclick="openPdfInNewTab()" class="py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"><i class="fa-solid fa-arrow-up-right-from-square"></i> In neuem Tab</button>
-                <button onclick="savePdfDownload()" class="py-2.5 bg-ecb text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"><i class="fa-solid fa-download"></i> Herunterladen</button>
+            <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 w-full max-w-full">
+                <button onclick="openPdfInNewTab()" class="py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 box-border"><i class="fa-solid fa-arrow-up-right-from-square"></i> In neuem Tab</button>
+                <button onclick="savePdfDownload()" class="py-2.5 bg-ecb text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 box-border"><i class="fa-solid fa-download"></i> Herunterladen</button>
             </div>
         </div>
     </div>
 
     <!-- SETTINGS MODAL -->
     <div id="modal-settings" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 box-border">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5"><i class="fa-solid fa-sliders text-ecb"></i> Einstellungen & Cloud</h3>
                 <button onclick="closeModal('modal-settings')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+            <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between w-full max-w-full box-border">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-cloud text-emerald-600"></i>
                     <div>
@@ -1269,18 +1319,18 @@
                     </div>
                 </div>
             </div>
-            <button onclick="forceCloudSync()" class="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs">
+            <button onclick="forceCloudSync()" class="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs box-border">
                 <i class="fa-solid fa-rotate"></i> <span data-i18n="sync_force">Cloud-Sync erzwingen (Nicht gespeicherte Daten hochladen)</span>
             </button>
-            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between w-full max-w-full box-border">
                 <div>
                     <div class="text-[9px] uppercase font-bold text-slate-400">App-Sprache / Limba aplicației</div>
                     <div class="text-xs font-bold text-slate-800 mt-0.5" id="settings-lang-text">Deutsch 🇩🇪</div>
                 </div>
                 <button onclick="toggleLanguage()" class="py-1 px-2.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700">Wechseln</button>
             </div>
-            <div class="flex gap-2 pt-2">
-                <button onclick="closeModal('modal-settings')" class="w-full py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs">Schließen</button>
+            <div class="flex gap-2 pt-2 w-full max-w-full">
+                <button onclick="closeModal('modal-settings')" class="w-full py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs box-border">Schließen</button>
             </div>
         </div>
     </div>
@@ -1294,13 +1344,14 @@
     <script>
         const RECIPIENT_EMAIL = "pb@ecb-system.de";
         const MANAGER_PASSWORD_HASH = "ECB1688!";
+        let isAdminLoggedIn = false;
         
-        // Default Employees stored in localStorage or fallback
         let TEAM_EMPLOYEES = JSON.parse(localStorage.getItem('ecb_app_employees')) || ["Neymar", "Vasi", "Maria", "Livio", "Mario", "Mirel", "Bogdanie"];
 
         function saveEmployeesToStorage() {
             localStorage.setItem('ecb_app_employees', JSON.stringify(TEAM_EMPLOYEES));
             populateAllEmployeeDropdowns();
+            renderAdminEmployeesList();
         }
 
         function populateAllEmployeeDropdowns() {
@@ -1467,11 +1518,12 @@
                 history_title: "Historie & Ordner",
                 history_sub: "Google Firebase Cloud-Archiv",
                 btn_daily_pdf: "Tages-PDF",
-                filter_all: "Alle", filter_demin: "Entmineral.", filter_outdoor: "Außen", filter_breakroom: "Pauze", filter_vehicle: "KFZ", filter_vacation: "Urlaub",
+                filter_all: "Alle", filter_demin: "Entmineralisierung", filter_outdoor: "Außenbereich", filter_breakroom: "Pausenraum", filter_vehicle: "Fahrzeuge", filter_vacation: "Urlaub",
                 no_history: "Keine Berichte in diesem Ordner.",
                 btn_csv: "CSV Export",
                 btn_clear_history: "Verlauf leeren",
-                nav_start: "Start", nav_demin: "Entmineralisierung", nav_vacation: "Urlaub", nav_shifts: "Schichten", nav_fleet: "Fahrzeugpark", nav_history: "Ordner",
+                nav_start: "Start", nav_demin: "Entmineralisierung", nav_vacation: "Urlaub", nav_shifts: "Schichten", nav_fleet: "Fahrzeugpark", nav_history: "Ordner", nav_admin: "Admin-Bereich",
+                admin_panel_title: "Admin-Steuerzentrale",
                 badge_done: "✓ Erledigt", badge_open: "Offen",
                 legend_approved: "Genehmigt", legend_pending: "Ausstehend", legend_holiday: "Feiertage", legend_sunday: "Sonntage",
                 toast_saved: "Gespeichert & gesendet!", toast_need_sig: "Bitte unterschreiben!", toast_need_photo: "Bitte Foto aufnehmen!", toast_sent: "Erfolgreich gesendet!",
@@ -1606,15 +1658,16 @@
                 history_title: "Istoric & Dosare",
                 history_sub: "Arhivă Google Firebase Cloud",
                 btn_daily_pdf: "PDF Zilnic",
-                filter_all: "Toate", filter_demin: "Demin.", filter_outdoor: "Exterior", filter_breakroom: "Pauză", filter_vehicle: "KFZ", filter_vacation: "Concediu",
+                filter_all: "Toate", filter_demin: "Demineralizare", filter_outdoor: "Zona Exterioară", filter_breakroom: "Sala de Pauză", filter_vehicle: "Vehicule", filter_vacation: "Concediu",
                 no_history: "Niciun raport în acest dosar.",
                 btn_csv: "Export CSV",
                 btn_clear_history: "Șterge istoricul",
-                nav_start: "Start", nav_demin: "Demineralizare", nav_vacation: "Concediu", nav_shifts: "Schimente", nav_fleet: "Parc Auto", nav_history: "Dosare",
+                nav_start: "Start", nav_demin: "Entmineralisierung", nav_vacation: "Urlaub", nav_shifts: "Schichten", nav_fleet: "Fahrzeugpark", nav_history: "Ordner", nav_admin: "Admin",
+                admin_panel_title: "Panou Admin",
                 badge_done: "✓ Efectuat", badge_open: "Deschis",
                 legend_approved: "Aprobat", legend_pending: "În așteptare", legend_holiday: "Sărbători", legend_sunday: "Duminici",
                 toast_saved: "Salvat & trimis!", toast_need_sig: "Vă rugăm semnați!", toast_need_photo: "Vă rugăm faceți o poză!", toast_sent: "Trimis cu succes!",
-                btn_approve: "Aproba", btn_reject: "Respinge",
+                btn_approve: "Genehmigen", btn_reject: "Ablehnen",
                 sync_force: "Sincronizare Cloud"
             }
         };
@@ -1836,6 +1889,7 @@
             loadState();
             setupFirebaseRealtimeListener();
             updateDashboard();
+            renderAdminEmployeesList();
         });
 
         window.addEventListener('resize', () => {
@@ -1937,10 +1991,16 @@
             if (viewName === 'vehicle_fleet') renderFleetVehiclesList();
             if (viewName === 'vacation') renderVacationList();
             if (viewName === 'shifts') renderShiftList();
+            if (viewName === 'admin') renderAdminEmployeesList();
             if (viewName === 'start') updateDashboard();
 
             setTimeout(() => { if (pads[viewName]) pads[viewName].resize(); }, 60);
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function switchViewToHistoryFilter(filterName) {
+            setHistoryFilter(filterName);
+            switchView('history');
         }
 
         function handlePhoto(e, domain) {
@@ -2183,21 +2243,21 @@
                 return;
             }
             container.innerHTML = list.map(item => `
-                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs w-full max-w-full box-border">
                     <div class="flex items-center justify-between font-bold text-slate-900">
                         <span class="text-sm">🚚 ${item.plate} <span class="text-xs text-slate-500 font-normal">(${item.model})</span></span>
                         <button onclick="deleteFleetVehicle('${item.id || ''}')" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash-can"></i></button>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-[11px] text-slate-700">
-                        <div class="bg-white p-2 rounded-lg border border-slate-200">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-[11px] text-slate-700 w-full max-w-full">
+                        <div class="bg-white p-2 rounded-lg border border-slate-200 w-full max-w-full box-border">
                             <div class="text-[9px] text-slate-400 uppercase font-bold">Kilometerstand</div>
                             <div class="font-bold text-slate-900">${item.km || '0'} km</div>
                         </div>
-                        <div class="bg-white p-2 rounded-lg border border-slate-200">
+                        <div class="bg-white p-2 rounded-lg border border-slate-200 w-full max-w-full box-border">
                             <div class="text-[9px] text-slate-400 uppercase font-bold">Nächster TÜV</div>
                             <div class="font-bold text-slate-900">${item.tuev || '-'}</div>
                         </div>
-                        <div class="bg-white p-2 rounded-lg border border-slate-200">
+                        <div class="bg-white p-2 rounded-lg border border-slate-200 w-full max-w-full box-border">
                             <div class="text-[9px] text-slate-400 uppercase font-bold">Ölwechsel</div>
                             <div class="font-bold text-slate-900">${item.oil || '-'}</div>
                         </div>
@@ -2216,13 +2276,13 @@
         function verifyManagerLogin() {
             const pwd = document.getElementById('manager-pwd-input').value.trim();
             if (pwd === MANAGER_PASSWORD_HASH) {
+                isAdminLoggedIn = true;
                 const badge = document.getElementById('manager-badge');
                 if (badge) {
                     badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
                     badge.innerText = t('manager_unlocked');
                 }
                 document.getElementById('manager-login-form').classList.add('hidden');
-                document.getElementById('admin-controls-panel').classList.remove('hidden');
                 document.getElementById('manager-pending-list').classList.remove('hidden');
                 document.getElementById('manager-lock-icon').className = 'fa-solid fa-lock-open';
                 showToast(t('toast_saved'));
@@ -2232,20 +2292,52 @@
             }
         }
 
-        function addNewEmployee() {
-            const input = document.getElementById('new-employee-name');
+        function verifyDedicatedAdminLogin() {
+            const pwd = document.getElementById('dedicated-admin-pwd').value.trim();
+            if (pwd === MANAGER_PASSWORD_HASH) {
+                isAdminLoggedIn = true;
+                document.getElementById('admin-locked-box').classList.add('hidden');
+                document.getElementById('admin-unlocked-box').classList.remove('hidden');
+                const badge = document.getElementById('admin-status-badge');
+                if (badge) {
+                    badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700';
+                    badge.innerText = 'Entsperrt (Aktiv)';
+                }
+                renderAdminEmployeesList();
+                showToast('Admin-Bereich entsperrt!');
+            } else {
+                showToast('Falsches Passwort!');
+            }
+        }
+
+        function adminAddNewEmployee() {
+            if (!isAdminLoggedIn) { showToast('Nicht berechtigt!'); return; }
+            const input = document.getElementById('admin-new-emp');
             const name = input.value.trim();
             if (!name) return;
-            if (TEAM_EMPLOYEES.includes(name)) {
-                showToast('Mitarbeiter existiert bereits.');
-                return;
-            }
+            if (TEAM_EMPLOYEES.includes(name)) { showToast('Mitarbeiter existiert bereits.'); return; }
             TEAM_EMPLOYEES.push(name);
             saveEmployeesToStorage();
             input.value = '';
-            showToast(`Mitarbeiter "${name}" erfolgreich hinzugefügt!`);
-            renderVacationList();
-            renderShiftList();
+            showToast(`Mitarbeiter "${name}" hinzugefügt!`);
+        }
+
+        function adminDeleteEmployee(name) {
+            if (!isAdminLoggedIn) { showToast('Nicht berechtigt!'); return; }
+            TEAM_EMPLOYEES = TEAM_EMPLOYEES.filter(e => e !== name);
+            saveEmployeesToStorage();
+            showToast(`Mitarbeiter "${name}" entfernt.`);
+        }
+
+        function renderAdminEmployeesList() {
+            const container = document.getElementById('admin-employees-list');
+            if (!container) return;
+            container.innerHTML = TEAM_EMPLOYEES.map(emp => `
+                <div class="px-3 py-1.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-800 flex items-center gap-2">
+                    <span>${emp}</span>
+                    <button onclick="adminDeleteEmployee('${emp}')" class="text-rose-600 hover:text-rose-800"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `).join('');
         }
 
         function calculateWorkingDays(startDateStr, endDateStr) {
@@ -2413,7 +2505,7 @@
                 cloudVacations.map(item => {
                     const d = item.data || item;
                     return `
-                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs w-full max-w-full box-border">
                             <div>
                                 <div class="font-bold text-slate-900">${d.employee} • <span class="${d.status === 'Genehmigt' ? 'text-emerald-700' : d.status === 'Abgelehnt' ? 'text-rose-600' : 'text-amber-600'}">${d.status}</span></div>
                                 <div class="text-slate-500 text-[11px]">📅 Von ${d.startDate} bis ${d.endDate} (${d.daysCount} Tage)</div>
@@ -2490,7 +2582,7 @@
 
             container.innerHTML = cloudShifts.length === 0 ? `<div class="p-4 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">${t('no_shifts')}</div>` :
                 cloudShifts.map(item => `
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs w-full max-w-full box-border">
                         <div>
                             <div class="font-bold text-slate-900">${item.employee} • ${item.shiftType} ${item.isDelivery ? '(🚚 LKW)' : ''}</div>
                             <div class="text-slate-500 text-[11px]">📅 ${item.date}</div>
@@ -2875,18 +2967,71 @@
             doc.setDrawColor(226, 232, 240); doc.roundedRect(15, 36, 180, 234, 3, 3, 'S');
             doc.setFillColor(248, 250, 252); doc.roundedRect(15, 36, 180, 10, 3, 3, 'F');
             doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
-            doc.text(`PROTOKOLL - ${type.toUpperCase()}`, 19, 42.5);
+            doc.text(`QUALITÄTS- & WARTUNGSPROTOKOLL - ${type.toUpperCase()}`, 19, 42.5);
             doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-            doc.text(`Prüfer: ${rec.inspector || rec.employee || '-'}`, 23, 58);
-            doc.text(`Zeit: ${rec.timestamp || '-'}`, 23, 65);
-            if (rec.pressure && rec.temp) {
-                doc.text(`Heizungsdruck: ${rec.pressure} bar`, 23, 72);
-                doc.text(`Wassertemperatur Speicher: ${rec.temp} °C`, 23, 79);
-                doc.text(`Notizen: ${rec.notes || '-'}`, 23, 86);
-            } else {
-                doc.text(`Notizen: ${rec.notes || '-'}`, 23, 72);
+            
+            let y = 56;
+            doc.text(`Prüfer / Mitarbeiter: ${rec.inspector || rec.employee || '-'}`, 23, y); y += 7;
+            doc.text(`Zeitstempel: ${rec.timestamp || '-'}`, 23, y); y += 9;
+            
+            if (type === 'Entmineralisierung') {
+                doc.text(`Leitwert: ${rec.conductivity || '-'} µS/cm`, 23, y); y += 7;
+                doc.text(`Druck: ${rec.pressure || '-'} bar`, 23, y); y += 9;
+                
+                doc.setFont('helvetica', 'bold'); doc.text('Prüfpunkte & Checkliste:', 23, y); y += 6;
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(16, 185, 129); doc.text(`• Dichtheit der Anlage: ${rec.statusLeak === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
+                doc.text(`• Vorfilter & Patronen: ${rec.statusFilter === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
+                doc.text(`• Harzkapazität: ${rec.statusResin === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
+                doc.text(`• Salz aufgefüllt: ${rec.statusSalt === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); doc.setTextColor(51, 65, 85); y += 8;
+            } else if (type === 'Heizungskontrolle') {
+                doc.text(`Heizungsdruck: ${rec.pressure || '-'} bar`, 23, y); y += 7;
+                doc.text(`Speichertemperatur: ${rec.temp || '-'} °C`, 23, y); y += 9;
+                
+                doc.setFont('helvetica', 'bold'); doc.text('Prüfpunkte & Checkliste:', 23, y); y += 6;
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(16, 185, 129); doc.text(`• Keine Undichtigkeiten / Leckagen: ${rec.statusLeaks === 'ok' ? '✓ i.O. (Keine Mängel)' : '✗ Mangel festgestellt'}`, 25, y); y += 6;
+                doc.text(`• Keine Mängel / Störungen am System: ${rec.statusDefects === 'ok' ? '✓ i.O. (Keine Mängel)' : '✗ Mangel festgestellt'}`, 25, y); doc.setTextColor(51, 65, 85); y += 8;
+            } else if (type === 'Außenbereich') {
+                doc.setFont('helvetica', 'bold'); doc.text('Prüfpunkte & Checkliste:', 23, y); y += 6;
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(16, 185, 129); doc.text(`• Mülleimer geleert & Zigarettenstummel: ${rec.statusTrash === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
+                doc.text(`• Kein Essen auf Tischen, leere Dosen: ${rec.statusTables === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
+                doc.text(`• Sauberkeit der Flächen & Abläufe frei: ${rec.statusGrounds === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); doc.setTextColor(51, 65, 85); y += 8;
+            } else if (type === 'Pausenraum') {
+                doc.setFont('helvetica', 'bold'); doc.text('Prüfpunkte & Checkliste:', 23, y); y += 6;
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(16, 185, 129); doc.text(`• Tische, Arbeitsflächen & Spüle: ${rec.statusSurfaces === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
+                doc.text(`• Kühlschrank & Geräte sauber / leer: ${rec.statusAppliances === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
+                doc.text(`• Mülleimer geleert & Mülltrennung: ${rec.statusTrash === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
+                doc.text(`• Fußboden sauber / gewischt: ${rec.statusFloor === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); doc.setTextColor(51, 65, 85); y += 8;
+            } else if (type === 'Fahrzeuge') {
+                doc.text(`Fahrzeug / Kennzeichen: ${rec.plate || '-'}`, 23, y); y += 7;
+                doc.text(`Kilometerstand: ${rec.km || '-'} km`, 23, y); y += 9;
+                
+                doc.setFont('helvetica', 'bold'); doc.text('Prüfpunkte & Checkliste:', 23, y); y += 6;
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(16, 185, 129); doc.text(`• Fahrzeug sauber (Kabine & Außen): ${rec.statusClean === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
+                doc.text(`• Beleuchtung & Blinker in Ordnung: ${rec.statusCondition === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
+                doc.text(`• Reifendruck prüfen & korrigieren: ${rec.statusTirePressure === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
+                doc.text(`• Keine Warnleuchten / Kratzer: ${rec.statusWarnings === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); doc.setTextColor(51, 65, 85); y += 8;
             }
-            if (rec.signature) { try { doc.addImage(rec.signature, 'PNG', 35, 178, 140, 70); } catch(e){} }
+
+            doc.text(`Bemerkungen: ${rec.notes || '-'}`, 23, y); y += 10;
+
+            if (rec.photo) {
+                try {
+                    doc.addImage(rec.photo, 'JPEG', 23, y, 65, 32);
+                    y += 35;
+                } catch(e){}
+            }
+
+            if (rec.signature) { 
+                try { 
+                    doc.setFont('helvetica', 'bold'); doc.text('Digitale Unterschrift des Prüfers:', 23, y);
+                    doc.addImage(rec.signature, 'PNG', 23, y + 4, 90, 32); 
+                } catch(e){} 
+            }
             renderPdfFooter(doc, 1, 1);
             return doc;
         }
@@ -3006,25 +3151,56 @@
                 list.map((item, index) => {
                     const originalIdx = cloudHistory.indexOf(item);
                     return `
-                        <div class="p-4 bg-white border border-slate-200 rounded-2xl shadow-xs flex items-center justify-between text-xs">
+                        <div class="p-4 bg-white border border-slate-200 rounded-2xl shadow-xs flex items-center justify-between text-xs w-full max-w-full box-border">
                             <div>
                                 <div class="font-bold text-slate-900">${item.type} • ${item.inspector || item.data?.employee || '-'}</div>
                                 <div class="text-[10px] text-slate-400 font-mono">${item.timestamp}</div>
                             </div>
-                            <button onclick="openHistoryItemPdf(${originalIdx})" class="text-sky-600 font-bold hover:underline bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-200"><i class="fa-solid fa-file-pdf"></i> PDF öffnen</button>
+                            <div class="flex items-center gap-2">
+                                <button onclick="openHistoryItemPdf(${originalIdx})" class="text-sky-600 font-bold hover:underline bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-200"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                                ${isAdminLoggedIn ? `<button onclick="deleteHistoryItem('${item.id || originalIdx}')" class="text-rose-600 hover:text-rose-800 p-1.5" title="Löschen"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+                            </div>
                         </div>
                     `;
                 }).join('');
         }
 
-        function confirmResetAll() { cloudHistory = []; renderHistoryView(); updateDashboard(); }
+        function deleteHistoryItem(id) {
+            if (!isAdminLoggedIn) { showToast('Nur für Admins erlaubt!'); return; }
+            const idx = cloudHistory.findIndex(i => i.id === id || cloudHistory.indexOf(i) == id);
+            if (idx > -1) {
+                const item = cloudHistory[idx];
+                if (item.id && db) db.collection('kontrollen').doc(item.id).delete().catch(()=>{});
+                cloudHistory.splice(idx, 1);
+                renderHistoryView();
+                showToast('Eintrag gelöscht');
+            }
+        }
+
+        function confirmResetAll() {
+            if (!isAdminLoggedIn) { showToast('Bitte zuerst im Admin-Bereich mit Passwort anmelden!'); return; }
+            cloudHistory = [];
+            cloudVacations = [];
+            cloudShifts = [];
+            if (db) {
+                db.collection('kontrollen').get().then(snap => snap.forEach(d => d.ref.delete())).catch(()=>{});
+                db.collection('urlaube').get().then(snap => snap.forEach(d => d.ref.delete())).catch(()=>{});
+                db.collection('schichten').get().then(snap => snap.forEach(d => d.ref.delete())).catch(()=>{});
+            }
+            renderHistoryView();
+            renderVacationList();
+            renderShiftList();
+            updateDashboard();
+            showToast('Gesamte Historie & Archive erfolgreich geleert!');
+        }
+
         function exportHistoryCsv() { showToast('CSV Export bereit'); }
 
         function openAttendanceModal() {
             const container = document.getElementById('attendance-list-container');
             if (!container) return;
             container.innerHTML = TEAM_EMPLOYEES.map(emp => `
-                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs font-bold text-emerald-900">
+                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs font-bold text-emerald-900 w-full max-w-full box-border">
                     <span>${emp}</span>
                     <span class="px-2 py-0.5 bg-emerald-100 rounded text-[10px]">Anwesend</span>
                 </div>
