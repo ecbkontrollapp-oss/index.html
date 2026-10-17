@@ -305,7 +305,7 @@
         </section>
 
         <!-- DEMIN VIEW -->
-        <section id="view-demin" class="view-panel hidden space-y-4 w-full max-w-full">
+        <section id="view-demin" class="view-panel hidden space-y-4 w-full max-w-full box-border">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -415,7 +415,7 @@
         </section>
 
         <!-- HEATING VIEW -->
-        <section id="view-heating" class="view-panel hidden space-y-4 w-full max-w-full">
+        <section id="view-heating" class="view-panel hidden space-y-4 w-full max-w-full box-border">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -511,7 +511,7 @@
         </section>
 
         <!-- OUTDOOR VIEW -->
-        <section id="view-outdoor" class="view-panel hidden space-y-4 w-full max-w-full">
+        <section id="view-outdoor" class="view-panel hidden space-y-4 w-full max-w-full box-border">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -601,7 +601,7 @@
         </section>
 
         <!-- BREAKROOM VIEW -->
-        <section id="view-breakroom" class="view-panel hidden space-y-4 w-full max-w-full">
+        <section id="view-breakroom" class="view-panel hidden space-y-4 w-full max-w-full box-border">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -698,7 +698,7 @@
         </section>
 
         <!-- VEHICLE VIEW -->
-        <section id="view-vehicle" class="view-panel hidden space-y-4 w-full max-w-full">
+        <section id="view-vehicle" class="view-panel hidden space-y-4 w-full max-w-full box-border">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -811,7 +811,7 @@
         </section>
 
         <!-- VEHICLE FLEET MANAGEMENT VIEW -->
-        <section id="view-vehicle_fleet" class="view-panel hidden space-y-4 w-full max-w-full">
+        <section id="view-vehicle_fleet" class="view-panel hidden space-y-4 w-full max-w-full box-border">
             <div class="flex items-center justify-between">
                 <button onclick="switchView('start')" class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1">
                     <i class="fa-solid fa-arrow-left text-sm"></i> <span data-i18n="back_btn">Zurück</span>
@@ -843,7 +843,7 @@
         </section>
 
         <!-- VACATION VIEW -->
-        <section id="view-vacation" class="view-panel hidden space-y-4 w-full max-w-full">
+        <section id="view-vacation" class="view-panel hidden space-y-4 w-full max-w-full box-border">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="vacation_title">Urlaubsplan & Antrag</h2>
@@ -921,7 +921,7 @@
         </section>
 
         <!-- SHIFTS VIEW -->
-        <section id="view-shifts" class="view-panel hidden space-y-4 w-full max-w-full">
+        <section id="view-shifts" class="view-panel hidden space-y-4 w-full max-w-full box-border">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="shift_title">Schichten</h2>
@@ -970,7 +970,7 @@
         </section>
 
         <!-- ADMIN VIEW -->
-        <section id="view-admin" class="view-panel hidden space-y-4 w-full max-w-full">
+        <section id="view-admin" class="view-panel hidden space-y-4 w-full max-w-full box-border">
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="admin_panel_title">Admin-Steuerzentrale</h2>
@@ -1034,7 +1034,7 @@
         </section>
 
         <!-- HISTORY VIEW -->
-        <section id="view-history" class="view-panel hidden space-y-4 w-full max-w-full">
+        <section id="view-history" class="view-panel hidden space-y-4 w-full max-w-full box-border">
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="history_title">Historie & Ordner</h2>
@@ -1340,7 +1340,7 @@
 
     <script>
         const RECIPIENT_EMAIL = "pb@ecb-system.de";
-        const MANAGER_PASSWORD_HASH = "ECB1688!";
+        const ADMIN_PASSWORD = "ECB1688!";
         let isAdminLoggedIn = false;
         
         let TEAM_EMPLOYEES = JSON.parse(localStorage.getItem('ecb_app_employees')) || ["Neymar", "Vasi", "Maria", "Livio", "Mario", "Mirel", "Bogdanie"];
@@ -2281,7 +2281,7 @@
 
         function verifyManagerLogin() {
             const pwd = document.getElementById('manager-pwd-input').value.trim();
-            if (pwd === MANAGER_PASSWORD_HASH) {
+            if (pwd === ADMIN_PASSWORD) {
                 isAdminLoggedIn = true;
                 const badge = document.getElementById('manager-badge');
                 if (badge) {
@@ -2300,7 +2300,7 @@
 
         function verifyDedicatedAdminLogin() {
             const pwd = document.getElementById('dedicated-admin-pwd').value.trim();
-            if (pwd === MANAGER_PASSWORD_HASH) {
+            if (pwd === ADMIN_PASSWORD) {
                 isAdminLoggedIn = true;
                 document.getElementById('admin-locked-box').classList.add('hidden');
                 document.getElementById('admin-unlocked-box').classList.remove('hidden');
