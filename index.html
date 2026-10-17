@@ -42,11 +42,11 @@
             cursor: crosshair;
             display: block;
             width: 100%;
-            height: 120px;
+            height: 110px;
             background-color: #ffffff;
         }
         .safe-bottom {
-            padding-bottom: max(0.2rem, env(safe-area-inset-bottom));
+            padding-bottom: max(0.1rem, env(safe-area-inset-bottom));
         }
         .status-btn {
             transition: all 0.15s ease-in-out;
@@ -62,6 +62,7 @@
 </head>
 <body id="app-body" class="h-full bg-slate-100 text-slate-800 flex flex-col md:flex-row font-sans select-none antialiased overflow-hidden">
 
+    <!-- SIDEBAR FOR PC -->
     <aside class="hidden md:flex flex-col w-64 bg-white border-r border-slate-200/80 p-4 shrink-0 shadow-xs z-30">
         <div class="flex items-center gap-3 px-2 py-3 mb-4 cursor-pointer" onclick="switchView('start')">
             <div class="w-10 h-10 rounded-xl bg-ecb flex flex-col items-center justify-center text-white shadow-xs p-1">
@@ -96,7 +97,7 @@
                 <i class="fa-solid fa-truck w-5 text-base text-indigo-600"></i> <span data-i18n="card_vehicle_title">Fahrzeuge</span>
             </button>
             <button onclick="switchView('vehicle_fleet')" id="pc-nav-btn-fleet" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
-                <i class="fa-solid fa-car w-5 text-base text-indigo-700"></i> <span data-i18n="nav_fleet">KFZ-Park & TÜV</span>
+                <i class="fa-solid fa-car w-5 text-base text-indigo-700"></i> <span data-i18n="nav_fleet">Fahrzeugpark</span>
             </button>
             <button onclick="switchView('vacation')" id="pc-nav-btn-vacation" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
                 <i class="fa-solid fa-umbrella-beach w-5 text-base text-ecb"></i> <span data-i18n="nav_vacation">Urlaub & Antrag</span>
@@ -111,7 +112,7 @@
 
         <div class="pt-4 border-t border-slate-200 space-y-2">
             <button onclick="forceCloudSync()" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-sky-50 border border-sky-200 text-xs font-bold text-sky-800">
-                <i class="fa-solid fa-rotate"></i> <span>Cloud-Sync erzwingen</span>
+                <i class="fa-solid fa-rotate"></i> <span data-i18n="sync_force">Cloud-Sync erzwingen</span>
             </button>
             <button onclick="openAttendanceModal()" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800">
                 <i class="fa-solid fa-users"></i> <span data-i18n="attendance_btn">Anwesende</span>
@@ -123,6 +124,7 @@
         </div>
     </aside>
 
+    <!-- HEADER FOR MOBILE -->
     <header class="md:hidden sticky top-0 z-30 bg-white border-b border-slate-200/80 px-4 py-2.5 shadow-xs shrink-0">
         <div class="max-w-md mx-auto flex items-center justify-between">
             <div class="flex items-center gap-2.5">
@@ -141,9 +143,6 @@
                 <button onclick="forceCloudSync()" class="flex items-center justify-center text-[10px] text-sky-700 font-semibold bg-sky-50 px-2 py-1.5 rounded-lg border border-sky-200" title="Sync erzwingen">
                     <i class="fa-solid fa-rotate"></i>
                 </button>
-                <button onclick="showCloudDiagnostic()" class="flex items-center justify-center text-[9px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-1.5 rounded-lg border border-emerald-200">
-                    <i class="fa-solid fa-cloud"></i>
-                </button>
                 <button onclick="openAttendanceModal()" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800">
                     <i class="fa-solid fa-users"></i>
                 </button>
@@ -157,6 +156,7 @@
         </div>
     </header>
 
+    <!-- MAIN CONTAINER WITH COMPACT BOTTOM PADDING -->
     <main id="main-container" class="flex-1 max-w-4xl w-full mx-auto px-4 py-4 md:px-8 md:py-6 space-y-4 pb-20 md:pb-8 overflow-y-auto">
 
         <!-- START VIEW -->
@@ -168,7 +168,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="forceCloudSync()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
-                        <i class="fa-solid fa-rotate"></i> <span>Sync erzwingen</span>
+                        <i class="fa-solid fa-rotate"></i> <span data-i18n="sync_force">Sync erzwingen</span>
                     </button>
                     <button onclick="openDispatchDaySummary()" class="px-3.5 py-2 bg-ecb hover:bg-ecb-dark text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
                         <i class="fa-solid fa-file-pdf"></i> <span data-i18n="send_all_btn">Gesamt-PDF</span>
@@ -181,7 +181,7 @@
                     <div class="flex items-center gap-3">
                         <div class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-xl">🚗</div>
                         <div>
-                            <h3 class="text-sm font-bold tracking-tight" data-i18n="fleet_title">Parc Auto & ITP</h3>
+                            <h3 class="text-sm font-bold tracking-tight" data-i18n="fleet_title">Fahrzeugpark & TÜV</h3>
                             <p class="text-[11px] text-indigo-100" data-i18n="fleet_sub">KM, TÜV & Ölwechsel</p>
                         </div>
                     </div>
@@ -313,7 +313,7 @@
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100">Entmineralisierung</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-12">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-8">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-droplet"></i>
@@ -327,8 +327,9 @@
                 <form id="form-demin" onsubmit="saveDemin(event)" class="space-y-4">
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
-                        <input type="text" id="demin-inspector" required placeholder="Vor- und Nachname" data-i18n-ph="ph_name"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-sky-500 outline-none">
+                        <select id="demin-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                            <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
+                        </select>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -427,7 +428,7 @@
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-100" data-i18n="card_heating_title">Heizungskontrolle</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-12">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-8">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-fire"></i>
@@ -441,8 +442,9 @@
                 <form id="form-heating" onsubmit="saveHeating(event)" class="space-y-4">
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
-                        <input type="text" id="heating-inspector" required placeholder="Vor- und Nachname" data-i18n-ph="ph_name"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-orange-500 outline-none">
+                        <select id="heating-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                            <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
+                        </select>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -509,7 +511,7 @@
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">Außenbereich</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-12">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-8">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-tree"></i>
@@ -523,7 +525,9 @@
                 <form id="form-outdoor" onsubmit="saveOutdoor(event)" class="space-y-4">
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
-                        <input type="text" id="outdoor-inspector" required placeholder="Vor- und Nachname" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-emerald-500">
+                        <select id="outdoor-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                            <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
+                        </select>
                     </div>
 
                     <div>
@@ -602,7 +606,7 @@
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">Pausenraum</span>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-12">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-8">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-mug-saucer"></i>
@@ -616,7 +620,9 @@
                 <form id="form-breakroom" onsubmit="saveBreakroom(event)" class="space-y-4">
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
-                        <input type="text" id="breakroom-inspector" required placeholder="Vor- und Nachname" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500">
+                        <select id="breakroom-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                            <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
+                        </select>
                     </div>
 
                     <div>
@@ -699,13 +705,13 @@
                 </button>
                 <div class="flex items-center gap-2">
                     <button onclick="switchView('vehicle_fleet')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-indigo-200">
-                        <i class="fa-solid fa-car"></i> <span data-i18n="btn_fleet_manage">KFZ-Park & TÜV</span>
+                        <i class="fa-solid fa-car"></i> <span data-i18n="btn_fleet_manage">Fahrzeugpark</span>
                     </button>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">Fahrzeuge</span>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-12">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-8">
                 <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
                     <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-base shrink-0">
                         <i class="fa-solid fa-truck"></i>
@@ -719,7 +725,9 @@
                 <form id="form-vehicle" onsubmit="saveVehicle(event)" class="space-y-4">
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_inspector">Name des Prüfers *</label>
-                        <input type="text" id="vehicle-inspector" required placeholder="Vor- und Nachname" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500">
+                        <select id="vehicle-inspector" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                            <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
+                        </select>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -821,7 +829,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-12">
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 pb-8">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                     <div>
                         <h2 class="text-base font-black text-slate-900 tracking-tight" data-i18n="fleet_title">Fahrzeugpark & Wartung (TÜV / Ölwechsel)</h2>
@@ -854,6 +862,7 @@
                 </div>
             </div>
 
+            <!-- ADMIN / MANAGER CARD -->
             <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-md space-y-3">
                 <div onclick="toggleManagerLogin()" class="flex items-center justify-between cursor-pointer select-none">
                     <div class="flex items-center gap-2.5">
@@ -861,8 +870,8 @@
                             <i class="fa-solid fa-lock" id="manager-lock-icon"></i>
                         </div>
                         <div>
-                            <h3 class="text-xs font-bold" data-i18n="manager_login_title">Führungskraft-Freigabe</h3>
-                            <p class="text-[10px] text-slate-400" id="manager-status-text" data-i18n="manager_click_unlock">Klicken zum Entsperren mit Passwort</p>
+                            <h3 class="text-xs font-bold" data-i18n="manager_login_title">Admin ECB Control</h3>
+                            <p class="text-[10px] text-slate-400" id="manager-status-text" data-i18n="manager_click_unlock">Bereich für Führungskräfte</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -876,8 +885,20 @@
                         <input type="password" id="manager-pwd-input" placeholder="Passwort..." class="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white outline-none focus:border-emerald-500">
                         <button type="button" onclick="verifyManagerLogin()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs">Entsperren</button>
                     </div>
-                    <div id="manager-pending-list" class="space-y-2.5 hidden">
-                        <div class="text-[11px] font-bold text-slate-300 uppercase tracking-wider pt-1" data-i18n="manager_pending_title">Offene Anträge zur Prüfung:</div>
+
+                    <!-- ADMIN CONTROLS (Add Employee) -->
+                    <div id="admin-controls-panel" class="space-y-3 hidden pt-2 border-t border-slate-800">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-emerald-400"><i class="fa-solid fa-user-gear mr-1"></i> Mitarbeiter-Verwaltung</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" id="new-employee-name" placeholder="Neuer Mitarbeiter Name..." class="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white outline-none">
+                            <button type="button" onclick="addNewEmployee()" class="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold">Hinzufügen</button>
+                        </div>
+                    </div>
+
+                    <div id="manager-pending-list" class="space-y-2.5 hidden pt-2">
+                        <div class="text-[11px] font-bold text-slate-300 uppercase tracking-wider" data-i18n="manager_pending_title">Offene Anträge zur Prüfung:</div>
                         <div id="manager-approval-items" class="space-y-2"></div>
                     </div>
                 </div>
@@ -906,7 +927,7 @@
                 <div id="monthly-calendar-grid" class="overflow-x-auto no-scrollbar pb-1 text-base"></div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 pb-12">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 pb-8">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider" data-i18n="team_vacation_title">Urlaubsanträge & Status</h3>
                 <div id="vacation-list-container" class="space-y-2">
                     <div class="p-4 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_vacations">Keine Urlaube eingetragen.</div>
@@ -955,7 +976,7 @@
                 <div id="monthly-shift-calendar-grid" class="overflow-x-auto no-scrollbar pb-1 text-sm"></div>
             </div>
 
-            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 pb-12">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 pb-8">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider" data-i18n="shift_list_title">Aktuelle Schicht-Einträge</h3>
                 <div id="shift-list-container" class="space-y-2">
                     <div class="p-4 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_shifts">Keine Schichten eingetragen.</div>
@@ -985,7 +1006,7 @@
                 <button onclick="setHistoryFilter('Urlaub')" id="hist-filter-vacation" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600">🏖️ <span data-i18n="filter_vacation">Urlaub</span> (<span id="count-vacation">0</span>)</button>
             </div>
 
-            <div id="history-items-container" class="space-y-2.5 pb-12">
+            <div id="history-items-container" class="space-y-2.5 pb-8">
                 <div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl" data-i18n="no_history">Lade Kontrollberichte aus der Cloud...</div>
             </div>
 
@@ -997,6 +1018,7 @@
 
     </main>
 
+    <!-- COMPACT MOBILE NAVIGATION BAR -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 safe-bottom shadow-lg">
         <div class="max-w-md mx-auto grid grid-cols-5 px-1 py-1 text-center">
             <button onclick="switchView('start')" id="nav-btn-start" class="nav-item flex flex-col items-center justify-center py-0.5 text-sky-600">
@@ -1009,7 +1031,7 @@
             </button>
             <button onclick="switchView('vehicle_fleet')" id="nav-btn-fleet" class="nav-item flex flex-col items-center justify-center py-0.5 text-slate-400">
                 <i class="fa-solid fa-car text-xs mb-0.5"></i>
-                <span class="text-[9px] font-bold" data-i18n="nav_fleet">Parc Auto</span>
+                <span class="text-[9px] font-bold" data-i18n="nav_fleet">Fahrzeugpark</span>
             </button>
             <button onclick="switchView('vacation')" id="nav-btn-vacation" class="nav-item flex flex-col items-center justify-center py-0.5 text-slate-400">
                 <i class="fa-solid fa-umbrella-beach text-xs mb-0.5"></i>
@@ -1036,8 +1058,6 @@
                     <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="vac_label_name">Mitarbeiter *</label>
                     <select id="vac-employee" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
                         <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
-                        <option value="Neymar">Neymar</option><option value="Vasi">Vasi</option><option value="Maria">Maria</option>
-                        <option value="Livio">Livio</option><option value="Mario">Mario</option><option value="Mirel">Mirel</option><option value="Bogdanie">Bogdanie</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
@@ -1108,8 +1128,7 @@
                 <div>
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="shift_label_emp">Mitarbeiter *</label>
                     <select id="shift-employee" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
-                        <option value="Neymar">Neymar</option><option value="Vasi">Vasi</option><option value="Maria">Maria</option>
-                        <option value="Livio">Livio</option><option value="Mario">Mario</option><option value="Mirel">Mirel</option><option value="Bogdanie">Bogdanie</option>
+                        <option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>
                     </select>
                 </div>
                 <div>
@@ -1251,7 +1270,7 @@
                 </div>
             </div>
             <button onclick="forceCloudSync()" class="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs">
-                <i class="fa-solid fa-rotate"></i> <span>Nicht synchronisierte Daten jetzt hochladen</span>
+                <i class="fa-solid fa-rotate"></i> <span data-i18n="sync_force">Cloud-Sync erzwingen (Nicht gespeicherte Daten hochladen)</span>
             </button>
             <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
                 <div>
@@ -1260,31 +1279,13 @@
                 </div>
                 <button onclick="toggleLanguage()" class="py-1 px-2.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-700">Wechseln</button>
             </div>
-            <div class="p-3 bg-sky-50/80 rounded-xl border border-sky-200 space-y-2">
-                <span class="text-xs font-bold text-sky-900 flex items-center gap-1.5"><i class="fa-brands fa-dropbox text-sky-600"></i> Dropbox-Ablage</span>
-                <input type="text" id="setting-dropbox-token" placeholder="sl.u.AF..." class="w-full p-2 bg-white border border-sky-200 rounded-xl text-xs font-mono">
-                <button type="button" onclick="testDropboxConnection()" class="w-full py-1.5 bg-sky-600 text-white rounded-lg text-[11px] font-bold">Verbindung testen</button>
-                <div id="dropbox-test-result" class="text-[10px] font-medium hidden"></div>
-            </div>
             <div class="flex gap-2 pt-2">
-                <button onclick="saveSettingsKeys()" class="flex-1 py-2 bg-ecb text-white rounded-xl font-bold text-xs">Speichern</button>
-                <button onclick="closeModal('modal-settings')" class="px-3 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs">Schließen</button>
+                <button onclick="closeModal('modal-settings')" class="w-full py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs">Schließen</button>
             </div>
         </div>
     </div>
 
-    <!-- CLOUD DIAGNOSTIC MODAL -->
-    <div id="modal-cloud" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 class="font-bold text-slate-900 text-sm"><i class="fa-solid fa-cloud text-ecb"></i> Cloud-Diagnose</h3>
-                <button onclick="closeModal('modal-cloud')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div id="cloud-diagnostic-content"></div>
-            <button onclick="closeModal('modal-cloud')" class="w-full py-2 bg-slate-900 text-white rounded-xl font-bold text-xs">Schließen</button>
-        </div>
-    </div>
-
+    <!-- TOAST NOTIFICATION -->
     <div id="toast" class="fixed bottom-14 md:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2 rounded-full shadow-2xl text-xs font-medium opacity-0 pointer-events-none transition-opacity duration-300 flex items-center gap-2">
         <i class="fa-solid fa-circle-check text-emerald-400"></i>
         <span id="toast-text">Meldung</span>
@@ -1293,7 +1294,29 @@
     <script>
         const RECIPIENT_EMAIL = "pb@ecb-system.de";
         const MANAGER_PASSWORD_HASH = "ECB1688!";
-        const TEAM_EMPLOYEES = ["Neymar", "Vasi", "Maria", "Livio", "Mario", "Mirel", "Bogdanie"];
+        
+        // Default Employees stored in localStorage or fallback
+        let TEAM_EMPLOYEES = JSON.parse(localStorage.getItem('ecb_app_employees')) || ["Neymar", "Vasi", "Maria", "Livio", "Mario", "Mirel", "Bogdanie"];
+
+        function saveEmployeesToStorage() {
+            localStorage.setItem('ecb_app_employees', JSON.stringify(TEAM_EMPLOYEES));
+            populateAllEmployeeDropdowns();
+        }
+
+        function populateAllEmployeeDropdowns() {
+            const dropdownIds = ['demin-inspector', 'heating-inspector', 'outdoor-inspector', 'breakroom-inspector', 'vehicle-inspector', 'vac-employee', 'shift-employee'];
+            dropdownIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const currentVal = el.value;
+                let opts = `<option value="" data-i18n="vac_select_emp">-- Mitarbeiter wählen --</option>`;
+                TEAM_EMPLOYEES.forEach(emp => {
+                    opts += `<option value="${emp}">${emp}</option>`;
+                });
+                el.innerHTML = opts;
+                if (currentVal) el.value = currentVal;
+            });
+        }
 
         const firebaseConfig = {
             apiKey: "AIzaSyDPmUJhS6ohvvb71jirGhaKH2cXsIjPTLk",
@@ -1389,7 +1412,7 @@
                 check_veh_tire_pressure: "Reifendruck prüfen",
                 check_veh_warnings: "Keine Warnleuchten / Kratzer",
                 btn_save_send_vehicle: "Fahrzeug speichern & Protokoll versenden",
-                btn_fleet_manage: "KFZ-Park & TÜV",
+                btn_fleet_manage: "Fahrzeugpark",
                 fleet_title: "Fahrzeugpark & Wartung (TÜV / Ölwechsel)",
                 fleet_sub: "Zentraler Überblick über Kilometer, TÜV und Ölwechsel",
                 btn_add_fleet_car: "Fahrzeug anlegen",
@@ -1423,8 +1446,8 @@
                 shift_free: "Freischicht (FS)",
                 shift_label_delivery: "🚚 Übernimmt LKW / Auslieferung",
                 shift_btn_save: "Schicht speichern",
-                manager_login_title: "Führungskraft-Freigabe",
-                manager_click_unlock: "Klicken zum Entsperren mit Passwort",
+                manager_login_title: "Admin ECB Control",
+                manager_click_unlock: "Bereich für Führungskräfte",
                 manager_locked: "Gesperrt",
                 manager_unlocked: "Aktiviert",
                 manager_pending_title: "Offene Anträge:",
@@ -1448,11 +1471,12 @@
                 no_history: "Keine Berichte in diesem Ordner.",
                 btn_csv: "CSV Export",
                 btn_clear_history: "Verlauf leeren",
-                nav_start: "Start", nav_demin: "Entmin.", nav_vacation: "Urlaub", nav_shifts: "Schimente", nav_fleet: "Parc Auto", nav_history: "Ordner",
+                nav_start: "Start", nav_demin: "Entmineralisierung", nav_vacation: "Urlaub", nav_shifts: "Schichten", nav_fleet: "Fahrzeugpark", nav_history: "Ordner",
                 badge_done: "✓ Erledigt", badge_open: "Offen",
                 legend_approved: "Genehmigt", legend_pending: "Ausstehend", legend_holiday: "Feiertage", legend_sunday: "Sonntage",
                 toast_saved: "Gespeichert & gesendet!", toast_need_sig: "Bitte unterschreiben!", toast_need_photo: "Bitte Foto aufnehmen!", toast_sent: "Erfolgreich gesendet!",
-                btn_approve: "Genehmigen", btn_reject: "Ablehnen"
+                btn_approve: "Genehmigen", btn_reject: "Ablehnen",
+                sync_force: "Cloud-Sync erzwingen"
             },
             ro: {
                 app_title: "Aplicație Control ECB",
@@ -1527,7 +1551,7 @@
                 check_veh_tire_pressure: "Verificare presiune anvelope",
                 check_veh_warnings: "Fără martori avarie / zgârieturi",
                 btn_save_send_vehicle: "Salvează vehiculul & trimite",
-                btn_fleet_manage: "Parc Auto & ITP",
+                btn_fleet_manage: "Parc Auto",
                 fleet_title: "Parc Auto & Mentenanță (ITP / Ulei)",
                 fleet_sub: "Prezentare generală kilometraj, ITP și ulei",
                 btn_add_fleet_car: "Adaugă vehicul",
@@ -1561,8 +1585,8 @@
                 shift_free: "Liber (FS)",
                 shift_label_delivery: "🚚 Asigură LKW / livrarea",
                 shift_btn_save: "Salvează tura",
-                manager_login_title: "Aprobare Conducere",
-                manager_click_unlock: "Apăsați pentru deblocare",
+                manager_login_title: "Admin ECB Control",
+                manager_click_unlock: "Zona pentru conducere",
                 manager_locked: "Blocat",
                 manager_unlocked: "Activat",
                 manager_pending_title: "Cereri în așteptare:",
@@ -1586,11 +1610,12 @@
                 no_history: "Niciun raport în acest dosar.",
                 btn_csv: "Export CSV",
                 btn_clear_history: "Șterge istoricul",
-                nav_start: "Start", nav_demin: "Demin.", nav_vacation: "Concediu", nav_shifts: "Schimente", nav_fleet: "Parc Auto", nav_history: "Dosare",
+                nav_start: "Start", nav_demin: "Demineralizare", nav_vacation: "Concediu", nav_shifts: "Schimente", nav_fleet: "Parc Auto", nav_history: "Dosare",
                 badge_done: "✓ Efectuat", badge_open: "Deschis",
                 legend_approved: "Aprobat", legend_pending: "În așteptare", legend_holiday: "Sărbători", legend_sunday: "Duminici",
                 toast_saved: "Salvat & trimis!", toast_need_sig: "Vă rugăm semnați!", toast_need_photo: "Vă rugăm faceți o poză!", toast_sent: "Trimis cu succes!",
-                btn_approve: "Genehmigen", btn_reject: "Ablehnen"
+                btn_approve: "Aproba", btn_reject: "Respinge",
+                sync_force: "Sincronizare Cloud"
             }
         };
 
@@ -1692,7 +1717,7 @@
                 if (!this.canvas) return;
                 const rect = this.canvas.getBoundingClientRect();
                 const w = rect.width > 0 ? rect.width : 300;
-                const h = 120;
+                const h = 110;
                 const dpr = Math.max(window.devicePixelRatio || 1, 1);
                 this.canvas.width = Math.round(w * dpr);
                 this.canvas.height = Math.round(h * dpr);
@@ -1806,6 +1831,7 @@
             initDropdowns('vacation-year-select', 'vacation-month-select');
             initDropdowns('shift-year-select', 'shift-month-select');
 
+            populateAllEmployeeDropdowns();
             applyTranslations();
             loadState();
             setupFirebaseRealtimeListener();
@@ -1853,7 +1879,6 @@
         function forceCloudSync() {
             if (!db) { showToast('Keine Cloud-Verbindung verfügbar.'); return; }
             let count = 0;
-            // Push local storage items or pending entries
             if (state.data.entmineralisierung) {
                 db.collection('kontrollen').add({ date: state.todayKey, timestamp: state.data.entmineralisierung.timestamp, createdAt: Date.now(), type: 'Entmineralisierung', inspector: state.data.entmineralisierung.inspector, data: state.data.entmineralisierung }).catch(()=>{});
                 count++;
@@ -1889,18 +1914,6 @@
                 if (item.type === 'Fahrzeuge' && !state.data.fahrzeuge) { state.data.fahrzeuge = item.data; updated = true; }
             });
             if (updated) { persist(); updateDashboard(); }
-        }
-
-        function showCloudDiagnostic() {
-            const modalContent = document.getElementById('cloud-diagnostic-content');
-            if (!modalContent) return;
-            modalContent.innerHTML = `
-                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1.5 text-xs text-emerald-900">
-                    <div class="font-bold text-emerald-800"><i class="fa-solid fa-circle-check text-emerald-600"></i> Verbindung aktiv</div>
-                    <p>Projekt: <strong>eck-kontroll-app</strong><br>Einträge: <strong>${firebaseStatus.count}</strong></p>
-                </div>
-            `;
-            openModal('modal-cloud');
         }
 
         function switchView(viewName) {
@@ -1950,7 +1963,7 @@
                     document.getElementById(`photo-preview-img-${domain}`).src = compressed;
                     document.getElementById(`photo-preview-box-${domain}`).classList.remove('hidden');
                     document.getElementById(`photo-btns-${domain}`).classList.add('hidden');
-                    showToast(t('photo_captured'));
+                    showToast('Foto aufgenommen');
                 };
                 img.src = evt.target.result;
             };
@@ -2209,6 +2222,7 @@
                     badge.innerText = t('manager_unlocked');
                 }
                 document.getElementById('manager-login-form').classList.add('hidden');
+                document.getElementById('admin-controls-panel').classList.remove('hidden');
                 document.getElementById('manager-pending-list').classList.remove('hidden');
                 document.getElementById('manager-lock-icon').className = 'fa-solid fa-lock-open';
                 showToast(t('toast_saved'));
@@ -2216,6 +2230,22 @@
             } else {
                 showToast('Falsches Passwort!');
             }
+        }
+
+        function addNewEmployee() {
+            const input = document.getElementById('new-employee-name');
+            const name = input.value.trim();
+            if (!name) return;
+            if (TEAM_EMPLOYEES.includes(name)) {
+                showToast('Mitarbeiter existiert bereits.');
+                return;
+            }
+            TEAM_EMPLOYEES.push(name);
+            saveEmployeesToStorage();
+            input.value = '';
+            showToast(`Mitarbeiter "${name}" erfolgreich hinzugefügt!`);
+            renderVacationList();
+            renderShiftList();
         }
 
         function calculateWorkingDays(startDateStr, endDateStr) {
@@ -2285,7 +2315,6 @@
             if (!item) return;
             item.data.status = newStatus;
             
-            // If approved, automatically add vacation days (U) to shift calendar
             if (newStatus === 'Genehmigt' && item.data.startDate && item.data.endDate) {
                 const start = new Date(item.data.startDate);
                 const end = new Date(item.data.endDate);
@@ -2420,7 +2449,6 @@
                     let sCode = '';
                     let bgClass = '';
                     
-                    // Check approved vacations first (U - green)
                     cloudVacations.forEach(vItem => {
                         const rec = vItem.data || vItem;
                         if ((rec.employee === emp || vItem.inspector === emp) && rec.status === 'Genehmigt' && rec.startDate && rec.endDate && dateIso >= rec.startDate && dateIso <= rec.endDate) {
@@ -2429,27 +2457,23 @@
                         }
                     });
 
-                    // Check shifts if no vacation
                     if (!sCode) {
                         cloudShifts.forEach(item => {
                             if (item.employee === emp && item.date === dateIso) {
-                                if (item.shiftType.includes('Früh')) {
+                                if (item.shiftType && item.shiftType.includes('Früh')) {
                                     sCode = 'F';
                                     bgClass = 'bg-sky-500 text-white font-bold rounded';
-                                } else if (item.shiftType.includes('Mittag')) {
+                                } else if (item.shiftType && item.shiftType.includes('Mittag')) {
                                     sCode = 'M';
                                     bgClass = 'bg-indigo-500 text-white font-bold rounded';
                                 } else {
                                     sCode = 'FS';
                                     bgClass = 'bg-slate-400 text-white font-bold rounded';
                                 }
-                                if (item.isDelivery) {
-                                    sCode += ' 🚚';
-                                }
+                                if (item.isDelivery) sCode += ' 🚚';
                             }
                         });
                     } else {
-                        // Check if vacation day also has LKW delivery flag in shifts
                         cloudShifts.forEach(item => {
                             if (item.employee === emp && item.date === dateIso && item.isDelivery) {
                                 sCode += ' 🚚';
@@ -2477,16 +2501,8 @@
         }
 
         function previewShiftSummaryPdf() {
-            state.currentDispatchContext = { type: 'ShiftSummary', data: cloudShifts, subject: `[ECB] Schichtkalender & Auslieferung`, body: 'Schichtkalender Übersicht', categoryFolder: 'Schichten' };
+            state.currentDispatchContext = { type: 'ShiftSummary', data: cloudShifts, vacations: cloudVacations, subject: `[ECB] Schichtkalender & Auslieferung`, body: 'Schichtkalender Matrix Übersicht', categoryFolder: 'Schichten' };
             previewActivePdf();
-        }
-
-        function triggerSingleDispatch(type, rec) {
-            const dateStr = new Date().toLocaleDateString('de-DE');
-            let subject = `[ECB Kontroll App] ${type} - ${dateStr} - ${rec.inspector || rec.employee}`;
-            let body = `ECB REINIGUNGSSYSTEME - PROTOKOLL: ${type.toUpperCase()}\nDatum: ${rec.timestamp}\nPrüfer: ${rec.inspector || rec.employee}\nNotizen: ${rec.notes}`;
-            state.currentDispatchContext = { type, data: rec, subject, body, categoryFolder: type === 'Urlaub' ? 'Urlaub' : type };
-            openModal('modal-dispatch');
         }
 
         function openDispatchDaySummary() {
@@ -2579,12 +2595,12 @@
 
         function buildPdfDocumentForContext(ctx) {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const doc = new jsPDF({ orientation: ctx.type === 'ShiftSummary' ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
             const now = new Date();
             const dateStr = now.toLocaleDateString('de-DE');
             const timeStr = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
-            if (ctx.type === 'ShiftSummary') return buildShiftSummaryPdf(doc, cloudShifts, dateStr, timeStr);
+            if (ctx.type === 'ShiftSummary') return buildShiftSummaryPdf(doc, ctx.data, ctx.vacations, dateStr, timeStr);
             if (ctx.type === 'FleetSummary') return buildFleetSummaryPdf(doc, cloudFleetVehicles, dateStr, timeStr);
             if (ctx.type === 'TeamVacationSummary') return buildTeamVacationSummaryPdf(doc, cloudVacations, dateStr, timeStr);
             if (ctx.type === 'Gesamtbericht') return buildCompleteSummaryPdf(doc, ctx.data, cloudFleetVehicles, dateStr, timeStr);
@@ -2592,31 +2608,102 @@
             return buildSingleSectionPdf(doc, ctx.type, ctx.data, dateStr, timeStr);
         }
 
-        function buildShiftSummaryPdf(doc, list, dateStr, timeStr) {
-            renderPdfHeader(doc, 'SCHICHTKALENDER & AUSLIEFERUNG', dateStr, timeStr);
+        function buildShiftSummaryPdf(doc, shiftList, vacationList, dateStr, timeStr) {
+            renderPdfHeader(doc, 'SCHICHTKALENDER & AUSLIEFERUNG (MONATSMATRIX)', dateStr, timeStr);
             doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
-            doc.text('Übersicht aller Schichten und LKW-Auslieferungen', 15, 38);
+            doc.text('Übersicht aller Mitarbeiter, Schichten, Urlaube und LKW-Einsätze im Monatsverlauf', 15, 38);
+
+            const selectedYear = parseInt(document.getElementById('shift-year-select')?.value || new Date().getFullYear());
+            const selectedMonth = parseInt(document.getElementById('shift-month-select')?.value || (new Date().getMonth() + 1));
+            const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
 
             let startY = 46;
             doc.setFillColor(241, 245, 249);
-            doc.rect(15, startY, 180, 8, 'F');
-            doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(71, 85, 105);
-            doc.text('Datum', 19, startY + 5.5);
-            doc.text('Mitarbeiter', 60, startY + 5.5);
-            doc.text('Schichtart', 120, startY + 5.5);
-            doc.text('LKW', 165, startY + 5.5);
+            doc.setDrawColor(203, 213, 225);
+            doc.rect(15, startY, 42, 8, 'FD');
+            const colW = 225 / daysInMonth;
+            for (let d = 1; d <= daysInMonth; d++) {
+                doc.rect(57 + (d - 1) * colW, startY, colW, 8, 'FD');
+            }
+
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(71, 85, 105);
+            doc.text('Mitarbeiter', 18, startY + 5.5);
+            for (let d = 1; d <= daysInMonth; d++) {
+                doc.text(String(d), 57 + (d - 1) * colW + (colW / 2), startY + 5.5, { align: 'center' });
+            }
 
             startY += 8;
-            doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-            list.forEach(item => {
-                doc.text(item.date || '-', 19, startY + 6);
-                doc.setFont('helvetica', 'bold'); doc.text(item.employee || '-', 60, startY + 6);
-                doc.setFont('helvetica', 'normal'); doc.text(item.shiftType || '-', 120, startY + 6);
-                doc.text(item.isDelivery ? 'Ja 🚚' : 'Nein', 165, startY + 6);
-                doc.setDrawColor(226, 232, 240); doc.line(15, startY + 10, 195, startY + 10);
-                startY += 12;
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+            TEAM_EMPLOYEES.forEach(emp => {
+                if (startY > 185) { doc.addPage('a4', 'landscape'); startY = 20; }
+                
+                doc.setDrawColor(203, 213, 225);
+                doc.rect(15, startY, 42, 9, 'FD');
+                doc.setFont('helvetica', 'bold');
+                doc.text(emp, 18, startY + 6);
+                doc.setFont('helvetica', 'normal');
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateObj = new Date(selectedYear, selectedMonth - 1, d);
+                    const dateIso = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+                    let sCode = '';
+                    let cellColor = null;
+
+                    vacationList.forEach(vItem => {
+                        const rec = vItem.data || vItem;
+                        if ((rec.employee === emp || vItem.inspector === emp) && rec.status === 'Genehmigt' && rec.startDate && rec.endDate && dateIso >= rec.startDate && dateIso <= rec.endDate) {
+                            sCode = 'U';
+                            cellColor = [16, 185, 129];
+                        }
+                    });
+
+                    if (!sCode) {
+                        shiftList.forEach(item => {
+                            if (item.employee === emp && item.date === dateIso) {
+                                if (item.shiftType && item.shiftType.includes('Früh')) {
+                                    sCode = 'F';
+                                    cellColor = [14, 165, 233];
+                                } else if (item.shiftType && item.shiftType.includes('Mittag')) {
+                                    sCode = 'M';
+                                    cellColor = [99, 102, 241];
+                                } else {
+                                    sCode = 'FS';
+                                    cellColor = [148, 163, 184];
+                                }
+                                if (item.isDelivery) sCode += ' 🚚';
+                            }
+                        });
+                    } else {
+                        shiftList.forEach(item => {
+                            if (item.employee === emp && item.date === dateIso && item.isDelivery) {
+                                sCode += ' 🚚';
+                            }
+                        });
+                    }
+
+                    const posX = 57 + (d - 1) * colW;
+                    doc.setDrawColor(203, 213, 225);
+                    if (cellColor) {
+                        doc.setFillColor(cellColor[0], cellColor[1], cellColor[2]);
+                        doc.rect(posX, startY, colW, 9, 'FD');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFont('helvetica', 'bold');
+                    } else {
+                        doc.setFillColor(255, 255, 255);
+                        doc.rect(posX, startY, colW, 9, 'FD');
+                        doc.setTextColor(15, 23, 42);
+                        doc.setFont('helvetica', 'normal');
+                    }
+
+                    if (sCode) {
+                        doc.text(sCode, posX + (colW / 2), startY + 6, { align: 'center' });
+                    }
+                }
+
+                startY += 9;
             });
-            renderPdfFooter(doc, 1, 1);
+
+            renderLandscapePdfFooter(doc, 1, 1);
             return doc;
         }
 
@@ -2809,7 +2896,14 @@
             doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bolditalic'); doc.setFontSize(14); doc.text('ecb', 27, 21, { align: 'center' });
             doc.setTextColor(94, 166, 59); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.text('ECB REINIGUNGSSYSTEME', 43, 16.5);
             doc.setTextColor(28, 25, 23); doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(subtitle, 43, 22.5);
-            doc.setFillColor(94, 166, 59); doc.rect(15, 31, 180, 1, 'F');
+            doc.setFillColor(94, 166, 59); doc.rect(15, 31, 267, 1, 'F');
+        }
+
+        function renderLandscapePdfFooter(doc, pageNum, totalPages) {
+            doc.setDrawColor(226, 232, 240); doc.line(15, 195, 282, 195);
+            doc.setFontSize(7); doc.setTextColor(148, 163, 184);
+            doc.text(`ECB Reinigungssysteme • Schichtmatrix (${pageNum}/${totalPages})`, 15, 200);
+            doc.text(`Meldung an ${RECIPIENT_EMAIL}`, 282, 200, { align: 'right' });
         }
 
         function renderPdfFooter(doc, pageNum, totalPages) {
@@ -2828,34 +2922,10 @@
             return blob;
         }
 
-        async function uploadToDropbox(pdfBlob, filename, categoryFolder) {
-            const token = localStorage.getItem('ecb_dropbox_token');
-            if (!token) return false;
-            try {
-                const res = await fetch('https://content.dropboxapi.com/2/files/upload', {
-                    method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + token.trim(), 'Dropbox-API-Arg': JSON.stringify({ path: `/ECB-Kontrollen/${categoryFolder}/${filename}`, mode: 'add' }), 'Content-Type': 'application/octet-stream' },
-                    body: pdfBlob
-                });
-                return res.ok;
-            } catch(e) { return false; }
-        }
-
-        async function testDropboxConnection() {
-            const token = document.getElementById('setting-dropbox-token').value.trim();
-            const resEl = document.getElementById('dropbox-test-result');
-            try {
-                const res = await fetch('https://api.dropboxapi.com/2/users/get_current_account', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
-                resEl.className = res.ok ? 'text-[10px] font-bold text-emerald-600 block' : 'text-[10px] font-bold text-rose-600 block';
-                resEl.innerText = res.ok ? '✓ Verbunden!' : '✗ Ungültig.';
-            } catch(e) { resEl.className = 'text-[10px] font-bold text-rose-600 block'; resEl.innerText = '✗ Fehler.'; }
-        }
-
         async function executeWebServiceSend() {
             const ctx = state.currentDispatchContext;
             const pdfBlob = await getPreparedPdfBlob(ctx);
             const fileName = `ECB-${ctx.type}-${state.todayKey}.pdf`;
-            await uploadToDropbox(pdfBlob, fileName, ctx.categoryFolder);
 
             try {
                 const fd = new FormData();
@@ -2964,8 +3034,7 @@
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); setTimeout(() => { Object.values(pads).forEach(p => { if (p) p.resize(); }); }, 50); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function openSettingsModal() { document.getElementById('setting-dropbox-token').value = localStorage.getItem('ecb_dropbox_token') || ''; openModal('modal-settings'); }
-        function saveSettingsKeys() { localStorage.setItem('ecb_dropbox_token', document.getElementById('setting-dropbox-token').value.trim()); closeModal('modal-settings'); showToast(t('toast_saved')); }
+        function openSettingsModal() { openModal('modal-settings'); }
         function showToast(text) {
             const tEl = document.getElementById('toast'), txt = document.getElementById('toast-text');
             if (txt) txt.innerText = text;
