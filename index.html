@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="de" class="h-full bg-slate-50">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ECB Kontroll App">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#5ea63b">
-    
+
     <title>ECB Kontroll App</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -60,6 +61,7 @@
         }
     </style>
 </head>
+
 <body id="app-body" class="h-full bg-slate-100 text-slate-800 flex flex-col md:flex-row font-sans select-none antialiased overflow-hidden">
 
     <aside class="hidden md:flex flex-col w-64 bg-white border-r border-slate-200/80 p-4 shrink-0 shadow-xs z-30">
@@ -67,7 +69,7 @@
             <div class="w-10 h-10 rounded-xl bg-ecb flex flex-col items-center justify-center text-white shadow-xs p-1">
                 <span class="font-black italic text-base leading-none tracking-tight">ecb</span>
                 <svg class="w-7 h-2 mt-0.5" viewBox="0 0 100 24" fill="white">
-                    <path d="M0 16 C30 6, 65 24, 100 8 C85 24, 50 26, 0 16 Z"/>
+                    <path d="M0 16 C30 6, 65 24, 100 8 C85 24, 50 26, 0 16 Z" />
                 </svg>
             </div>
             <div>
@@ -132,14 +134,14 @@
                 <div class="w-9 h-9 rounded-xl bg-ecb flex flex-col items-center justify-center text-white shadow-xs p-1 cursor-pointer" onclick="switchView('start')">
                     <span class="font-black italic text-base leading-none tracking-tight">ecb</span>
                     <svg class="w-6 h-2 mt-0.5" viewBox="0 0 100 24" fill="white">
-                        <path d="M0 16 C30 6, 65 24, 100 8 C85 24, 50 26, 0 16 Z"/>
+                        <path d="M0 16 C30 6, 65 24, 100 8 C85 24, 50 26, 0 16 Z" />
                     </svg>
                 </div>
                 <div>
                     <h1 class="text-xs font-bold text-slate-900 tracking-tight leading-none" data-i18n="app_title">ECB Kontroll App</h1>
                 </div>
             </div>
-            
+
             <div class="flex items-center gap-1.5">
                 <button onclick="forceCloudSync()" class="flex items-center justify-center text-[10px] text-sky-700 font-semibold bg-sky-50 px-2 py-1.5 rounded-lg border border-sky-200" title="Sync erzwingen">
                     <i class="fa-solid fa-rotate"></i>
@@ -335,13 +337,11 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full box-border">
                         <div class="w-full max-w-full box-border">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_cond">Leitwert (&micro;S/cm)</label>
-                            <input type="number" step="0.1" id="demin-cond" placeholder="z. B. 0.8" data-i18n-ph="ph_cond"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-sky-500 outline-none box-border max-w-full">
+                            <input type="number" step="0.1" id="demin-cond" placeholder="z. B. 0.8" data-i18n-ph="ph_cond" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-sky-500 outline-none box-border max-w-full">
                         </div>
                         <div class="w-full max-w-full box-border">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_press">Druck (bar)</label>
-                            <input type="number" step="0.1" id="demin-press" placeholder="z. B. 3.5" data-i18n-ph="ph_press"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-sky-500 outline-none box-border max-w-full">
+                            <input type="number" step="0.1" id="demin-press" placeholder="z. B. 3.5" data-i18n-ph="ph_press" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-sky-500 outline-none box-border max-w-full">
                         </div>
                     </div>
 
@@ -349,8 +349,7 @@
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photos">Fotos der Anlage / Messwerte (Mehrfachauswahl)</label>
                         <input type="file" id="camera-input-demin" accept="image/*" multiple capture="environment" class="hidden" onchange="handleMultiplePhotos(event, 'demin')">
                         <div class="w-full max-w-full space-y-2 box-border">
-                            <button type="button" onclick="document.getElementById('camera-input-demin').click()" 
-                                    class="w-full py-2.5 px-3 bg-sky-50 hover:bg-sky-100 border-2 border-dashed border-sky-300 rounded-xl text-xs font-bold text-sky-800 flex items-center justify-center gap-2 box-border max-w-full">
+                            <button type="button" onclick="document.getElementById('camera-input-demin').click()" class="w-full py-2.5 px-3 bg-sky-50 hover:bg-sky-100 border-2 border-dashed border-sky-300 rounded-xl text-xs font-bold text-sky-800 flex items-center justify-center gap-2 box-border max-w-full">
                                 <i class="fa-solid fa-camera text-base text-sky-600"></i>
                                 <span data-i18n="btn_take_photos">Weitere Fotos aufnehmen / hinzufügen</span>
                             </button>
@@ -445,13 +444,11 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full box-border">
                         <div class="w-full max-w-full box-border">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_heating_press">Heizungsdruck (bar)</label>
-                            <input type="number" step="0.1" id="heating-press" placeholder="z. B. 1.8" 
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-orange-500 outline-none box-border max-w-full">
+                            <input type="number" step="0.1" id="heating-press" placeholder="z. B. 1.8" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-orange-500 outline-none box-border max-w-full">
                         </div>
                         <div class="w-full max-w-full box-border">
                             <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="label_heating_temp">Wassertemperatur Speicher (°C)</label>
-                            <input type="number" step="0.5" id="heating-temp" placeholder="z. B. 60.5" 
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-orange-500 outline-none box-border max-w-full">
+                            <input type="number" step="0.5" id="heating-temp" placeholder="z. B. 60.5" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:border-orange-500 outline-none box-border max-w-full">
                         </div>
                     </div>
 
@@ -459,8 +456,7 @@
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photos">Fotos der Heizungsanlage (Mehrfachauswahl)</label>
                         <input type="file" id="camera-input-heating" accept="image/*" multiple capture="environment" class="hidden" onchange="handleMultiplePhotos(event, 'heating')">
                         <div class="w-full max-w-full space-y-2 box-border">
-                            <button type="button" onclick="document.getElementById('camera-input-heating').click()" 
-                                    class="w-full py-2.5 px-3 bg-orange-50 hover:bg-orange-100 border-2 border-dashed border-orange-300 rounded-xl text-xs font-bold text-orange-800 flex items-center justify-center gap-2 box-border max-w-full">
+                            <button type="button" onclick="document.getElementById('camera-input-heating').click()" class="w-full py-2.5 px-3 bg-orange-50 hover:bg-orange-100 border-2 border-dashed border-orange-300 rounded-xl text-xs font-bold text-orange-800 flex items-center justify-center gap-2 box-border max-w-full">
                                 <i class="fa-solid fa-camera text-base text-orange-600"></i>
                                 <span data-i18n="btn_take_photos">Weitere Fotos aufnehmen / hinzufügen</span>
                             </button>
@@ -542,8 +538,7 @@
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photos">Fotos des Außenbereichs * (Mehrfachauswahl)</label>
                         <input type="file" id="camera-input-outdoor" accept="image/*" multiple capture="environment" class="hidden" onchange="handleMultiplePhotos(event, 'outdoor')">
                         <div class="w-full max-w-full space-y-2 box-border">
-                            <button type="button" onclick="document.getElementById('camera-input-outdoor').click()" 
-                                    class="w-full py-3 px-3 bg-emerald-50 hover:bg-emerald-100 border-2 border-dashed border-emerald-300 rounded-xl text-xs font-bold text-emerald-800 flex items-center justify-center gap-2 box-border max-w-full">
+                            <button type="button" onclick="document.getElementById('camera-input-outdoor').click()" class="w-full py-3 px-3 bg-emerald-50 hover:bg-emerald-100 border-2 border-dashed border-emerald-300 rounded-xl text-xs font-bold text-emerald-800 flex items-center justify-center gap-2 box-border max-w-full">
                                 <i class="fa-solid fa-camera text-base text-emerald-600"></i>
                                 <span data-i18n="btn_take_photos">Live-Fotos mit Kamera aufnehmen / hinzufügen</span>
                             </button>
@@ -632,8 +627,7 @@
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photos">Fotos des Pausenraums (Mehrfachauswahl)</label>
                         <input type="file" id="camera-input-breakroom" accept="image/*" multiple capture="environment" class="hidden" onchange="handleMultiplePhotos(event, 'breakroom')">
                         <div class="w-full max-w-full space-y-2 box-border">
-                            <button type="button" onclick="document.getElementById('camera-input-breakroom').click()" 
-                                    class="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 border-2 border-dashed border-amber-300 rounded-xl text-xs font-bold text-amber-800 flex items-center justify-center gap-2 box-border max-w-full">
+                            <button type="button" onclick="document.getElementById('camera-input-breakroom').click()" class="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 border-2 border-dashed border-amber-300 rounded-xl text-xs font-bold text-amber-800 flex items-center justify-center gap-2 box-border max-w-full">
                                 <i class="fa-solid fa-camera text-base text-amber-600"></i>
                                 <span data-i18n="btn_take_photos">Fotos aufnehmen / hinzufügen</span>
                             </button>
@@ -745,8 +739,7 @@
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1" data-i18n="label_photos">Fotos des Fahrzeugs (Mehrfachauswahl)</label>
                         <input type="file" id="camera-input-vehicle" accept="image/*" multiple capture="environment" class="hidden" onchange="handleMultiplePhotos(event, 'vehicle')">
                         <div class="w-full max-w-full space-y-2 box-border">
-                            <button type="button" onclick="document.getElementById('camera-input-vehicle').click()" 
-                                    class="w-full py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100 border-2 border-dashed border-indigo-300 rounded-xl text-xs font-bold text-indigo-800 flex items-center justify-center gap-2 box-border max-w-full">
+                            <button type="button" onclick="document.getElementById('camera-input-vehicle').click()" class="w-full py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100 border-2 border-dashed border-indigo-300 rounded-xl text-xs font-bold text-indigo-800 flex items-center justify-center gap-2 box-border max-w-full">
                                 <i class="fa-solid fa-camera text-base text-indigo-600"></i>
                                 <span data-i18n="btn_take_photos">Fahrzeugfotos aufnehmen / hinzufügen</span>
                             </button>
@@ -895,9 +888,18 @@
                     <div class="flex items-center gap-1.5">
                         <select id="vacation-year-select" onchange="renderVacationList()" class="bg-slate-100 border border-slate-200 text-slate-800 text-[11px] font-bold rounded-lg px-2 py-1.5 outline-none"></select>
                         <select id="vacation-month-select" onchange="renderVacationList()" class="bg-slate-100 border border-slate-200 text-slate-800 text-[11px] font-bold rounded-lg px-2 py-1.5 outline-none">
-                            <option value="01">Januar</option><option value="02">Februar</option><option value="03">März</option><option value="04">April</option>
-                            <option value="05">Mai</option><option value="06">Juni</option><option value="07">Juli</option><option value="08">August</option>
-                            <option value="09">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Dezember</option>
+                            <option value="01">Januar</option>
+                            <option value="02">Februar</option>
+                            <option value="03">März</option>
+                            <option value="04">April</option>
+                            <option value="05">Mai</option>
+                            <option value="06">Juni</option>
+                            <option value="07">Juli</option>
+                            <option value="08">August</option>
+                            <option value="09">September</option>
+                            <option value="10">Oktober</option>
+                            <option value="11">November</option>
+                            <option value="12">Dezember</option>
                         </select>
                     </div>
                 </div>
@@ -943,9 +945,18 @@
                     <div class="flex items-center gap-1.5">
                         <select id="shift-year-select" onchange="renderShiftList()" class="bg-slate-100 border border-slate-200 text-slate-800 text-[11px] font-bold rounded-lg px-2 py-1.5 outline-none"></select>
                         <select id="shift-month-select" onchange="renderShiftList()" class="bg-slate-100 border border-slate-200 text-slate-800 text-[11px] font-bold rounded-lg px-2 py-1.5 outline-none">
-                            <option value="01">Januar</option><option value="02">Februar</option><option value="03">März</option><option value="04">April</option>
-                            <option value="05">Mai</option><option value="06">Juni</option><option value="07">Juli</option><option value="08">August</option>
-                            <option value="09">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Dezember</option>
+                            <option value="01">Januar</option>
+                            <option value="02">Februar</option>
+                            <option value="03">März</option>
+                            <option value="04">April</option>
+                            <option value="05">Mai</option>
+                            <option value="06">Juni</option>
+                            <option value="07">Juli</option>
+                            <option value="08">August</option>
+                            <option value="09">September</option>
+                            <option value="10">Oktober</option>
+                            <option value="11">November</option>
+                            <option value="12">Dezember</option>
                         </select>
                     </div>
                 </div>
@@ -1226,8 +1237,8 @@
                     </div>
                 </div>
                 <div class="w-full max-w-full box-border">
-                    <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="fleet_label_oil">Nächster Ölwechsel</label>
-                    <input type="date" id="fleet-input-oil" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="fleet_label_oil">Nächster Ölwechsel (km)</label>
+                    <input type="number" id="fleet-input-oil" placeholder="z. B. 135000" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                 </div>
                 <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-xs mt-1 box-border">
                     <span data-i18n="fleet_btn_save">Fahrzeug speichern</span>
@@ -1344,13 +1355,17 @@
         let isAdminLoggedIn = false;
         
         let TEAM_EMPLOYEES = JSON.parse(localStorage.getItem('ecb_app_employees')) || ["Neymar", "Vasi", "Maria", "Livio", "Mario", "Mirel", "Bogdanie"];
-
+        
         function saveEmployeesToStorage() {
             localStorage.setItem('ecb_app_employees', JSON.stringify(TEAM_EMPLOYEES));
+            if (db) db.collection('einstellungen').doc('mitarbeiter')
+                .set({ list: TEAM_EMPLOYEES, updatedAt: Date.now() }).catch(() => {});
             populateAllEmployeeDropdowns();
             renderAdminEmployeesList();
+            renderVacationList();
+            renderShiftList();
         }
-
+        
         function populateAllEmployeeDropdowns() {
             const dropdownIds = ['demin-inspector', 'heating-inspector', 'outdoor-inspector', 'breakroom-inspector', 'vehicle-inspector', 'vac-employee', 'shift-employee'];
             dropdownIds.forEach(id => {
@@ -1365,7 +1380,7 @@
                 if (currentVal) el.value = currentVal;
             });
         }
-
+        
         const firebaseConfig = {
             apiKey: "AIzaSyDPmUJhS6ohvvb71jirGhaKH2cXsIjPTLk",
             authDomain: "eck-kontroll-app.firebaseapp.com",
@@ -1375,17 +1390,17 @@
             appId: "1:1027112243456:web:20476b48de7847550f23e5",
             measurementId: "G-5KN7S0DV8H"
         };
-
+        
         let db = null;
         let firebaseStatus = { connected: false, error: null, count: 0 };
-
+        
         try {
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
         } catch(e) {
             firebaseStatus.error = e.message || String(e);
         }
-
+        
         const translations = {
             de: {
                 app_title: "ECB Kontroll App",
@@ -1465,7 +1480,7 @@
                 fleet_label_model: "Fahrzeugmodell / Typ",
                 fleet_label_km: "Kilometerstand (km)",
                 fleet_label_tuev: "Nächster TÜV",
-                fleet_label_oil: "Nächster Ölwechsel",
+                fleet_label_oil: "Nächster Ölwechsel (km)",
                 fleet_btn_save: "Fahrzeug speichern",
                 no_fleet_cars: "Keine Fahrzeuge angelegt.",
                 vacation_title: "Urlaubsplan & Antrag",
@@ -1601,7 +1616,7 @@
                 fleet_label_model: "Model vehicul / Tip",
                 fleet_label_km: "Kilometraj (km)",
                 fleet_label_tuev: "Următorul ITP",
-                fleet_label_oil: "Următorul schimb ulei",
+                fleet_label_oil: "Următorul schimb ulei (km)",
                 fleet_btn_save: "Salvează vehiculul",
                 no_fleet_cars: "Niciun vehicul înregistrat.",
                 vacation_title: "Planificare Concediu & Cerere",
@@ -1660,13 +1675,13 @@
                 sync_force: "Sincronizare Cloud"
             }
         };
-
+        
         let currentLang = localStorage.getItem('ecb_app_lang') || 'de';
-
+        
         function t(key) {
             return (translations[currentLang] && translations[currentLang][key]) || (translations.de[key] || key);
         }
-
+        
         function setLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('ecb_app_lang', lang);
@@ -1677,11 +1692,11 @@
             renderVacationList();
             renderShiftList();
         }
-
+        
         function toggleLanguage() {
             setLanguage(currentLang === 'de' ? 'ro' : 'de');
         }
-
+        
         function applyTranslations() {
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
@@ -1700,7 +1715,7 @@
             }
             renderVacationList();
         }
-
+        
         const state = {
             todayKey: new Date().toISOString().slice(0, 10),
             data: { entmineralisierung: null, heizungskontrolle: null, aussenbereich: null, pausenraum: null, fahrzeuge: null },
@@ -1712,7 +1727,7 @@
             photos: { demin: [], heating: [], outdoor: [], breakroom: [], vehicle: [] },
             currentDispatchContext: { type: 'Gesamtbericht', data: null, subject: '', body: '', categoryFolder: 'Tagesberichte' }
         };
-
+        
         let pads = {};
         let activePdfBlob = null;
         let activePdfUrl = null;
@@ -1721,7 +1736,7 @@
         let cloudShifts = [];
         let cloudFleetVehicles = [];
         let currentHistoryFilter = 'all';
-
+        
         function setItemStatus(domain, key, status) {
             if (domain === 'demin') { state.statusDemin[key] = status; updateButtonUi(`btn-demin-${key}-ok`, `btn-demin-${key}-fail`, status); }
             else if (domain === 'heating') { state.statusHeating[key] = status; updateButtonUi(`btn-heating-${key}-ok`, `btn-heating-${key}-fail`, status); }
@@ -1729,7 +1744,7 @@
             else if (domain === 'breakroom') { state.statusBreakroom[key] = status; updateButtonUi(`btn-breakroom-${key}-ok`, `btn-breakroom-${key}-fail`, status); }
             else if (domain === 'vehicle') { state.statusVehicle[key] = status; updateButtonUi(`btn-vehicle-${key}-ok`, `btn-vehicle-${key}-fail`, status); }
         }
-
+        
         function updateButtonUi(okBtnId, failBtnId, status) {
             const okBtn = document.getElementById(okBtnId);
             const failBtn = document.getElementById(failBtnId);
@@ -1742,7 +1757,7 @@
                 failBtn.className = 'status-btn py-1 px-3 rounded-lg border text-xs font-bold bg-rose-50 border-rose-500 text-rose-700 shadow-xs';
             }
         }
-
+        
         class SignaturePad {
             constructor(canvasId) {
                 this.canvas = document.getElementById(canvasId);
@@ -1819,11 +1834,11 @@
                     if (!this.isDrawing) return;
                     this.isDrawing = false;
                 };
-
+        
                 this.canvas.addEventListener('mousedown', start);
                 this.canvas.addEventListener('mousemove', move);
                 window.addEventListener('mouseup', end);
-
+        
                 this.canvas.addEventListener('touchstart', start, { passive: false });
                 this.canvas.addEventListener('touchmove', move, { passive: false });
                 this.canvas.addEventListener('touchend', end);
@@ -1844,7 +1859,7 @@
                 img.src = dataUrl;
             }
         }
-
+        
         window.addEventListener('DOMContentLoaded', () => {
             pads.demin = new SignaturePad('canvas-demin');
             pads.heating = new SignaturePad('canvas-heating');
@@ -1852,11 +1867,11 @@
             pads.breakroom = new SignaturePad('canvas-breakroom');
             pads.vehicle = new SignaturePad('canvas-vehicle');
             pads.vacation = new SignaturePad('canvas-vacation');
-
+        
             const nowD = new Date();
             const currentY = nowD.getFullYear();
             const currentM = String(nowD.getMonth() + 1).padStart(2, '0');
-
+        
             const initDropdowns = (yearId, monthId) => {
                 const yearSelect = document.getElementById(yearId);
                 const monthSelect = document.getElementById(monthId);
@@ -1869,10 +1884,10 @@
                 }
                 if (monthSelect) monthSelect.value = currentM;
             };
-
+        
             initDropdowns('vacation-year-select', 'vacation-month-select');
             initDropdowns('shift-year-select', 'shift-month-select');
-
+        
             populateAllEmployeeDropdowns();
             applyTranslations();
             loadState();
@@ -1880,13 +1895,24 @@
             updateDashboard();
             renderAdminEmployeesList();
         });
-
+        
         window.addEventListener('resize', () => {
             Object.values(pads).forEach(p => { if (p) p.resize(); });
         });
-
+        
         function setupFirebaseRealtimeListener() {
             if (!db) return;
+
+            db.collection('einstellungen').doc('mitarbeiter').onSnapshot((doc) => {
+                if (doc.exists && Array.isArray(doc.data().list)) {
+                    TEAM_EMPLOYEES = doc.data().list;
+                    localStorage.setItem('ecb_app_employees', JSON.stringify(TEAM_EMPLOYEES));
+                    populateAllEmployeeDropdowns();
+                    renderAdminEmployeesList();
+                    renderVacationList();
+                    renderShiftList();
+                }
+            }, () => {});
             db.collection('kontrollen').orderBy('createdAt', 'desc').limit(100).onSnapshot((snapshot) => {
                 const items = [];
                 snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
@@ -1895,7 +1921,7 @@
                 renderHistoryView();
                 syncTodayControlsFromCloud(items);
             }, () => {});
-
+        
             db.collection('urlaube').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
                 const items = [];
                 snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
@@ -1903,14 +1929,14 @@
                 renderVacationList();
                 renderShiftList();
             }, () => {});
-
+        
             db.collection('schichten').onSnapshot((snapshot) => {
                 const items = [];
                 snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
                 cloudShifts = items;
                 renderShiftList();
             }, () => {});
-
+        
             db.collection('fahrzeuge_park').onSnapshot((snapshot) => {
                 const items = [];
                 snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
@@ -1918,7 +1944,7 @@
                 renderFleetVehiclesList();
             }, () => {});
         }
-
+        
         function forceCloudSync() {
             if (!db) { showToast('Keine Cloud-Verbindung verfügbar.'); return; }
             let count = 0;
@@ -1944,7 +1970,7 @@
             }
             showToast(`Cloud-Sync erfolgreich ausgeführt! (${count} Elemente synchronisiert)`);
         }
-
+        
         function syncTodayControlsFromCloud(items) {
             const todayStr = new Date().toISOString().slice(0, 10);
             const todayItems = items.filter(i => i.date === todayStr);
@@ -1958,40 +1984,40 @@
             });
             if (updated) { persist(); updateDashboard(); }
         }
-
+        
         function switchView(viewName) {
             document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
             const target = document.getElementById('view-' + viewName);
             if (target) target.classList.remove('hidden');
-
+        
             document.querySelectorAll('.nav-item').forEach(btn => {
                 btn.className = 'nav-item flex flex-col items-center justify-center py-0.5 text-slate-400';
             });
             const activeBtn = document.getElementById('nav-btn-' + viewName);
             if (activeBtn) activeBtn.className = 'nav-item flex flex-col items-center justify-center py-0.5 text-sky-600';
-
+        
             document.querySelectorAll('aside nav button').forEach(btn => {
                 btn.className = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors';
             });
             const pcBtn = document.getElementById('pc-nav-btn-' + (viewName === 'vehicle_fleet' ? 'fleet' : viewName));
             if (pcBtn) pcBtn.className = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-sky-600 bg-sky-50 transition-colors';
-
+        
             if (viewName === 'history') renderHistoryView();
             if (viewName === 'vehicle_fleet') renderFleetVehiclesList();
             if (viewName === 'vacation') renderVacationList();
             if (viewName === 'shifts') renderShiftList();
             if (viewName === 'admin') renderAdminEmployeesList();
             if (viewName === 'start') updateDashboard();
-
+        
             setTimeout(() => { if (pads[viewName]) pads[viewName].resize(); }, 60);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-
+        
         function switchViewToHistoryFilter(filterName) {
             setHistoryFilter(filterName);
             switchView('history');
         }
-
+        
         function handleMultiplePhotos(e, domain) {
             const files = e.target.files;
             if (!files || files.length === 0) return;
@@ -2001,7 +2027,7 @@
                 reader.onload = (evt) => {
                     const img = new Image();
                     img.onload = () => {
-                        const maxDim = 800;
+                        const maxDim = 700;
                         let w = img.width, h = img.height;
                         if (w > maxDim || h > maxDim) {
                             if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
@@ -2009,7 +2035,7 @@
                         }
                         const c = document.createElement('canvas'); c.width = w; c.height = h;
                         const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, w, h);
-                        const compressed = c.toDataURL('image/jpeg', 0.65);
+                        const compressed = c.toDataURL('image/jpeg', 0.55);
                         state.photos[domain].push(compressed);
                         renderPhotoGallery(domain);
                         showToast('Foto hinzugefügt');
@@ -2019,7 +2045,7 @@
                 reader.readAsDataURL(file);
             });
         }
-
+        
         function renderPhotoGallery(domain) {
             const gallery = document.getElementById(`photo-gallery-${domain}`);
             if (!gallery) return;
@@ -2037,14 +2063,14 @@
                 </div>
             `).join('');
         }
-
+        
         function removePhotoIndex(domain, index) {
             state.photos[domain].splice(index, 1);
             renderPhotoGallery(domain);
         }
-
+        
         function clearSignature(type) { if (pads[type]) { pads[type].clear(); } }
-
+        
         function saveDemin(e) {
             e.preventDefault();
             if (!state.photos.demin || state.photos.demin.length === 0) { showToast(t('toast_need_photo')); return; }
@@ -2052,7 +2078,7 @@
             const now = new Date();
             const timeFormatted = now.toLocaleDateString('de-DE') + ' · ' + now.toLocaleTimeString('de-DE');
             const sig = pads.demin.canvas.toDataURL('image/png');
-
+        
             const rec = {
                 inspector: document.getElementById('demin-inspector').value.trim(),
                 conductivity: document.getElementById('demin-cond').value.trim() || '-',
@@ -2061,20 +2087,20 @@
                 notes: document.getElementById('demin-notes').value.trim() || '-',
                 photos: [...state.photos.demin], timestamp: timeFormatted, signature: sig
             };
-
+        
             state.data.entmineralisierung = rec;
             persist(); addHistory('Entmineralisierung', rec); updateDashboard();
             showToast(t('toast_saved'));
             triggerSingleDispatch('Entmineralisierung', rec);
         }
-
+        
         function saveHeating(e) {
             e.preventDefault();
             if (!pads.heating || pads.heating.isEmpty()) { showToast(t('toast_need_sig')); return; }
             const now = new Date();
             const timeFormatted = now.toLocaleDateString('de-DE') + ' · ' + now.toLocaleTimeString('de-DE');
             const sig = pads.heating.canvas.toDataURL('image/png');
-
+        
             const rec = {
                 inspector: document.getElementById('heating-inspector').value.trim(),
                 pressure: document.getElementById('heating-press').value.trim() || '-',
@@ -2083,13 +2109,13 @@
                 notes: document.getElementById('heating-notes').value.trim() || '-',
                 photos: [...(state.photos.heating || [])], timestamp: timeFormatted, signature: sig
             };
-
+        
             state.data.heizungskontrolle = rec;
             persist(); addHistory('Heizungskontrolle', rec); updateDashboard();
             showToast(t('toast_saved'));
             triggerSingleDispatch('Heizungskontrolle', rec);
         }
-
+        
         function saveOutdoor(e) {
             e.preventDefault();
             if (!state.photos.outdoor || state.photos.outdoor.length === 0) { showToast(t('toast_need_photo')); return; }
@@ -2097,27 +2123,27 @@
             const now = new Date();
             const timeFormatted = now.toLocaleDateString('de-DE') + ' · ' + now.toLocaleTimeString('de-DE');
             const sig = pads.outdoor.canvas.toDataURL('image/png');
-
+        
             const rec = {
                 inspector: document.getElementById('outdoor-inspector').value.trim(),
                 statusTrash: state.statusOutdoor.trash, statusTables: state.statusOutdoor.tables, statusGrounds: state.statusOutdoor.grounds,
                 notes: document.getElementById('outdoor-notes').value.trim() || '-',
                 photos: [...state.photos.outdoor], signature: sig, timestamp: timeFormatted
             };
-
+        
             state.data.aussenbereich = rec;
             persist(); addHistory('Außenbereich', rec); updateDashboard();
             showToast(t('toast_saved'));
             triggerSingleDispatch('Außenbereich', rec);
         }
-
+        
         function saveBreakroom(e) {
             e.preventDefault();
             if (!pads.breakroom || pads.breakroom.isEmpty()) { showToast(t('toast_need_sig')); return; }
             const now = new Date();
             const timeFormatted = now.toLocaleDateString('de-DE') + ' · ' + now.toLocaleTimeString('de-DE');
             const sig = pads.breakroom.canvas.toDataURL('image/png');
-
+        
             const rec = {
                 inspector: document.getElementById('breakroom-inspector').value.trim(),
                 statusSurfaces: state.statusBreakroom.surfaces, statusAppliances: state.statusBreakroom.appliances,
@@ -2125,20 +2151,20 @@
                 notes: document.getElementById('breakroom-notes').value.trim() || '-',
                 photos: [...(state.photos.breakroom || [])], signature: sig, timestamp: timeFormatted
             };
-
+        
             state.data.pausenraum = rec;
             persist(); addHistory('Pausenraum', rec); updateDashboard();
             showToast(t('toast_saved'));
             triggerSingleDispatch('Pausenraum', rec);
         }
-
+        
         function saveVehicle(e) {
             e.preventDefault();
             if (!pads.vehicle || pads.vehicle.isEmpty()) { showToast(t('toast_need_sig')); return; }
             const now = new Date();
             const timeFormatted = now.toLocaleDateString('de-DE') + ' · ' + now.toLocaleTimeString('de-DE');
             const sig = pads.vehicle.canvas.toDataURL('image/png');
-
+        
             const rec = {
                 inspector: document.getElementById('vehicle-inspector').value.trim(),
                 plate: document.getElementById('vehicle-plate').value.trim(),
@@ -2148,20 +2174,25 @@
                 notes: document.getElementById('vehicle-notes').value.trim() || '-',
                 photos: [...(state.photos.vehicle || [])], signature: sig, timestamp: timeFormatted
             };
-
+        
             state.data.fahrzeuge = rec;
             persist(); addHistory('Fahrzeuge', rec); updateDashboard();
+            const norm = x => (x || '').replace(/\s/g, '').toLowerCase();
+            const fv = cloudFleetVehicles.find(v => norm(v.plate) === norm(rec.plate));
+            if (fv && fv.id && db && rec.km) {
+                db.collection('fahrzeuge_park').doc(fv.id).update({ km: rec.km }).catch(() => {});
+            }
             showToast(t('toast_saved'));
             triggerSingleDispatch('Fahrzeuge', rec);
         }
-
+        
         function openNewVacationModal() {
             document.getElementById('form-vacation-request').reset();
             if (pads.vacation) pads.vacation.clear();
             openModal('modal-vacation');
             setTimeout(() => { if (pads.vacation) pads.vacation.resize(); }, 50);
         }
-
+        
         function openNewShiftModal() {
             document.getElementById('form-shift-request').reset();
             const todayIso = new Date().toISOString().slice(0, 10);
@@ -2169,7 +2200,7 @@
             document.getElementById('shift-date-end').value = todayIso;
             openModal('modal-shift');
         }
-
+        
         function submitShift(e) {
             e.preventDefault();
             const startDate = document.getElementById('shift-date-start').value;
@@ -2178,13 +2209,13 @@
             const shiftType = document.getElementById('shift-type').value;
             const isDelivery = document.getElementById('shift-delivery').checked;
             if (!startDate || !endDate || startDate > endDate) return;
-
+        
             const start = new Date(startDate);
             const end = new Date(endDate);
             let cur = new Date(start);
             const now = new Date();
             const timeFormatted = now.toLocaleDateString('de-DE') + ' · ' + now.toLocaleTimeString('de-DE');
-
+        
             while (cur <= end) {
                 const dateIso = cur.toISOString().slice(0, 10);
                 const rec = { date: dateIso, employee, shiftType, isDelivery, timestamp: timeFormatted, createdAt: Date.now() };
@@ -2196,7 +2227,7 @@
             closeModal('modal-shift');
             showToast(t('toast_saved'));
         }
-
+        
         function deleteShiftEntry(docId) {
             const idx = cloudShifts.findIndex(i => i.id === docId);
             if (idx > -1) {
@@ -2206,12 +2237,12 @@
                 renderShiftList();
             }
         }
-
+        
         function openNewFleetVehicleModal() {
             document.getElementById('form-fleet-vehicle').reset();
             openModal('modal-fleet-vehicle');
         }
-
+        
         function submitFleetVehicle(e) {
             e.preventDefault();
             const plate = document.getElementById('fleet-input-plate').value.trim();
@@ -2220,16 +2251,16 @@
             const tuev = document.getElementById('fleet-input-tuev').value || '';
             const oil = document.getElementById('fleet-input-oil').value || '';
             if (!plate) return;
-
+        
             const rec = { plate, model, km, tuev, oil, createdAt: Date.now() };
             if (db) db.collection('fahrzeuge_park').add(rec).catch(() => {});
             else cloudFleetVehicles.unshift(rec);
-
+        
             renderFleetVehiclesList();
             closeModal('modal-fleet-vehicle');
             showToast(t('toast_saved'));
         }
-
+        
         function deleteFleetVehicle(docId) {
             const idx = cloudFleetVehicles.findIndex(i => i.id === docId);
             if (idx > -1) {
@@ -2238,6 +2269,11 @@
                 cloudFleetVehicles.splice(idx, 1);
                 renderFleetVehiclesList();
             }
+        }
+        
+        function formatOil(v) {
+            if (!v) return '-';
+            return String(v).includes('-') ? v : `${v} km`;
         }
 
         function renderFleetVehiclesList() {
@@ -2248,7 +2284,17 @@
                 container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_fleet_cars">Keine Fahrzeuge angelegt.</div>`;
                 return;
             }
-            container.innerHTML = list.map(item => `
+            container.innerHTML = list.map(item => {
+                const kmNow = parseInt(item.km) || 0;
+                const isKm = item.oil && !String(item.oil).includes('-');
+                const rest = isKm ? parseInt(item.oil) - kmNow : null;
+                let box = 'bg-white border-slate-200', cls = 'text-slate-900', hint = '';
+                if (rest !== null) {
+                    if (rest <= 0) { box = 'bg-rose-50 border-rose-400'; cls = 'text-rose-600'; hint = `⚠️ überfällig um ${Math.abs(rest)} km`; }
+                    else if (rest <= 1000) { box = 'bg-amber-50 border-amber-400'; cls = 'text-amber-600'; hint = `⚠️ in ${rest} km fällig`; }
+                    else { hint = `noch ${rest} km`; }
+                }
+                return `
                 <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs w-full max-w-full box-border">
                     <div class="flex items-center justify-between font-bold text-slate-900">
                         <span class="text-sm">🚚 ${item.plate} <span class="text-xs text-slate-500 font-normal">(${item.model})</span></span>
@@ -2263,22 +2309,23 @@
                             <div class="text-[9px] text-slate-400 uppercase font-bold">Nächster TÜV</div>
                             <div class="font-bold text-slate-900">${item.tuev || '-'}</div>
                         </div>
-                        <div class="bg-white p-2 rounded-lg border border-slate-200 w-full max-w-full box-border">
-                            <div class="text-[9px] text-slate-400 uppercase font-bold">Ölwechsel</div>
-                            <div class="font-bold text-slate-900">${item.oil || '-'}</div>
+                        <div class="${box} p-2 rounded-lg border w-full max-w-full box-border">
+                            <div class="text-[9px] text-slate-400 uppercase font-bold">Ölwechsel bei</div>
+                            <div class="font-bold ${cls}">${formatOil(item.oil)}</div>
+                            ${hint ? `<div class="text-[10px] font-bold ${cls}">${hint}</div>` : ''}
                         </div>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
-
+        
         function toggleManagerLogin() {
             const dropdown = document.getElementById('manager-login-dropdown');
             const chevron = document.getElementById('manager-chevron');
             dropdown.classList.toggle('hidden');
             if (chevron) chevron.className = dropdown.classList.contains('hidden') ? 'fa-solid fa-chevron-down text-xs text-slate-400' : 'fa-solid fa-chevron-up text-xs text-slate-400';
         }
-
+        
         function verifyManagerLogin() {
             const pwd = document.getElementById('manager-pwd-input').value.trim();
             if (pwd === ADMIN_PASSWORD) {
@@ -2297,7 +2344,7 @@
                 showToast('Falsches Passwort!');
             }
         }
-
+        
         function verifyDedicatedAdminLogin() {
             const pwd = document.getElementById('dedicated-admin-pwd').value.trim();
             if (pwd === ADMIN_PASSWORD) {
@@ -2310,12 +2357,13 @@
                     badge.innerText = 'Entsperrt (Aktiv)';
                 }
                 renderAdminEmployeesList();
+                saveEmployeesToStorage();
                 showToast('Admin-Bereich entsperrt!');
             } else {
                 showToast('Falsches Passwort!');
             }
         }
-
+        
         function adminAddNewEmployee() {
             if (!isAdminLoggedIn) { showToast('Nicht berechtigt!'); return; }
             const input = document.getElementById('admin-new-emp');
@@ -2327,14 +2375,14 @@
             input.value = '';
             showToast(`Mitarbeiter "${name}" hinzugefügt!`);
         }
-
+        
         function adminDeleteEmployee(name) {
             if (!isAdminLoggedIn) { showToast('Nicht berechtigt!'); return; }
             TEAM_EMPLOYEES = TEAM_EMPLOYEES.filter(e => e !== name);
             saveEmployeesToStorage();
             showToast(`Mitarbeiter "${name}" entfernt.`);
         }
-
+        
         function renderAdminEmployeesList() {
             const container = document.getElementById('admin-employees-list');
             if (!container) return;
@@ -2345,7 +2393,7 @@
                 </div>
             `).join('');
         }
-
+        
         function calculateWorkingDays(startDateStr, endDateStr) {
             const start = new Date(startDateStr);
             const end = new Date(endDateStr);
@@ -2357,7 +2405,7 @@
             }
             return Math.max(1, count);
         }
-
+        
         function submitVacationRequest(e) {
             e.preventDefault();
             if (!pads.vacation || pads.vacation.isEmpty()) { showToast(t('toast_need_sig')); return; }
@@ -2370,13 +2418,13 @@
             const sig = pads.vacation.canvas.toDataURL('image/png');
             const workingDays = calculateWorkingDays(startDate, endDate);
             const now = new Date();
-
+        
             const rec = {
                 employee, startDate, endDate, daysCount: workingDays, vacType, pdfLang, notes,
                 signature: sig, status: 'Ausstehend', approvedBy: null,
                 timestamp: now.toLocaleDateString('de-DE') + ' · ' + now.toLocaleTimeString('de-DE')
             };
-
+        
             const newEntry = { date: now.toISOString().slice(0, 10), timestamp: rec.timestamp, createdAt: Date.now(), type: 'Urlaub', inspector: employee, data: rec };
             if (db) {
                 db.collection('urlaube').add(newEntry).then(ref => {
@@ -2394,7 +2442,7 @@
             showToast(t('toast_saved'));
             triggerSingleDispatch('Urlaub', rec);
         }
-
+        
         function getEmployeeRemainingDays(empName, targetYear) {
             let used = 0;
             cloudVacations.forEach(item => {
@@ -2407,7 +2455,7 @@
             });
             return Math.max(0, 24 - used);
         }
-
+        
         function updateVacationStatus(docId, newStatus) {
             const item = cloudVacations.find(i => i.id === docId);
             if (!item) return;
@@ -2425,7 +2473,7 @@
                     cur.setDate(cur.getDate() + 1);
                 }
             }
-
+        
             if (db && item.id) {
                 db.collection('urlaube').doc(item.id).update({ 'data.status': newStatus }).catch(() => {});
                 db.collection('kontrollen').where('type', '==', 'Urlaub').get().then(snap => {
@@ -2442,7 +2490,7 @@
             renderHistoryView();
             showToast(t('toast_saved'));
         }
-
+        
         function deleteVacationEntry(docId) {
             const idx = cloudVacations.findIndex(i => i.id === docId);
             if (idx > -1) {
@@ -2452,17 +2500,17 @@
                 renderVacationList();
             }
         }
-
+        
         function renderVacationList() {
             const container = document.getElementById('vacation-list-container');
             const calendarGrid = document.getElementById('monthly-calendar-grid');
             const approvalContainer = document.getElementById('manager-approval-items');
             if (!container || !calendarGrid) return;
-
+        
             const selectedYear = parseInt(document.getElementById('vacation-year-select')?.value || new Date().getFullYear());
             const selectedMonth = parseInt(document.getElementById('vacation-month-select')?.value || (new Date().getMonth() + 1));
             const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
-
+        
             let calendarHtml = `<table class="w-full border-collapse text-base"><thead>`;
             calendarHtml += `<tr class="bg-slate-100 text-slate-900 font-black border-b border-slate-200">
                 <th class="p-3 text-left sticky left-0 bg-slate-100 z-10 w-48 text-xs uppercase">${currentLang === 'de' ? 'Mitarbeiter' : 'Angajat'}</th>`;
@@ -2470,7 +2518,7 @@
                 calendarHtml += `<th class="p-1 text-center font-mono w-9 text-xs border-l border-slate-200">${d}</th>`;
             }
             calendarHtml += `</tr></thead><tbody>`;
-
+        
             TEAM_EMPLOYEES.forEach(emp => {
                 const rem = getEmployeeRemainingDays(emp, selectedYear);
                 calendarHtml += `<tr class="border-b border-slate-200"><td class="p-3 font-bold text-slate-900 text-xs sticky left-0 bg-white z-10">${emp} (${rem}T)</td>`;
@@ -2490,7 +2538,7 @@
             });
             calendarHtml += `</tbody></table>`;
             calendarGrid.innerHTML = calendarHtml;
-
+        
             if (approvalContainer) {
                 const pending = cloudVacations.filter(i => (i.data || i).status === 'Ausstehend');
                 approvalContainer.innerHTML = pending.length === 0 ? `<div class="text-[11px] text-slate-400">${currentLang === 'de' ? 'Keine offenen Anträge.' : 'Nicio cerere în așteptare.'}</div>` : pending.map(item => {
@@ -2506,7 +2554,7 @@
                     `;
                 }).join('');
             }
-
+        
             container.innerHTML = cloudVacations.length === 0 ? `<div class="p-4 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">${t('no_vacations')}</div>` :
                 cloudVacations.map(item => {
                     const d = item.data || item;
@@ -2524,21 +2572,21 @@
                     `;
                 }).join('');
         }
-
+        
         function renderShiftList() {
             const container = document.getElementById('shift-list-container');
             const calendarGrid = document.getElementById('monthly-shift-calendar-grid');
             if (!container || !calendarGrid) return;
-
+        
             const selectedYear = parseInt(document.getElementById('shift-year-select')?.value || new Date().getFullYear());
             const selectedMonth = parseInt(document.getElementById('shift-month-select')?.value || (new Date().getMonth() + 1));
             const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
-
+        
             let calendarHtml = `<table class="w-full border-collapse text-base"><thead>`;
             calendarHtml += `<tr class="bg-slate-100 text-slate-900 font-black border-b border-slate-200"><th class="p-3 text-left sticky left-0 bg-slate-100 z-10 w-48 text-xs">Mitarbeiter</th>`;
             for (let d = 1; d <= daysInMonth; d++) calendarHtml += `<th class="p-1 text-center font-mono w-9 text-xs border-l border-slate-200">${d}</th>`;
             calendarHtml += `</tr></thead><tbody>`;
-
+        
             TEAM_EMPLOYEES.forEach(emp => {
                 calendarHtml += `<tr class="border-b border-slate-200"><td class="p-3 font-bold text-slate-900 text-xs sticky left-0 bg-white z-10">${emp}</td>`;
                 for (let d = 1; d <= daysInMonth; d++) {
@@ -2554,7 +2602,7 @@
                             bgClass = 'bg-emerald-500 text-white font-bold rounded';
                         }
                     });
-
+        
                     if (!sCode) {
                         cloudShifts.forEach(item => {
                             if (item.employee === emp && item.date === dateIso) {
@@ -2578,14 +2626,14 @@
                             }
                         });
                     }
-
+        
                     calendarHtml += `<td class="p-1 text-center border-l border-slate-200 text-[10px] font-bold ${bgClass}">${sCode}</td>`;
                 }
                 calendarHtml += `</tr>`;
             });
             calendarHtml += `</tbody></table>`;
             calendarGrid.innerHTML = calendarHtml;
-
+        
             container.innerHTML = cloudShifts.length === 0 ? `<div class="p-4 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">${t('no_shifts')}</div>` :
                 cloudShifts.map(item => `
                     <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs w-full max-w-full box-border">
@@ -2597,23 +2645,34 @@
                     </div>
                 `).join('');
         }
-
+        
         function previewShiftSummaryPdf() {
             state.currentDispatchContext = { type: 'ShiftSummary', data: cloudShifts, vacations: cloudVacations, subject: `[ECB] Schichtkalender & Auslieferung`, body: 'Schichtkalender Matrix Übersicht', categoryFolder: 'Schichten' };
             previewActivePdf();
         }
-
+        
         function openDispatchDaySummary() {
             const d = state.data;
             const dateStr = new Date().toLocaleDateString('de-DE');
             state.currentDispatchContext = { type: 'Gesamtbericht', data: d, fleet: cloudFleetVehicles, subject: `[ECB] Tagesgesamtbericht & Wartung - ${dateStr}`, body: `Tagesgesamtbericht inklusive aller Wartungspunkte für ${dateStr}`, categoryFolder: 'Tagesberichte' };
             openModal('modal-dispatch');
         }
+        
+        function triggerSingleDispatch(type, rec) {
+            const dateStr = new Date().toLocaleDateString('de-DE');
+            state.currentDispatchContext = {
+                type, data: rec,
+                subject: `[ECB] ${type} - ${dateStr}`,
+                body: `Protokoll ${type} vom ${dateStr} (Prüfer: ${rec.inspector || rec.employee || '-'})`,
+                categoryFolder: type
+            };
+            openModal('modal-dispatch');
+        }
 
         function persist() {
             try { localStorage.setItem('ecb_app_data_v4_' + state.todayKey, JSON.stringify(state.data)); } catch(e){}
         }
-
+        
         function loadState() {
             try {
                 const todayStr = new Date().toISOString().slice(0, 10);
@@ -2668,26 +2727,26 @@
                 }
             } catch(e){}
         }
-
+        
         function updateDashboard() {
             const todayStr = new Date().toISOString().slice(0, 10);
             if (state.todayKey !== todayStr) {
                 state.todayKey = todayStr;
                 state.data = { entmineralisierung: null, heizungskontrolle: null, aussenbereich: null, pausenraum: null, fahrzeuge: null };
             }
-
+        
             const dDone = !!state.data.entmineralisierung;
             const hDone = !!state.data.heizungskontrolle;
             const oDone = !!state.data.aussenbereich;
             const bDone = !!state.data.pausenraum;
             const vDone = !!state.data.fahrzeuge;
             let count = (dDone ? 1 : 0) + (hDone ? 1 : 0) + (oDone ? 1 : 0) + (bDone ? 1 : 0) + (vDone ? 1 : 0);
-
+        
             const statusText = document.getElementById('daily-status-text');
             const statusDot = document.getElementById('daily-status-dot');
             if (statusText) statusText.innerText = `${count} / 5 erledigt`;
             if (statusDot) statusDot.className = count === 5 ? 'w-3 h-3 rounded-full bg-emerald-500' : count > 0 ? 'w-3 h-3 rounded-full bg-amber-400' : 'w-3 h-3 rounded-full bg-slate-300';
-
+        
             const updateBadge = (id, subId, done, inspector) => {
                 const badge = document.getElementById(id);
                 const sub = document.getElementById(subId);
@@ -2703,14 +2762,14 @@
             updateBadge('card-badge-breakroom', 'card-sub-breakroom', bDone, state.data.pausenraum?.inspector);
             updateBadge('card-badge-vehicle', 'card-sub-vehicle', vDone, state.data.fahrzeuge?.inspector);
         }
-
+        
         function buildPdfDocumentForContext(ctx) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: ctx.type === 'ShiftSummary' ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
             const now = new Date();
             const dateStr = now.toLocaleDateString('de-DE');
             const timeStr = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-
+        
             if (ctx.type === 'ShiftSummary') return buildShiftSummaryPdf(doc, ctx.data, ctx.vacations, dateStr, timeStr);
             if (ctx.type === 'FleetSummary') return buildFleetSummaryPdf(doc, cloudFleetVehicles, dateStr, timeStr);
             if (ctx.type === 'TeamVacationSummary') return buildTeamVacationSummaryPdf(doc, cloudVacations, dateStr, timeStr);
@@ -2718,16 +2777,16 @@
             if (ctx.type === 'Urlaub') return buildVacationPdf(doc, ctx.data, dateStr, timeStr);
             return buildSingleSectionPdf(doc, ctx.type, ctx.data, dateStr, timeStr);
         }
-
+        
         function buildShiftSummaryPdf(doc, shiftList, vacationList, dateStr, timeStr) {
             renderPdfHeader(doc, 'SCHICHTKALENDER & AUSLIEFERUNG (MONATSMATRIX)', dateStr, timeStr);
             doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
             doc.text('Übersicht aller Mitarbeiter, Schichten, Urlaube und LKW-Einsätze im Monatsverlauf', 15, 38);
-
+        
             const selectedYear = parseInt(document.getElementById('shift-year-select')?.value || new Date().getFullYear());
             const selectedMonth = parseInt(document.getElementById('shift-month-select')?.value || (new Date().getMonth() + 1));
             const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
-
+        
             let startY = 46;
             doc.setFillColor(241, 245, 249);
             doc.setDrawColor(203, 213, 225);
@@ -2736,13 +2795,13 @@
             for (let d = 1; d <= daysInMonth; d++) {
                 doc.rect(57 + (d - 1) * colW, startY, colW, 8, 'FD');
             }
-
+        
             doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(71, 85, 105);
             doc.text('Mitarbeiter', 18, startY + 5.5);
             for (let d = 1; d <= daysInMonth; d++) {
                 doc.text(String(d), 57 + (d - 1) * colW + (colW / 2), startY + 5.5, { align: 'center' });
             }
-
+        
             startY += 8;
             doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
             TEAM_EMPLOYEES.forEach(emp => {
@@ -2753,13 +2812,13 @@
                 doc.setFont('helvetica', 'bold');
                 doc.text(emp, 18, startY + 6);
                 doc.setFont('helvetica', 'normal');
-
+        
                 for (let d = 1; d <= daysInMonth; d++) {
                     const dateObj = new Date(selectedYear, selectedMonth - 1, d);
                     const dateIso = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
                     let sCode = '';
                     let cellColor = null;
-
+        
                     vacationList.forEach(vItem => {
                         const rec = vItem.data || vItem;
                         if ((rec.employee === emp || vItem.inspector === emp) && rec.status === 'Genehmigt' && rec.startDate && rec.endDate && dateIso >= rec.startDate && dateIso <= rec.endDate) {
@@ -2767,7 +2826,7 @@
                             cellColor = [16, 185, 129];
                         }
                     });
-
+        
                     if (!sCode) {
                         shiftList.forEach(item => {
                             if (item.employee === emp && item.date === dateIso) {
@@ -2791,7 +2850,7 @@
                             }
                         });
                     }
-
+        
                     const posX = 57 + (d - 1) * colW;
                     doc.setDrawColor(203, 213, 225);
                     if (cellColor) {
@@ -2805,24 +2864,24 @@
                         doc.setTextColor(15, 23, 42);
                         doc.setFont('helvetica', 'normal');
                     }
-
+        
                     if (sCode) {
                         doc.text(sCode, posX + (colW / 2), startY + 6, { align: 'center' });
                     }
                 }
-
+        
                 startY += 9;
             });
-
+        
             renderLandscapePdfFooter(doc, 1, 1);
             return doc;
         }
-
+        
         function buildTeamVacationSummaryPdf(doc, list, dateStr, timeStr) {
             renderPdfHeader(doc, 'TEAM-URLAUBSPLAN & ÜBERSICHT', dateStr, timeStr);
             doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
             doc.text('Übersicht aller eingetragenen Urlaube und Status im Team', 15, 38);
-
+        
             let startY = 46;
             doc.setFillColor(241, 245, 249);
             doc.rect(15, startY, 180, 8, 'F');
@@ -2831,7 +2890,7 @@
             doc.text('Zeitraum (Von - Bis)', 85, startY + 5.5);
             doc.text('Tage', 145, startY + 5.5);
             doc.text('Status', 165, startY + 5.5);
-
+        
             startY += 8;
             doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
             list.forEach(item => {
@@ -2847,14 +2906,14 @@
             renderPdfFooter(doc, 1, 1);
             return doc;
         }
-
+        
         function buildVacationPdf(doc, rec, dateStr, timeStr) {
             renderPdfHeader(doc, 'URLAUBSANTRAG', dateStr, timeStr);
             doc.setDrawColor(226, 232, 240); doc.roundedRect(15, 36, 180, 234, 3, 3, 'S');
             doc.setFillColor(248, 250, 252); doc.roundedRect(15, 36, 180, 10, 3, 3, 'F');
             doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
             doc.text('URLAUBSANTRAG & ZEITRAUM', 19, 42.5);
-
+        
             doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
             doc.text(`Mitarbeiter: ${rec.employee || '-'}`, 23, 56);
             doc.text(`Antrag vom: ${rec.timestamp || '-'}`, 23, 64);
@@ -2863,7 +2922,7 @@
             doc.text(`Gesamttage: ${rec.daysCount || 1} Arbeitstage`, 23, 88);
             doc.text(`Art des Urlaubs: ${rec.vacType || 'Erholungsurlaub'}`, 23, 96);
             doc.text(`Bemerkung: ${rec.notes || '-'}`, 23, 104);
-
+        
             doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
             if (rec.status === 'Genehmigt') {
                 doc.setTextColor(16, 185, 129);
@@ -2875,7 +2934,7 @@
                 doc.setTextColor(217, 119, 6);
                 doc.text('STATUS: AUSSTEHEND', 23, 120);
             }
-
+        
             doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(71, 85, 105);
             doc.text('Unterschrift Antragsteller:', 23, 140);
             if (rec.signature) {
@@ -2884,12 +2943,12 @@
             renderPdfFooter(doc, 1, 1);
             return doc;
         }
-
+        
         function buildFleetSummaryPdf(doc, list, dateStr, timeStr) {
             renderPdfHeader(doc, 'FAHRZEUGPARK & WARTUNG (TÜV / ÖLWECHSEL)', dateStr, timeStr);
             doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
             doc.text('Zentrale Übersicht aller Fahrzeuge, Kilometerstände und Termine', 15, 38);
-
+        
             let startY = 46;
             doc.setFillColor(241, 245, 249);
             doc.rect(15, startY, 180, 8, 'F');
@@ -2897,8 +2956,8 @@
             doc.text('Kennzeichen / Modell', 19, startY + 5.5);
             doc.text('Kilometerstand', 90, startY + 5.5);
             doc.text('Nächster TÜV', 130, startY + 5.5);
-            doc.text('Ölwechsel', 165, startY + 5.5);
-
+            doc.text('Ölwechsel bei', 165, startY + 5.5);
+        
             startY += 8;
             doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
             list.forEach(item => {
@@ -2906,12 +2965,34 @@
                 doc.setFont('helvetica', 'normal'); doc.text(`(${item.model || '-'})`, 19, startY + 11);
                 doc.text(`${item.km || '0'} km`, 90, startY + 8.5);
                 doc.text(item.tuev || '-', 130, startY + 8.5);
-                doc.text(item.oil || '-', 165, startY + 8.5);
+                doc.text(formatOil(item.oil), 165, startY + 8.5);
                 doc.setDrawColor(226, 232, 240); doc.line(15, startY + 14, 195, startY + 14);
                 startY += 15;
             });
             renderPdfFooter(doc, 1, 1);
             return doc;
+        }
+        
+        function addPdfPhotos(doc, photos, y, x0, newPageFn) {
+            if (!Array.isArray(photos) || photos.length === 0) return y;
+            if (y > 250) y = newPageFn();
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(71, 85, 105);
+            doc.text(`Fotos (${photos.length}):`, x0, y);
+            y += 4;
+            const cellW = 80, cellH = 60, gap = 6;
+            let col = 0;
+            photos.forEach(src => {
+                if (col === 0 && y + cellH > 268) y = newPageFn();
+                try {
+                    const p = doc.getImageProperties(src);
+                    const r = Math.min(cellW / p.width, cellH / p.height);
+                    doc.addImage(src, 'JPEG', x0 + col * (cellW + gap), y, p.width * r, p.height * r);
+                } catch (e) {}
+                col++;
+                if (col === 2) { col = 0; y += cellH + gap; }
+            });
+            if (col !== 0) y += cellH + gap;
+            return y;
         }
 
         function buildCompleteSummaryPdf(doc, data, fleetList, dateStr, timeStr) {
@@ -2922,7 +3003,7 @@
             doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(15, 23, 42);
             doc.text(`Tagesprotokoll vom ${dateStr}`, 15, y);
             y += 8;
-
+        
             const sections = [
                 { title: '1. Entmineralisierungsanlage', d: data.entmineralisierung },
                 { title: '2. Heizungskontrolle', d: data.heizungskontrolle },
@@ -2930,7 +3011,7 @@
                 { title: '4. Pausenraumkontrolle', d: data.pausenraum },
                 { title: '5. Fahrzeugkontrolle (Tagesbericht)', d: data.fahrzeuge }
             ];
-
+        
             sections.forEach(sec => {
                 if (!sec.d) return;
                 if (y > 220) { doc.addPage(); pageNum++; y = 20; }
@@ -2940,7 +3021,7 @@
                 doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(15, 23, 42);
                 doc.text(sec.title, 18, y + 5);
                 y += 10;
-
+        
                 doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(51, 65, 85);
                 doc.text(`Prüfer: ${sec.d.inspector || '-' } | Zeit: ${sec.d.timestamp || '-'}`, 18, y);
                 y += 5;
@@ -2949,14 +3030,9 @@
                 if (sec.d.plate) { doc.text(`Fahrzeug: ${sec.d.plate} | KM: ${sec.d.km || '-'}`, 18, y); y += 5; }
                 doc.text(`Notizen: ${sec.d.notes || '-'}`, 18, y);
                 y += 8;
-
-                if (sec.d.photos && Array.isArray(sec.d.photos)) {
-                    sec.d.photos.forEach(photoUrl => {
-                        if (y > 230) { doc.addPage(); pageNum++; y = 20; }
-                        try { doc.addImage(photoUrl, 'JPEG', 18, y, 45, 22); y += 24; } catch(e){}
-                    });
-                }
-
+        
+                y = addPdfPhotos(doc, sec.d.photos, y, 18, () => { doc.addPage(); pageNum++; return 20; });
+        
                 if (sec.d.signature) {
                     if (y > 230) { doc.addPage(); pageNum++; y = 20; }
                     try {
@@ -2966,7 +3042,7 @@
                 }
                 y += 4;
             });
-
+        
             if (fleetList && fleetList.length > 0) {
                 if (y > 210) { doc.addPage(); pageNum++; y = 20; }
                 doc.setFillColor(238, 247, 234);
@@ -2974,21 +3050,21 @@
                 doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(45, 106, 26);
                 doc.text('ZENTRALER WARTUNGSSTAND (TÜV & ÖLWECHSEL)', 18, y + 5);
                 y += 10;
-
+        
                 fleetList.forEach(car => {
                     if (y > 270) { doc.addPage(); pageNum++; y = 20; }
                     doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(15, 23, 42);
                     doc.text(`• ${car.plate} (${car.model || '-'}):`, 18, y);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(`KM: ${car.km || '0'} | TÜV: ${car.tuev || '-'} | Ölwechsel: ${car.oil || '-'}`, 75, y);
+                    doc.text(`KM: ${car.km || '0'} | TÜV: ${car.tuev || '-'} | Ölwechsel bei: ${formatOil(car.oil)}`, 75, y);
                     y += 6;
                 });
             }
-
+        
             renderPdfFooter(doc, pageNum, pageNum);
             return doc;
         }
-
+        
         function buildSingleSectionPdf(doc, type, rec, dateStr, timeStr) {
             renderPdfHeader(doc, `PROTOKOLL: ${type.toUpperCase()}`, dateStr, timeStr);
             doc.setDrawColor(226, 232, 240); doc.roundedRect(15, 36, 180, 234, 3, 3, 'S');
@@ -3043,27 +3119,23 @@
                 doc.text(`• Reifendruck prüfen & korrigieren: ${rec.statusTirePressure === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
                 doc.text(`• Keine Warnleuchten / Kratzer: ${rec.statusWarnings === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); doc.setTextColor(51, 65, 85); y += 8;
             }
-
+        
             doc.text(`Bemerkungen: ${rec.notes || '-'}`, 23, y); y += 10;
+        
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(51, 65, 85);
+            y = addPdfPhotos(doc, rec.photos, y, 23, () => { doc.addPage(); return 20; });
 
-            if (rec.photos && Array.isArray(rec.photos)) {
-                rec.photos.forEach(photoUrl => {
-                    if (y > 220) { doc.addPage(); y = 20; }
-                    try { doc.addImage(photoUrl, 'JPEG', 23, y, 55, 26); y += 29; } catch(e){}
-                });
+            if (rec.signature) {
+                if (y > 235) { doc.addPage(); y = 20; }
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(51, 65, 85);
+                doc.text('Digitale Unterschrift des Prüfers:', 23, y);
+                try { doc.addImage(rec.signature, 'PNG', 23, y + 4, 85, 28); } catch (e) {}
             }
 
-            if (rec.signature) { 
-                if (y > 220) { doc.addPage(); y = 20; }
-                try { 
-                    doc.setFont('helvetica', 'bold'); doc.text('Digitale Unterschrift des Prüfers:', 23, y);
-                    doc.addImage(rec.signature, 'PNG', 23, y + 4, 85, 28); 
-                } catch(e){} 
-            }
             renderPdfFooter(doc, 1, 1);
             return doc;
         }
-
+        
         function renderPdfHeader(doc, subtitle, dateStr, timeStr) {
             doc.setFillColor(94, 166, 59); doc.roundedRect(15, 12, 24, 16, 3, 3, 'F');
             doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bolditalic'); doc.setFontSize(14); doc.text('ecb', 27, 21, { align: 'center' });
@@ -3071,21 +3143,21 @@
             doc.setTextColor(28, 25, 23); doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(subtitle, 43, 22.5);
             doc.setFillColor(94, 166, 59); doc.rect(15, 31, 267, 1, 'F');
         }
-
+        
         function renderLandscapePdfFooter(doc, pageNum, totalPages) {
             doc.setDrawColor(226, 232, 240); doc.line(15, 195, 282, 195);
             doc.setFontSize(7); doc.setTextColor(148, 163, 184);
             doc.text(`ECB Reinigungssysteme • Schichtmatrix (${pageNum}/${totalPages})`, 15, 200);
             doc.text(`Meldung an ${RECIPIENT_EMAIL}`, 282, 200, { align: 'right' });
         }
-
+        
         function renderPdfFooter(doc, pageNum, totalPages) {
             doc.setDrawColor(226, 232, 240); doc.line(15, 276, 195, 276);
             doc.setFontSize(7); doc.setTextColor(148, 163, 184);
             doc.text(`ECB Reinigungssysteme • Dokument (${pageNum}/${totalPages})`, 15, 281);
             doc.text(`Meldung an ${RECIPIENT_EMAIL}`, 195, 281, { align: 'right' });
         }
-
+        
         async function getPreparedPdfBlob(ctx) {
             const doc = buildPdfDocumentForContext(ctx);
             const blob = doc.output('blob');
@@ -3094,12 +3166,12 @@
             activePdfUrl = URL.createObjectURL(blob);
             return blob;
         }
-
+        
         async function executeWebServiceSend() {
             const ctx = state.currentDispatchContext;
             const pdfBlob = await getPreparedPdfBlob(ctx);
             const fileName = `ECB-${ctx.type}-${state.todayKey}.pdf`;
-
+        
             try {
                 const fd = new FormData();
                 fd.append("_subject", ctx.subject);
@@ -3108,24 +3180,24 @@
                 fd.append("attachment", pdfBlob, fileName);
                 await fetch(`https://formsubmit.co/ajax/${RECIPIENT_EMAIL}`, { method: "POST", body: fd });
             } catch(e) {}
-
+        
             showToast(t('toast_sent'));
             closeModal('modal-dispatch');
         }
-
+        
         async function previewActivePdf() {
             await getPreparedPdfBlob(state.currentDispatchContext);
             document.getElementById('pdf-viewer-frame').src = activePdfUrl;
             openModal('modal-pdf');
         }
-
+        
         async function openHistoryItemPdf(idx) {
             const item = cloudHistory[idx];
             if (!item) return;
             state.currentDispatchContext = { type: item.type, data: item.data || item, subject: `[ECB] ${item.type} - ${item.date}`, body: 'Archivierter Bericht', categoryFolder: item.type };
             await previewActivePdf();
         }
-
+        
         async function previewSpecificVacationPdf(docId) {
             const item = cloudVacations.find(i => i.id === docId);
             if (!item) return;
@@ -3133,35 +3205,35 @@
             state.currentDispatchContext = { type: 'Urlaub', data: rec, subject: `[ECB] Urlaubsantrag - ${rec.employee}`, body: 'Urlaubsantrag PDF', categoryFolder: 'Urlaub' };
             await previewActivePdf();
         }
-
+        
         async function previewFleetSummaryPdf() {
             state.currentDispatchContext = { type: 'FleetSummary', data: cloudFleetVehicles, subject: `[ECB] Fahrzeugpark & Wartung`, body: 'Fahrzeugpark Übersicht', categoryFolder: 'Fahrzeuge' };
             await previewActivePdf();
         }
-
+        
         async function previewTeamVacationSummaryPdf() {
             state.currentDispatchContext = { type: 'TeamVacationSummary', data: cloudVacations, subject: `[ECB] Team-Urlaubsplan`, body: 'Team Urlaubsübersicht', categoryFolder: 'Urlaub' };
             await previewActivePdf();
         }
-
+        
         function openPdfInNewTab() { if (activePdfUrl) window.open(activePdfUrl, '_blank'); }
         function savePdfDownload() {
             if (!activePdfUrl) return;
             const a = document.createElement('a'); a.href = activePdfUrl; a.download = `ECB-Dokument-${state.todayKey}.pdf`; a.click();
         }
-
+        
         function addHistory(type, rec) {
             const newEntry = { date: new Date().toISOString().slice(0, 10), timestamp: rec.timestamp, createdAt: Date.now(), type, inspector: rec.inspector || rec.employee, data: rec };
-            if (db) db.collection('kontrollen').add(newEntry).catch(() => {});
+            if (db) db.collection('kontrollen').add(newEntry).catch(() => showToast('Cloud-Speichern fehlgeschlagen – zu viele/große Fotos?'));
             cloudHistory.unshift(newEntry);
             renderHistoryView();
         }
-
+        
         function setHistoryFilter(cat) {
             currentHistoryFilter = cat;
             renderHistoryView();
         }
-
+        
         function renderHistoryView() {
             const container = document.getElementById('history-items-container');
             if (!container) return;
@@ -3174,7 +3246,7 @@
             document.getElementById('count-breakroom').innerText = cloudHistory.filter(i => i.type === 'Pausenraum').length;
             document.getElementById('count-vehicle').innerText = cloudHistory.filter(i => i.type === 'Fahrzeuge').length;
             document.getElementById('count-vacation').innerText = cloudHistory.filter(i => i.type === 'Urlaub').length;
-
+        
             container.innerHTML = list.length === 0 ? `<div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">${t('no_history')}</div>` :
                 list.map((item, index) => {
                     const originalIdx = cloudHistory.indexOf(item);
@@ -3192,7 +3264,7 @@
                     `;
                 }).join('');
         }
-
+        
         function deleteHistoryItem(id) {
             if (!isAdminLoggedIn) { showToast('Nur für Admins erlaubt!'); return; }
             const idx = cloudHistory.findIndex(i => i.id === id || cloudHistory.indexOf(i) == id);
@@ -3204,7 +3276,7 @@
                 showToast('Eintrag gelöscht');
             }
         }
-
+        
         function confirmResetAll() {
             if (!isAdminLoggedIn) { showToast('Bitte zuerst im Admin-Bereich mit Passwort anmelden!'); return; }
             cloudHistory = [];
@@ -3221,9 +3293,9 @@
             updateDashboard();
             showToast('Gesamte Historie & Archive erfolgreich geleert!');
         }
-
+        
         function exportHistoryCsv() { showToast('CSV Export bereit'); }
-
+        
         function openAttendanceModal() {
             const container = document.getElementById('attendance-list-container');
             if (!container) return;
@@ -3235,7 +3307,7 @@
             `).join('');
             openModal('modal-attendance');
         }
-
+        
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); setTimeout(() => { Object.values(pads).forEach(p => { if (p) p.resize(); }); }, 50); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function openSettingsModal() { openModal('modal-settings'); }
@@ -3246,4 +3318,5 @@
         }
     </script>
 </body>
+
 </html>
