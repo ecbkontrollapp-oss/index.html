@@ -1,3 +1,5 @@
+Kontroll App neu.
+
 <!DOCTYPE html>
 <html lang="de" class="h-full bg-slate-50">
 
@@ -30,6 +32,7 @@
         };
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -856,7 +859,7 @@
                 <div onclick="toggleManagerLogin()" class="flex items-center justify-between cursor-pointer select-none">
                     <div class="flex items-center gap-2.5">
                         <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm">
-                            <i class="fa-solid fa-lock" id="manager-lock-icon"></i>
+                            <span id="manager-lock-icon"><i class="fa-solid fa-lock"></i></span>
                         </div>
                         <div>
                             <h3 class="text-xs font-bold" data-i18n="manager_login_title">Admin ECB Control</h3>
@@ -865,7 +868,7 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <div id="manager-badge" class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700" data-i18n="manager_locked">Gesperrt</div>
-                        <i class="fa-solid fa-chevron-down text-xs text-slate-400" id="manager-chevron"></i>
+                        <span id="manager-chevron"><i class="fa-solid fa-chevron-down text-xs text-slate-400"></i></span>
                     </div>
                 </div>
 
@@ -1973,19 +1976,17 @@
         
         function syncTodayControlsFromCloud(items) {
             const todayStr = new Date().toISOString().slice(0, 10);
-            const todayItems = items.filter(i => i.date === todayStr);
             let updated = false;
-            todayItems.forEach(item => {
-                if (item.type === 'Entmineralisierung' && !state.data.entmineralisierung) { state.data.entmineralisierung = item.data; updated = true; }
-                if (item.type === 'Heizungskontrolle' && !state.data.heizungskontrolle) { state.data.heizungskontrolle = item.data; updated = true; }
-                if (item.type === 'Außenbereich' && !state.data.aussenbereich) { state.data.aussenbereich = item.data; updated = true; }
-                if (item.type === 'Pausenraum' && !state.data.pausenraum) { state.data.pausenraum = item.data; updated = true; }
-                if (item.type === 'Fahrzeuge' && !state.data.fahrzeuge) { state.data.fahrzeuge = item.data; updated = true; }
+            Object.entries(CONTROL_KEYS).forEach(([type, key]) => {
+                const hit = items.find(i => i.type === type && i.date === todayStr);
+                if (hit && !state.data[key]) { state.data[key] = hit.data; updated = true; }
+                else if (!hit && state.data[key]) { state.data[key] = null; updated = true; }
             });
             if (updated) { persist(); updateDashboard(); }
         }
-        
+
         function switchView(viewName) {
+            if (VIEW_TO_TYPE[viewName] && isControlDoneToday(VIEW_TO_TYPE[viewName])) { showToast(DONE_MSG); return; }
             document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
             const target = document.getElementById('view-' + viewName);
             if (target) target.classList.remove('hidden');
@@ -2071,8 +2072,88 @@
         
         function clearSignature(type) { if (pads[type]) { pads[type].clear(); } }
         
+        const CONTROL_KEYS = { 'Entmineralisierung': 'entmineralisierung', 'Heizungskontrolle': 'heizungskontrolle', 'Außenbereich': 'aussenbereich', 'Pausenraum': 'pausenraum', 'Fahrzeuge': 'fahrzeuge' };
+        const VIEW_TO_TYPE = { demin: 'Entmineralisierung', heating: 'Heizungskontrolle', outdoor: 'Außenbereich', breakroom: 'Pausenraum', vehicle: 'Fahrzeuge' };
+        const DONE_MSG = 'Diese Kontrolle wurde heute bereits durchgeführt. Zum Wiederholen zuerst das Protokoll im Ordner löschen (Admin).';
+
+        function isControlDoneToday(type) {
+            const key = CONTROL_KEYS[type];
+            if (!key) return false;
+            return !!state.data[key] || cloudHistory.some(i => i.type === type && i.date === state.todayKey);
+        }
+
+        function resetDailyCompletion() {
+            localStorage.removeItem('ecb_allsent_' + state.todayKey);
+            if (db) db.collection('einstellungen').doc('abschluss_' + state.todayKey).delete().catch(() => {});
+        }
+
+        async function checkAllDoneAndSend() {
+            const d = state.data;
+            if (!(d.entmineralisierung && d.heizungskontrolle && d.aussenbereich && d.pausenraum && d.fahrzeuge)) return;
+            const flagKey = 'ecb_allsent_' + state.todayKey;
+            let useLocal = !db;
+            let ref = null;
+            if (db) {
+                try {
+                    ref = db.collection('einstellungen').doc('abschluss_' + state.todayKey);
+                    const claimed = await db.runTransaction(async tx => {
+                        const snap = await tx.get(ref);
+                        if (snap.exists) return false;
+                        tx.set(ref, { sentAt: Date.now() });
+                        return true;
+                    });
+                    if (!claimed) return;
+                } catch (e) { ref = null; useLocal = true; }
+            }
+            if (useLocal) {
+                if (localStorage.getItem(flagKey)) return;
+                localStorage.setItem(flagKey, '1');
+            }
+            const dateStr = new Date().toLocaleDateString('de-DE');
+            const ctx = {
+                type: 'Gesamtbericht', data: d, fleet: cloudFleetVehicles,
+                subject: `[ECB] Alle Wartungspunkte abgeschlossen - ${dateStr}`,
+                body: `Alle 5 Wartungs- und Kontrollpunkte wurden am ${dateStr} abgeschlossen. Das Gesamtprotokoll ist als PDF angehängt.`,
+                categoryFolder: 'Tagesberichte'
+            };
+            try {
+                const blob = await getPreparedPdfBlob(ctx);
+                const fd = new FormData();
+                fd.append('_subject', ctx.subject);
+                fd.append('Bericht', ctx.body);
+                fd.append('_captcha', 'false');
+                fd.append('attachment', blob, `ECB-Gesamtbericht-${state.todayKey}.pdf`);
+                const res = await fetch(`https://formsubmit.co/ajax/${RECIPIENT_EMAIL}`, { method: 'POST', body: fd });
+                if (!res.ok) throw new Error('send failed');
+                showToast('Alle Wartungspunkte abgeschlossen – Gesamtprotokoll gesendet!');
+            } catch (e) {
+                localStorage.removeItem(flagKey);
+                if (ref) ref.delete().catch(() => {});
+                showToast('Gesamtprotokoll konnte nicht gesendet werden.');
+            }
+        }
+
+        function resetForm(domain) {
+            const form = document.getElementById('form-' + domain);
+            if (form) form.reset();
+            state.photos[domain] = [];
+            renderPhotoGallery(domain);
+            if (pads[domain]) pads[domain].clear();
+            const fileInput = document.getElementById('camera-input-' + domain);
+            if (fileInput) fileInput.value = '';
+            const items = {
+                demin: ['leak', 'filter', 'resin', 'salt'],
+                heating: ['leaks', 'defects'],
+                outdoor: ['trash', 'tables', 'grounds'],
+                breakroom: ['surfaces', 'appliances', 'trash', 'floor'],
+                vehicle: ['clean', 'condition', 'tirePressure', 'warnings']
+            };
+            (items[domain] || []).forEach(k => setItemStatus(domain, k, 'ok'));
+        }
+
         function saveDemin(e) {
             e.preventDefault();
+            if (isControlDoneToday('Entmineralisierung')) { showToast(DONE_MSG); return; }
             if (!state.photos.demin || state.photos.demin.length === 0) { showToast(t('toast_need_photo')); return; }
             if (!pads.demin || pads.demin.isEmpty()) { showToast(t('toast_need_sig')); return; }
             const now = new Date();
@@ -2091,11 +2172,14 @@
             state.data.entmineralisierung = rec;
             persist(); addHistory('Entmineralisierung', rec); updateDashboard();
             showToast(t('toast_saved'));
+            resetForm('demin');
+            checkAllDoneAndSend();
             triggerSingleDispatch('Entmineralisierung', rec);
         }
         
         function saveHeating(e) {
             e.preventDefault();
+            if (isControlDoneToday('Heizungskontrolle')) { showToast(DONE_MSG); return; }
             if (!pads.heating || pads.heating.isEmpty()) { showToast(t('toast_need_sig')); return; }
             const now = new Date();
             const timeFormatted = now.toLocaleDateString('de-DE') + ' · ' + now.toLocaleTimeString('de-DE');
@@ -2113,11 +2197,14 @@
             state.data.heizungskontrolle = rec;
             persist(); addHistory('Heizungskontrolle', rec); updateDashboard();
             showToast(t('toast_saved'));
+            resetForm('heating');
+            checkAllDoneAndSend();
             triggerSingleDispatch('Heizungskontrolle', rec);
         }
         
         function saveOutdoor(e) {
             e.preventDefault();
+            if (isControlDoneToday('Außenbereich')) { showToast(DONE_MSG); return; }
             if (!state.photos.outdoor || state.photos.outdoor.length === 0) { showToast(t('toast_need_photo')); return; }
             if (!pads.outdoor || pads.outdoor.isEmpty()) { showToast(t('toast_need_sig')); return; }
             const now = new Date();
@@ -2134,11 +2221,14 @@
             state.data.aussenbereich = rec;
             persist(); addHistory('Außenbereich', rec); updateDashboard();
             showToast(t('toast_saved'));
+            resetForm('outdoor');
+            checkAllDoneAndSend();
             triggerSingleDispatch('Außenbereich', rec);
         }
         
         function saveBreakroom(e) {
             e.preventDefault();
+            if (isControlDoneToday('Pausenraum')) { showToast(DONE_MSG); return; }
             if (!pads.breakroom || pads.breakroom.isEmpty()) { showToast(t('toast_need_sig')); return; }
             const now = new Date();
             const timeFormatted = now.toLocaleDateString('de-DE') + ' · ' + now.toLocaleTimeString('de-DE');
@@ -2155,11 +2245,14 @@
             state.data.pausenraum = rec;
             persist(); addHistory('Pausenraum', rec); updateDashboard();
             showToast(t('toast_saved'));
+            resetForm('breakroom');
+            checkAllDoneAndSend();
             triggerSingleDispatch('Pausenraum', rec);
         }
         
         function saveVehicle(e) {
             e.preventDefault();
+            if (isControlDoneToday('Fahrzeuge')) { showToast(DONE_MSG); return; }
             if (!pads.vehicle || pads.vehicle.isEmpty()) { showToast(t('toast_need_sig')); return; }
             const now = new Date();
             const timeFormatted = now.toLocaleDateString('de-DE') + ' · ' + now.toLocaleTimeString('de-DE');
@@ -2183,6 +2276,8 @@
                 db.collection('fahrzeuge_park').doc(fv.id).update({ km: rec.km }).catch(() => {});
             }
             showToast(t('toast_saved'));
+            resetForm('vehicle');
+            checkAllDoneAndSend();
             triggerSingleDispatch('Fahrzeuge', rec);
         }
         
@@ -2323,7 +2418,7 @@
             const dropdown = document.getElementById('manager-login-dropdown');
             const chevron = document.getElementById('manager-chevron');
             dropdown.classList.toggle('hidden');
-            if (chevron) chevron.className = dropdown.classList.contains('hidden') ? 'fa-solid fa-chevron-down text-xs text-slate-400' : 'fa-solid fa-chevron-up text-xs text-slate-400';
+            if (chevron) chevron.innerHTML = dropdown.classList.contains('hidden') ? '<i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>' : '<i class="fa-solid fa-chevron-up text-xs text-slate-400"></i>';
         }
         
         function verifyManagerLogin() {
@@ -2337,7 +2432,7 @@
                 }
                 document.getElementById('manager-login-form').classList.add('hidden');
                 document.getElementById('manager-pending-list').classList.remove('hidden');
-                document.getElementById('manager-lock-icon').className = 'fa-solid fa-lock-open';
+                document.getElementById('manager-lock-icon').innerHTML = '<i class="fa-solid fa-lock-open"></i>';
                 showToast(t('toast_saved'));
                 renderVacationList();
             } else {
@@ -2684,47 +2779,6 @@
                 const raw = localStorage.getItem('ecb_app_data_v4_' + state.todayKey);
                 if (!raw) return;
                 state.data = JSON.parse(raw);
-                if (state.data.entmineralisierung) {
-                    const d = state.data.entmineralisierung;
-                    document.getElementById('demin-inspector').value = d.inspector || '';
-                    document.getElementById('demin-cond').value = d.conductivity !== '-' ? d.conductivity : '';
-                    document.getElementById('demin-press').value = d.pressure !== '-' ? d.pressure : '';
-                    document.getElementById('demin-notes').value = d.notes !== '-' ? d.notes : '';
-                    if (d.photos && Array.isArray(d.photos)) { state.photos.demin = d.photos; renderPhotoGallery('demin'); }
-                    if (d.signature && pads.demin) pads.demin.loadDataUrl(d.signature);
-                }
-                if (state.data.heizungskontrolle) {
-                    const h = state.data.heizungskontrolle;
-                    document.getElementById('heating-inspector').value = h.inspector || '';
-                    document.getElementById('heating-press').value = h.pressure !== '-' ? h.pressure : '';
-                    document.getElementById('heating-temp').value = h.temp !== '-' ? h.temp : '';
-                    document.getElementById('heating-notes').value = h.notes !== '-' ? h.notes : '';
-                    if (h.photos && Array.isArray(h.photos)) { state.photos.heating = h.photos; renderPhotoGallery('heating'); }
-                    if (h.signature && pads.heating) pads.heating.loadDataUrl(h.signature);
-                }
-                if (state.data.aussenbereich) {
-                    const a = state.data.aussenbereich;
-                    document.getElementById('outdoor-inspector').value = a.inspector || '';
-                    document.getElementById('outdoor-notes').value = a.notes !== '-' ? a.notes : '';
-                    if (a.photos && Array.isArray(a.photos)) { state.photos.outdoor = a.photos; renderPhotoGallery('outdoor'); }
-                    if (a.signature && pads.outdoor) pads.outdoor.loadDataUrl(a.signature);
-                }
-                if (state.data.pausenraum) {
-                    const p = state.data.pausenraum;
-                    document.getElementById('breakroom-inspector').value = p.inspector || '';
-                    document.getElementById('breakroom-notes').value = p.notes !== '-' ? p.notes : '';
-                    if (p.photos && Array.isArray(p.photos)) { state.photos.breakroom = p.photos; renderPhotoGallery('breakroom'); }
-                    if (p.signature && pads.breakroom) pads.breakroom.loadDataUrl(p.signature);
-                }
-                if (state.data.fahrzeuge) {
-                    const v = state.data.fahrzeuge;
-                    document.getElementById('vehicle-inspector').value = v.inspector || '';
-                    document.getElementById('vehicle-plate').value = v.plate || '';
-                    document.getElementById('vehicle-km').value = v.km || '';
-                    document.getElementById('vehicle-notes').value = v.notes !== '-' ? v.notes : '';
-                    if (v.photos && Array.isArray(v.photos)) { state.photos.vehicle = v.photos; renderPhotoGallery('vehicle'); }
-                    if (v.signature && pads.vehicle) pads.vehicle.loadDataUrl(v.signature);
-                }
             } catch(e){}
         }
         
@@ -3272,6 +3326,10 @@
                 const item = cloudHistory[idx];
                 if (item.id && db) db.collection('kontrollen').doc(item.id).delete().catch(()=>{});
                 cloudHistory.splice(idx, 1);
+                const ck = CONTROL_KEYS[item.type];
+                if (ck && item.date === state.todayKey && !cloudHistory.some(i => i.type === item.type && i.date === state.todayKey)) {
+                    state.data[ck] = null; persist(); updateDashboard(); resetDailyCompletion();
+                }
                 renderHistoryView();
                 showToast('Eintrag gelöscht');
             }
@@ -3282,6 +3340,8 @@
             cloudHistory = [];
             cloudVacations = [];
             cloudShifts = [];
+            state.data = { entmineralisierung: null, heizungskontrolle: null, aussenbereich: null, pausenraum: null, fahrzeuge: null };
+            persist(); resetDailyCompletion();
             if (db) {
                 db.collection('kontrollen').get().then(snap => snap.forEach(d => d.ref.delete())).catch(()=>{});
                 db.collection('urlaube').get().then(snap => snap.forEach(d => d.ref.delete())).catch(()=>{});
