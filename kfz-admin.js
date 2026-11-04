@@ -63,7 +63,22 @@
       {key:'model', label:'Fahrzeugmodell / Typ', max:100},
       {key:'km', label:'Kilometerstand', type:'number', min:0},
       {key:'tuev', label:'Nächster TÜV', type:'date'},
-      {key:'oil', label:'Nächster Ölwechsel (km)', type:'number', min:0}
+      {key:'oil', label:'Nächster Ölwechsel (km)', type:'number', min:0},
+      {key:'manufacturer', label:'Hersteller / Marke (D.1)', max:60},
+      {key:'type', label:'Typ / Variante (D.2)', max:90},
+      {key:'firstRegistration', label:'Erstzulassung (B)', type:'date'},
+      {key:'vin', label:'FIN / Fahrgestellnummer (E)', max:17},
+      {key:'hsn', label:'HSN (2.1)', max:12},
+      {key:'tsn', label:'TSN (2.2)', max:16},
+      {key:'fuel', label:'Kraftstoff (P.3)', max:50},
+      {key:'powerKw', label:'Leistung (kW)', max:12},
+      {key:'displacement', label:'Hubraum (cm³)', max:12},
+      {key:'color', label:'Farbe', max:40},
+      {key:'seats', label:'Sitzplätze', max:6},
+      {key:'totalMass', label:'Gesamtmasse (kg)', max:12},
+      {key:'tyresFront', label:'Reifen vorn (15.1)', max:50},
+      {key:'tyresRear', label:'Reifen hinten (15.2)', max:50},
+      {key:'vehicleClass', label:'Fahrzeugklasse', max:40}
     ],
     repair: [
       {key:'title', label:'Reparatur / Beanstandung *', required:true, max:180},
@@ -244,6 +259,16 @@
           patch[f.key] = (f.key === 'amount' || f.key === 'netAmount' ||
             f.key === 'taxAmount' || f.key === 'kmAtReceipt' || f.key === 'cost') ? num : String(value);
         } else patch[f.key] = value === '' && f.key === 'cost' ? null : value;
+      }
+    }
+    if(['vehicle','registration'].includes(kind)){
+      const vin=String(patch.vin||'').trim().toUpperCase();
+      if(vin && !/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)){
+        showToast('FIN bitte prüfen: genau 17 gültige Zeichen.');return;
+      }
+      const hsn=String(patch.hsn||'').trim();
+      if(hsn && !/^\d{4}$/.test(hsn)){
+        showToast('HSN muss vierstellig sein.');return;
       }
     }
     if(kind==='repair' && patch.cost!==null && patch.cost>0 && !patch.costSeparate) {
