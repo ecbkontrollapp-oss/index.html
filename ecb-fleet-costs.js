@@ -442,14 +442,19 @@
     }catch(error){alert('Excel-Export fehlgeschlagen: '+(error.message||error));}
     finally{if(button)button.disabled=false;}
   }
-  window.ECBFleetCosts={setVehicles,setMode,render,pdf,excel,getData:build};
+  window.ECBFleetCosts={setVehicles,setMode,render,pdf,excel,getData:build,logoDataUrl:companyMark};
   // The existing fleet listener may already have fired before this deferred
   // script loads. Initializing from its current snapshot avoids a blank pane.
   try { if(typeof cloudFleetVehicles!=='undefined' && cloudFleetVehicles.length){
     setVehicles(cloudFleetVehicles);
   } } catch(ignored) {}
-  const mark=$('fleet-costs-brand');
-  if(mark)mark.src=companyMark();
+  // The same user-supplied logo is used by the mobile / desktop header,
+  // vehicle-cost dashboard and all jsPDF documents.
+  const brandImage=companyMark();
+  for(const id of ['fleet-costs-brand','ecb-mobile-header-logo','ecb-desktop-header-logo']){
+    const img=$(id);
+    if(img)img.src=brandImage;
+  }
   if(typeof window.addEventListener==='function'){
     window.addEventListener('load',function(){
       try {
