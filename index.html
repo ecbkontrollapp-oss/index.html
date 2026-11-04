@@ -42,7 +42,8 @@
     <script src="./ecb-supabase-config.js"></script>
     <script src="./ecb-documents.js?v=20261104-invite-login-v2"></script>
     <script defer src="./ecb-receipt-ocr.js?v=20261104-vendor-dedupe-13"></script>
-    <script defer src="./ecb-fleet-costs.js?v=20261104-cost-report-3"></script>
+    <script defer src="./ecb-logo-data.js?v=20261104-vector-original-1"></script>
+    <script defer src="./ecb-fleet-costs.js?v=20261104-cost-report-4"></script>
     <script defer src="./kfz-admin.js?v=20261104-repair-cost-v4"></script>
 
     <style>
@@ -848,7 +849,10 @@
             <div id="fleet-costs-section" class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 w-full max-w-full box-border">
                 <div class="flex flex-wrap justify-between items-start gap-3 pb-2 border-b border-slate-100">
                     <div>
-                        <h2 class="text-base font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-chart-column text-ecb"></i> Fahrzeugkosten &amp; Auswertungen</h2>
+                        <div class="flex items-center gap-2">
+                            <img id="fleet-costs-brand" alt="Originales ECB-Firmenlogo" class="w-[86px] h-[42px] object-contain shrink-0" decoding="async">
+                            <h2 class="text-base font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-chart-column text-ecb"></i> Fahrzeugkosten &amp; Auswertungen</h2>
+                        </div>
                         <p class="text-[11px] text-slate-500 mt-1">Einzelfahrzeug, Belege, Reparaturen und Gesamtkosten · automatisch aus der Fahrzeug-Cloud aktualisiert.</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
