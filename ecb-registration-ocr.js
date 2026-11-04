@@ -234,7 +234,7 @@
     setStatus(mode,result.keys.length?
       'Lokal ausgelesen: '+list+'.'+conflict+warning+' Alle Daten am Original prüfen. Noch NICHT hochgeladen.':
       'Keine verlässlichen Fahrzeugdaten erkannt. Bitte manuell eintragen. Noch NICHT hochgeladen.',
-      !result.keys.length);
+      !!result.plateConflict||!result.keys.length);
   }
   const scriptLoading={};
   function loadScript(url,globalName){
