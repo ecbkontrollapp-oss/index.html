@@ -38,6 +38,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script defer src="./kfz-admin.js"></script>
 
     <style>
         canvas.sig-canvas {
@@ -2632,7 +2633,9 @@
             showToast(t('toast_saved'));
         }
         
-        function deleteFleetVehicle(docId) {
+        async function deleteFleetVehicle(docId) {
+            if (!(window.ECB_KFZ_ADMIN && window.ECB_KFZ_ADMIN.unlocked)) { showToast('KFZ-Adminpasswort erforderlich.'); return; }
+            if (!db) { showToast('Keine Cloud-Verbindung verfügbar.'); return; }
             const idx = cloudFleetVehicles.findIndex(i => i.id === docId);
             if (idx > -1) {
                 const item = cloudFleetVehicles[idx];
@@ -2644,9 +2647,17 @@
                     showToast('Fahrzeug enthält Fahrzeugscheine. Bitte diese zuerst im Dokumentenbereich entfernen.');
                     return;
                 }
-                if (item.id && db) db.collection('fahrzeuge_park').doc(item.id).delete().catch(() => {});
-                cloudFleetVehicles.splice(idx, 1);
-                renderFleetVehiclesList();
+                if (Array.isArray(item.reparaturen) && item.reparaturen.length) {
+                    showToast('Fahrzeug enthält Reparaturen. Bitte diese zuerst im Reparaturbereich entfernen.');
+                    return;
+                }
+                if (!window.confirm('Fahrzeug "' + (item.plate || '') + '" endgültig löschen?')) return;
+                try {
+                    await db.collection('fahrzeuge_park').doc(item.id).delete();
+                    showToast('Fahrzeug aus der Cloud gelöscht.');
+                } catch (error) {
+                    showToast('Fahrzeug konnte nicht gelöscht werden: ' + (error.code || error.message || 'Cloud-Fehler'));
+                }
             }
         }
         
@@ -2808,7 +2819,7 @@
                 const repairId = /^[A-Za-z0-9_-]+$/.test(repair.id || '') ? repair.id : '';
                 const finish = status !== 'Erledigt' && vehicleId && repairId ?
                     '<button type="button" onclick="finishFleetRepair(\'' + vehicleId + '\',\'' + repairId + '\')" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-[11px]"><i class="fa-solid fa-check"></i> Abschließen</button>' : '';
-                const remove = isAdminLoggedIn && vehicleId && repairId ?
+                const remove = window.ECB_KFZ_ADMIN && window.ECB_KFZ_ADMIN.unlocked && vehicleId && repairId ?
                     '<button type="button" onclick="deleteFleetRepair(\'' + vehicleId + '\',\'' + repairId + '\')" class="px-2.5 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 text-[11px] font-bold"><i class="fa-solid fa-trash"></i> Löschen</button>' : '';
                 return '<div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">' +
                     '<div class="flex flex-wrap items-center justify-between gap-2"><strong class="text-sm text-slate-900">' +
@@ -2826,7 +2837,7 @@
 
         async function changeFleetRepair(vehicleId, repairId, mode) {
             if (!db) { showToast('Keine Cloud-Verbindung – nichts geändert.'); return; }
-            if (mode === 'delete' && !isAdminLoggedIn) { showToast('Nur für Administratoren.'); return; }
+            if (!(window.ECB_KFZ_ADMIN && window.ECB_KFZ_ADMIN.unlocked)) { showToast('KFZ-Adminpasswort erforderlich.'); return; }
             if (mode === 'delete' && !window.confirm('Diesen Reparatureintrag wirklich löschen?')) return;
             try {
                 const ref = db.collection('fahrzeuge_park').doc(vehicleId);
@@ -3016,7 +3027,7 @@
                 const canOpen = id && vid && r.storagePath && r.storagePath.startsWith('fahrzeugbelege/');
                 const openBtn = canOpen ?
                     '<button type="button" onclick="openFleetReceipt(\'' + vid + '\',\'' + id + '\')" class="px-3 py-2 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 font-bold text-[11px]"><i class="fa-solid fa-eye"></i> Beleg ansehen</button>' : '';
-                const deleteBtn = isAdminLoggedIn && id && vid ?
+                const deleteBtn = window.ECB_KFZ_ADMIN && window.ECB_KFZ_ADMIN.unlocked && id && vid ?
                     '<button type="button" onclick="deleteFleetReceipt(\'' + vid + '\',\'' + id + '\')" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 font-bold text-[11px]"><i class="fa-solid fa-trash"></i> Löschen</button>' : '';
                 const amount = r.amount == null || r.amount === '' ? '–' :
                     (Number.isFinite(Number(r.amount)) ? money.format(Number(r.amount)) : '–');
@@ -3061,7 +3072,7 @@
             }
         }
         async function deleteFleetReceipt(vehicleId, receiptId) {
-            if (!isAdminLoggedIn) { showToast('Nur für Administratoren erlaubt.'); return; }
+            if (!(window.ECB_KFZ_ADMIN && window.ECB_KFZ_ADMIN.unlocked)) { showToast('KFZ-Adminpasswort erforderlich.'); return; }
             if (!window.confirm('Diesen Fahrzeugbeleg wirklich löschen?')) return;
             try {
                 receiptStorageReady();
@@ -3223,7 +3234,7 @@
                     const open = canOpen ?
                         '<button type="button" onclick="openFleetRegistration(\'' + vid + '\',\'' + did +
                         '\')" class="px-3 py-2 bg-sky-50 border border-sky-200 text-sky-700 rounded-xl font-bold text-[11px]"><i class="fa-solid fa-eye"></i> Ansehen</button>' : '';
-                    const remove = isAdminLoggedIn && canOpen ?
+                    const remove = window.ECB_KFZ_ADMIN && window.ECB_KFZ_ADMIN.unlocked && canOpen ?
                         '<button type="button" onclick="deleteFleetRegistration(\'' + vid + '\',\'' + did +
                         '\')" class="px-3 py-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl font-bold text-[11px]"><i class="fa-solid fa-trash"></i> Löschen</button>' : '';
                     return '<div class="p-3 bg-white border border-slate-200 rounded-xl space-y-2">' +
@@ -3276,7 +3287,7 @@
             }
         }
         async function deleteFleetRegistration(vehicleId, registrationId) {
-            if (!isAdminLoggedIn) { showToast('Nur Administratoren können Fahrzeugscheine löschen.'); return; }
+            if (!(window.ECB_KFZ_ADMIN && window.ECB_KFZ_ADMIN.unlocked)) { showToast('KFZ-Adminpasswort erforderlich.'); return; }
             if (!window.confirm('Diesen Fahrzeugschein wirklich löschen?')) return;
             try {
                 receiptStorageReady();
