@@ -351,8 +351,8 @@
       const overview=sheet('Fahrzeuge',['Kennzeichen','Modell','Belege','Reparaturen','Belegkosten brutto','Zusatzkosten Reparaturen','Gesamtkosten brutto','Netto Belege','MwSt. Belege','Belege ohne Preis']);
       overview.columns=[{width:21},{width:28},{width:12},{width:16},{width:23},{width:27},{width:24},{width:21},{width:19},{width:19}];
       overview.addImage(logo,{tl:{col:0,row:0},ext:{width:120,height:52}});
-      const entries=sheet('Kostenbuchungen',['Fahrzeug','Datum','Art','Händler / Leistung','Brutto EUR','Netto EUR','MwSt EUR','Belegdatei','Beschreibung','Kilometerstand','Status / Hinweise','Beleg-ID']);
-      entries.columns=[{width:21},{width:17},{width:19},{width:36},{width:17},{width:17},{width:17},{width:35},{width:47},{width:17},{width:23},{width:28}];
+      const entries=sheet('Kostenbuchungen',['Fahrzeug','Datum','Art','Händler / Leistung','Brutto EUR','Netto EUR','MwSt EUR','Belegdatei','Beschreibung','Kilometerstand','Status / Hinweise','Beleg-ID','Quelle']);
+      entries.columns=[{width:21},{width:17},{width:19},{width:36},{width:17},{width:17},{width:17},{width:35},{width:47},{width:17},{width:23},{width:28},{width:16}];
       entries.addImage(logo,{tl:{col:0,row:0},ext:{width:120,height:52}});
       const categories=sheet('Kostenarten',['Belegart / Kategorie','Anzahl Einträge','Gesamtkosten brutto EUR','Hinweis']);
       categories.columns=[{width:40},{width:18},{width:28},{width:52}];
@@ -371,7 +371,7 @@
             r.gross===null?null:r.gross/100,r.net===null?null:r.net/100,
             r.tax===null?null:r.tax/100,r.fileName,r.title,
             r.km===null||r.km===undefined||r.km===''?null:Number(r.km),
-            r.source==='reparatur'?r.status:r.gross===null?'Betrag fehlt':'',r.id]);
+            r.source==='reparatur'?r.status:r.gross===null?'Betrag fehlt':'',r.id,r.source]);
           for(const item of r.items)items.addRow([r.vehicle,dateDE(r.date),r.type,item.name,
             item.qty,item.price===null?null:item.price/100,item.price===null?'Nein':'Ja',r.fileName,r.id]);
         }
