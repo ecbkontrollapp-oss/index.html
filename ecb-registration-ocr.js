@@ -268,16 +268,18 @@
     }
     st.parsed=result;
     const list=result.keys.map(k=>LABELS[k]||k).join(', ');
-    const missing=['plate','model','color'].filter(key=>!result.data[key]);
+    const missing=['plate','model','color','seats','vehicleClass'].filter(key=>!result.data[key]);
     const warning=missing.length?' Nicht sicher erkannt: '+missing.map(k=>LABELS[k]||k).join(', ')+'. Bitte manuell ergänzen.':'';
     const conflict=result.plateConflict?' ACHTUNG: Erkanntes Kennzeichen '+result.plateConflict.recognized+
       ' stimmt nicht mit dem ausgewählten Fahrzeug '+result.plateConflict.selected+
       ' überein. OCR-Kennzeichen wurde NICHT übernommen. Bitte Kennzeichen (A) am Original prüfen und korrekt eintragen.':'';
+    const autoSelected=result.autoSelectedVehicle?
+      ' Fahrzeug anhand eindeutiger FIN zugeordnet: '+result.autoSelectedVehicle+'. Bitte Auswahl bestätigen.':'';
     const pending=!result.plateConflict&&result.platePending?
       ' OCR-Kennzeichen '+(result.ocrPlate||'(unbekannt)')+
       ' noch nicht bestätigt. Bitte Fahrzeug auswählen und Kennzeichen im Original prüfen.':'';
     setStatus(mode,result.keys.length?
-      'Lokal ausgelesen: '+list+'.'+conflict+pending+warning+' Alle Daten am Original prüfen. Noch NICHT hochgeladen.':
+      'Lokal ausgelesen: '+list+'.'+autoSelected+conflict+pending+warning+' Alle Daten am Original prüfen. Noch NICHT hochgeladen.':
       'Keine verlässlichen Fahrzeugdaten erkannt. Bitte manuell eintragen. Noch NICHT hochgeladen.',
       !!result.plateConflict||!result.keys.length);
   }
@@ -428,6 +430,24 @@
         if(value)parsed.data[key]=value;
       });
       validateParsed(parsed);
+      // OCR sometimes reads only the printed field code "S.1" as the
+      // number 1. A single uncorroborated digit must not enter fleet data.
+      if(parsed.data.seats==='1'&&!/^\s*S[.,\s]*1\s*[:.\]-]?\s*1(?:\s|$)/i.test(String(fields.seats||''))){
+        parsed.data.seats='';
+        parsed.keys=parsed.keys.filter(key=>key!=='seats');
+      }
+      if(mode==='registration'&&parsed.data.vin){
+        const select=$('registration-vehicle');
+        if(select&&!select.value&&select.options){
+          const matches=Array.from(select.options).filter(option=>
+            option.value&&option.dataset&&
+            String(option.dataset.vin||'').toUpperCase().replace(/[^A-Z0-9]/g,'')===parsed.data.vin);
+          if(matches.length===1){
+            select.value=matches[0].value;
+            parsed.autoSelectedVehicle=normalize(matches[0].textContent);
+          }
+        }
+      }
       // Keep an unverified OCR plate out of the visible form even if the
       // user has not selected a vehicle yet. Recheck on selection changes.
       if(mode==='registration')reconcileRegistrationPlate(parsed);
