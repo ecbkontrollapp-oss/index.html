@@ -392,7 +392,8 @@
           setStatus('Zusätzliche Erkennung für '+(y0===model.top?'Händler':'Endbetrag')+' …');
           try {
             const result=await worker.recognize(canvas);
-            combined+='\n'+(result.data && result.data.text || '');
+            const extra=result.data && result.data.text || '';
+            combined=y0===model.top ? extra+'\n'+combined : combined+'\n'+extra;
           } finally {canvas.width=0;canvas.height=0;}
         }
       }
@@ -488,6 +489,9 @@
         if(wrapper)wrapper.classList.remove('hidden');
         const check=el('receipt-ocr-review');
         if(check)check.checked=false;
+        const missing=[];
+        if(!extracted.vendor)missing.push('Händler');
+        if(extracted.amount===null)missing.push('Endbetrag');
         show('Erkannt: '+[
           extracted.vendor?'Händler':'',
           extracted.date?'Datum':'',
@@ -496,7 +500,9 @@
           extracted.taxAmount!==null?'MwSt.':'',
           extracted.km!==null?'Kilometerstand':'',
           extracted.items.length?extracted.items.length+' Artikel':''
-        ].filter(Boolean).join(', ')+'. Bitte alle Angaben und Preise mit dem Originalbeleg vergleichen und bestätigen.',false);
+        ].filter(Boolean).join(', ')+'. '+
+        (missing.length ? 'Nicht zuverlässig erkannt: '+missing.join(', ')+'. Bitte selbst ergänzen. ' : '')+
+        'Alle Daten und Preise mit dem Originalbeleg vergleichen und bestätigen.',missing.length>0);
       } else {
         show('Aus diesem Beleg konnten keine sicheren Daten erkannt werden. Bitte Felder manuell eintragen.',true);
       }
