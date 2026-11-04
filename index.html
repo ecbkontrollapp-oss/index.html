@@ -41,7 +41,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./ecb-supabase-config.js"></script>
     <script src="./ecb-documents.js?v=20261104-invite-login-v2"></script>
-    <script defer src="./ecb-receipt-ocr.js?v=20261104-unwarped-articles-8"></script>
+    <script defer src="./ecb-receipt-ocr.js?v=20261104-target-articles-9"></script>
     <script defer src="./kfz-admin.js?v=20261104-receipt-summary-v3"></script>
 
     <style>
@@ -1468,7 +1468,10 @@
                         </label>
                     </div>
                     <p id="receipt-selected-file" class="text-[11px] text-slate-500 break-words">Noch keine Datei ausgewählt. Maximal 15 MB.</p>
-                    <button type="button" id="receipt-ocr-retry" onclick="ECBReceiptOCR.scan(window.ECB_CURRENT_RECEIPT_FILE)" class="px-3 py-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 text-[11px] font-bold"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Beleg erneut automatisch auslesen</button>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" id="receipt-ocr-retry" onclick="ECBReceiptOCR.scan(window.ECB_CURRENT_RECEIPT_FILE)" class="px-3 py-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 text-[11px] font-bold"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Beleg erneut auslesen</button>
+                        <button type="button" id="receipt-ocr-items" onclick="ECBReceiptOCR.scanItemsOnly(window.ECB_CURRENT_RECEIPT_FILE)" class="px-3 py-2 rounded-xl border border-indigo-300 bg-indigo-50 text-indigo-800 text-[11px] font-bold"><i class="fa-solid fa-list-check mr-1"></i> Nur Artikel auslesen</button>
+                    </div>
                     <div id="receipt-ocr-status" class="hidden p-2.5 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 text-[11px]" role="status" aria-live="polite"></div>
                     <details id="receipt-ocr-debug" class="hidden rounded-xl bg-white border border-slate-200 p-2.5">
                         <summary class="text-[11px] font-bold text-slate-700 cursor-pointer">Erkannten Text zur Fehlersuche ansehen</summary>
