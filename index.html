@@ -1072,7 +1072,7 @@
                     <h2 class="text-xl font-black text-slate-900 tracking-tight" data-i18n="history_title">Historie & Ordner</h2>
                     <p class="text-xs text-slate-500 flex items-center gap-1"><i class="fa-solid fa-cloud text-emerald-600"></i> <span data-i18n="history_sub">Google Firebase Cloud-Archiv</span></p>
                 </div>
-                <button onclick="previewActivePdf(true)" class="px-3.5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                <button onclick="previewDailyPdf()" class="px-3.5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
                     <i class="fa-solid fa-file-pdf text-rose-400"></i> <span data-i18n="btn_daily_pdf">Tages-PDF</span>
                 </button>
             </div>
@@ -2980,10 +2980,58 @@
             previewActivePdf();
         }
         
-        function openDispatchDaySummary() {
-            const d = state.data;
+        // Tagesbericht immer erst aus den heutigen Cloud-Kontrollen erstellen.
+        // Das bisherige Tages-PDF rief die Vorschau mit einem leeren Ausgangskontext auf.
+        function getTodayReportData() {
+            const now = new Date();
+            const localToday = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+            const legacyUtcToday = now.toISOString().slice(0, 10);
+            const data = {
+                entmineralisierung: null,
+                heizungskontrolle: null,
+                aussenbereich: null,
+                pausenraum: null,
+                fahrzeuge: null
+            };
+            Object.entries(CONTROL_KEYS).forEach(([type, key]) => {
+                const hit = cloudHistory.find(item => {
+                    if (item.type !== type) return false;
+                    const stamp = item.date || (typeof item.createdAt === 'number'
+                        ? new Date(item.createdAt).toISOString().slice(0, 10) : '');
+                    return stamp === localToday || (stamp === legacyUtcToday && legacyUtcToday === state.todayKey);
+                });
+                // Cloud ist die erste Quelle. Bereits erfasste Tageswerte bleiben als
+                // Rückfall für noch nicht bestätigte Cloud-Updates verfügbar.
+                data[key] = hit ? (hit.data || hit) : (state.todayKey === legacyUtcToday ? state.data[key] : null);
+            });
+            return data;
+        }
+
+        function prepareDailyReportContext() {
             const dateStr = new Date().toLocaleDateString('de-DE');
-            state.currentDispatchContext = { type: 'Gesamtbericht', data: d, fleet: cloudFleetVehicles, subject: `[ECB] Tagesgesamtbericht & Wartung - ${dateStr}`, body: `Tagesgesamtbericht inklusive aller Wartungspunkte für ${dateStr}`, categoryFolder: 'Tagesberichte' };
+            const data = getTodayReportData();
+            if (!Object.values(data).some(Boolean)) {
+                showToast('Für heute sind noch keine Kontrollen im Tagesbericht vorhanden.');
+                return false;
+            }
+            state.currentDispatchContext = {
+                type: 'Gesamtbericht',
+                data: data,
+                fleet: cloudFleetVehicles,
+                subject: `[ECB] Tagesgesamtbericht & Wartung - ${dateStr}`,
+                body: `Tagesgesamtbericht inklusive aller Wartungspunkte für ${dateStr}`,
+                categoryFolder: 'Tagesberichte'
+            };
+            return true;
+        }
+
+        async function previewDailyPdf() {
+            if (!prepareDailyReportContext()) return;
+            await previewActivePdf();
+        }
+
+        function openDispatchDaySummary() {
+            if (!prepareDailyReportContext()) return;
             openModal('modal-dispatch');
         }
         
@@ -3499,9 +3547,19 @@
         }
         
         async function previewActivePdf() {
-            await getPreparedPdfBlob(state.currentDispatchContext);
-            document.getElementById('pdf-viewer-frame').src = activePdfUrl;
-            openModal('modal-pdf');
+            try {
+                const ctx = state.currentDispatchContext;
+                if (!ctx || !ctx.data) throw new Error('Es wurde noch kein Bericht ausgewählt.');
+                if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('Die PDF-Bibliothek ist nicht geladen. Bitte Internetverbindung prüfen und Seite neu öffnen.');
+                await getPreparedPdfBlob(ctx);
+                const viewer = document.getElementById('pdf-viewer-frame');
+                if (!viewer) throw new Error('PDF-Vorschau konnte nicht geöffnet werden.');
+                viewer.src = activePdfUrl;
+                openModal('modal-pdf');
+            } catch (error) {
+                console.error('ECB PDF konnte nicht erstellt werden:', error);
+                showToast('PDF-Fehler: ' + (error.message || 'Bitte erneut versuchen.'));
+            }
         }
         
         async function openHistoryItemPdf(idx) {
