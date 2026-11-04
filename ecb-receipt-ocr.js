@@ -63,7 +63,7 @@
     return {amount:price, prefix:line.slice(0,m.index).trim(), raw:m[1]};
   }
   function identifyDate(lines) {
-    const rx = /\b(\d{1,2})[./-](\d{1,2})[./-](\d{4}|\d{2})\b/;
+    const rx = /(?:^|[^\d])(\d{1,2})\s*[./-]\s*(\d{1,2})\s*[./-]\s*(\d{4}|\d{2})(?!\d)/;
     const options = [];
     lines.forEach((line,i) => {
       const match = line.match(rx);
@@ -74,7 +74,9 @@
       const d = new Date(Date.UTC(year,month - 1,day));
       if (year < 2000 || year > 2100 || d.getUTCFullYear() !== year ||
           d.getUTCMonth() !== month-1 || d.getUTCDate() !== day) return;
-      const score = (/datum|kaufdatum|rechnungsdatum|belegdatum/i.test(line) ? 30 : 0) - i / 3;
+      const score = (/datum|kaufdatum|rechnungsdatum|belegdatum/i.test(line) ? 35 : 0) -
+        (/tse|start\/ende|signatur|serial|z[üu]r[üu]ckgestellt/i.test(line) ? 30 : 0) -
+        i / 2;
       options.push({date:year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0'),score});
     });
     options.sort((a,b) => b.score-a.score);
@@ -90,7 +92,7 @@
       if (line.length < 3 || line.length > 85 || bad.test(line) ||
           /^\d/.test(line) || /(?:IBAN|BIC|@|\.de\b|\.com\b)/i.test(line) ||
           !/[A-Za-zÄÖÜäöüß]{3}/.test(line)) continue;
-      return line.replace(/\s{2,}/g,' ').slice(0,180);
+      return line.replace(/\s{2,}/g,' ').replace(/[^\p{L}\p{N}.)&\/\-]+$/gu,'').trim().slice(0,180);
     }
     return '';
   }
@@ -144,11 +146,17 @@
       netCalculated=true;
     }
     let plate=null;
-    const plateRx=/(?:kennzeichen|amtliches\s+kennzeichen|kfz\s*kennzeichen)\s*[:\-]?\s*([A-ZÄÖÜ]{1,3})\s*[-\s]?\s*([A-ZÄÖÜ]{1,2})\s*[-\s]?\s*(\d{1,4})(?:\s*[EH])?\b/i;
-    for (const line of lines) {
-      const found=line.match(plateRx);
-      if(found){plate=(found[1]+'-'+found[2]+' '+found[3]).toUpperCase();break;}
+    const plates = [];
+    const plateToken = /\b([A-ZÄÖÜ]{1,3})\s*[-\s]\s*([A-ZÄÖÜ]{1,2})\s*[-\s]?\s*(\d{1,4})(?:\s*[EH])?\b/i;
+    for(let i=0;i<lines.length;i++) {
+      const line=lines[i];
+      if (!/(?:kennzeichen|kennzeich|kennz\.?|kfz[\s-]*zeichen|amtliches)/i.test(line))continue;
+      const nearby = [line,lines[i+1]||''].join(' ');
+      const labelEnd = nearby.replace(/^.*?(?:kennzeichen|kennzeich|kennz\.?|kfz[\s-]*zeichen|amtliches)\s*[:=\-]?\s*/i,'');
+      const hit=labelEnd.match(plateToken);
+      if (hit) plates.push((hit[1]+'-'+hit[2]+' '+hit[3]).toUpperCase());
     }
+    if (plates.length && plates.every(value=>value===plates[0])) plate=plates[0];
     let km=null;
     for (const line of lines) {
       const m=line.match(/\b(?:kilometer[-\s]*stand|km[-\s]*stand|kilometerstand)\s*[:\-]?\s*(\d{3}(?:[.\s]\d{3})+|\d{4,7})\b/i);
@@ -397,24 +405,31 @@
       // If total or header is still missing, try a second contrast/segment
       // configuration for only the relevant area.
       const data=parse(combined);
-      if(model.detected && (data.amount===null || !data.vendor || !data.items.length)){
+      // Run focused passes for fields the full scan did not actually find;
+      // do not mistake a prefilled form date for recognized receipt data.
+      const needsHeader=(!data.date||!data.plate||!data.vendor);
+      const needsItems=!data.items.length;
+      if(model.detected && (needsHeader || needsItems || data.amount===null)){
         await worker.setParameters({tessedit_pageseg_mode:'6'});
         const sections=[];
-        if(!data.vendor)sections.push({start:model.top,end:model.top+length*.23,kind:'Händler'});
-        if(!data.items.length)sections.push({start:model.top+length*.43,end:model.top+length*.82,kind:'Artikel'});
-        if(data.amount===null)sections.push({start:model.top+length*.65,end:model.bottom,kind:'Endbetrag'});
+        if(needsHeader)sections.push({start:model.top,end:model.top+length*.38,kind:'Kopfbereich'});
+        if(needsItems) {
+          // Thermal-paper invoices usually place item lines in the lower
+          // middle. Smaller overlapping windows yield less layout noise.
+          sections.push({start:model.top+length*.48,end:model.top+length*.70,kind:'Artikel'});
+          sections.push({start:model.top+length*.65,end:model.top+length*.84,kind:'Artikel'});
+        }
+        if(data.amount===null)sections.push({start:model.top+length*.69,end:model.bottom,kind:'Endbetrag'});
         for(const section of sections){
           const canvas=drawPhotoPart(model,section.start,section.end);
-          setStatus('Zusätzliche Erkennung für '+section.kind+' …');
+          setStatus('Zusätzliche Erkennung: '+section.kind+' …');
           try {
             const result=await worker.recognize(canvas);
             const extra=result.data && result.data.text || '';
             if(!extra.trim())continue;
-            if(section.kind==='Händler'){
+            if(section.kind==='Kopfbereich'){
               combined=extra+'\n'+combined;
             } else if(section.kind==='Artikel'){
-              // Insert the additional section before the first totals row,
-              // otherwise the parser correctly excludes it as footer text.
               const currentLines=combined.split('\n');
               const footer=currentLines.findIndex(line=>
                 /\b(?:nettobetrag|nettosumme|mehrwertsteuer|umsatzsteuer|mwst|gesamtbetrag|gesamtsumme|endbetrag|rechnungsbetrag|summe|total|bruttobetrag)\b/i.test(line));
@@ -499,7 +514,9 @@
       const extracted=parse(raw);
       let detected=0;
       if(extracted.vendor) {el('receipt-vendor').value=extracted.vendor;detected++;}
-      if(extracted.date) {el('receipt-date').value=extracted.date;detected++;}
+      // Unrecognized dates must stay empty. Never silently persist today's date.
+      el('receipt-date').value=extracted.date||'';
+      if(extracted.date)detected++;
       if(extracted.amount!==null) {el('receipt-amount').value=extracted.amount.toFixed(2);detected++;}
       if(extracted.netAmount!==null) {el('receipt-net').value=extracted.netAmount.toFixed(2);detected++;}
       if(extracted.taxAmount!==null) {el('receipt-vat').value=extracted.taxAmount.toFixed(2);detected++;}
@@ -533,8 +550,10 @@
         if(check)check.checked=false;
         const missing=[];
         if(!extracted.vendor)missing.push('Händler');
+        if(!extracted.date)missing.push('Belegdatum');
         if(extracted.amount===null)missing.push('Endbetrag');
         if(!extracted.items.length)missing.push('Artikelpositionen');
+        if(!extracted.plate)missing.push('Kennzeichen (Fahrzeug bitte auswählen)');
         show('Erkannt: '+[
           extracted.vendor?'Händler':'',
           extracted.date?'Datum':'',
