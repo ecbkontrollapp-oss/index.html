@@ -42,8 +42,8 @@
     <script src="./ecb-supabase-config.js"></script>
     <script src="./ecb-documents.js?v=20261104-invite-login-v2"></script>
     <script defer src="./ecb-receipt-ocr.js?v=20261104-vendor-dedupe-13"></script>
-    <script defer src="./ecb-registration-layout.js?v=20261105-seats-s1-v8"></script>
-    <script defer src="./ecb-registration-ocr.js?v=20261105-verified-seats-v9"></script>
+    <script defer src="./ecb-registration-layout.js?v=20261105-r-color-crop-hardcheck-v9"></script>
+    <script defer src="./ecb-registration-ocr.js?v=20261105-rotated-doc-hardcheck-v10"></script>
     <script defer src="./ecb-logo-data.js?v=20261104-vector-original-1"></script>
     <script defer src="./ecb-fleet-costs.js?v=20261104-logo-everywhere-5"></script>
     <script defer src="./kfz-admin.js?v=20261104-fahrzeugschein-tech-v5"></script>
@@ -3546,6 +3546,10 @@
                 registrationStatus('Ungültige Dokumentseite.',true);return;
             }
             const info=ocr?ocr.collect('registration'):{};
+            // Enforce identifier and field plausibility before any network upload.
+            const preflight=ocr&&ocr.verifyForUpload?
+                ocr.verifyForUpload('registration',vehicle):{ok:true};
+            if(!preflight.ok){registrationStatus(preflight.message,true);return;}
             const vin=String(info.vin||'').toUpperCase();
             const hsn=String(info.hsn||'').toUpperCase();
             const tsn=String(info.tsn||'').toUpperCase();
@@ -3578,14 +3582,18 @@
             let uploaded=false,saved=false;
             try{
                 receiptStorageReady();
-                registrationStatus('Bestätigt. Fahrzeugschein wird erst jetzt hochgeladen …',false);
-                await window.ECBFileStorage.upload(path,file,mime,percentage=>
-                    registrationStatus('Hochladen: '+percentage+' %',false));
-                uploaded=true;
+                // Read the current fleet record from the server BEFORE uploading.
                 const ref=db.collection('fahrzeuge_park').doc(vehicleId);
                 const snapshot=await ref.get({source:'server'});
                 if(!snapshot.exists)throw Error('Das ausgewählte Fahrzeug existiert nicht mehr.');
                 const original=snapshot.data()||{};
+                const liveCheck=ocr&&ocr.verifyForUpload?
+                    ocr.verifyForUpload('registration',original):{ok:true};
+                if(!liveCheck.ok)throw Error(liveCheck.message);
+                registrationStatus('Geprüft. Fahrzeugschein wird erst jetzt hochgeladen …',false);
+                await window.ECBFileStorage.upload(path,file,mime,percentage=>
+                    registrationStatus('Hochladen: '+percentage+' %',false));
+                uploaded=true;
                 const patch={fahrzeugscheine:firebase.firestore.FieldValue.arrayUnion(record)};
                 if(document.getElementById('registration-update-vehicle').checked){
                     const allowed=['manufacturer','model','type','vin','hsn','tsn',
