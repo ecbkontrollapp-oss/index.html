@@ -42,7 +42,8 @@
     <script src="./ecb-supabase-config.js"></script>
     <script src="./ecb-documents.js?v=20261104-invite-login-v2"></script>
     <script defer src="./ecb-receipt-ocr.js?v=20261104-vendor-dedupe-13"></script>
-    <script defer src="./ecb-registration-ocr.js?v=20261104-fahrzeugschein-ocr-1"></script>
+    <script defer src="./ecb-registration-layout.js?v=20261104-zb1-cells-v2"></script>
+    <script defer src="./ecb-registration-ocr.js?v=20261104-zb1-document-front-v2"></script>
     <script defer src="./ecb-logo-data.js?v=20261104-vector-original-1"></script>
     <script defer src="./ecb-fleet-costs.js?v=20261104-logo-everywhere-5"></script>
     <script defer src="./kfz-admin.js?v=20261104-fahrzeugschein-tech-v5"></script>
@@ -1332,7 +1333,7 @@
             </div>
             <form id="form-fleet-vehicle" onsubmit="submitFleetVehicle(event)" class="space-y-3 w-full max-w-full overflow-hidden box-border"><div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl space-y-2">
 <h4 class="text-xs font-black text-emerald-900"><i class="fa-solid fa-id-card mr-1"></i> Optional: Fahrzeugschein auslesen</h4>
-<p class="text-[11px] text-emerald-800">Foto oder PDF wird zunächst nur auf deinem Gerät erkannt. Daten prüfen, anschließend bewusst speichern. Manuelle Eingabe bleibt möglich.</p>
+<p class="text-[11px] text-emerald-800">Foto oder PDF wird zunächst nur auf deinem Gerät erkannt. Bitte möglichst <b>vollständig, gerade und quer</b> fotografieren. Die Erkennung liest die beschrifteten Tabellenzellen einzeln aus. Alle Werte vor der bewussten Cloud-Speicherung prüfen. Manuelle Eingabe bleibt möglich.</p>
 <div class="grid grid-cols-2 gap-2">
 <input id="vehicle-camera-input" type="file" accept="image/*" capture="environment" onchange="ECBRegistrationOCR.onFile(this,'vehicle')" class="hidden">
 <label for="vehicle-camera-input" class="bg-white border border-emerald-300 text-emerald-800 text-center rounded-xl px-2 py-2.5 text-xs font-bold cursor-pointer">Kamera</label>
