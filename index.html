@@ -37,6 +37,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
     <style>
         canvas.sig-canvas {
@@ -854,6 +855,30 @@
                     <div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Noch keine Reparaturen erfasst.</div>
                 </div>
             </div>
+
+            <!-- VEHICLE RECEIPTS – existing ECB fleet layout preserved -->
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 w-full max-w-full box-border">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
+                    <div>
+                        <h2 class="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                            <i class="fa-solid fa-receipt text-indigo-600"></i> Belege &amp; Rechnungen
+                        </h2>
+                        <p class="text-[11px] text-slate-500">Rechnungen, Kassen- und Tankbelege fotografieren oder als PDF hochladen und einem vorhandenen Fahrzeug zuordnen.</p>
+                    </div>
+                    <button type="button" onclick="openNewReceiptModal()" class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs shrink-0">
+                        <i class="fa-solid fa-plus"></i> Beleg erfassen
+                    </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label for="receipt-filter-vehicle" class="text-[11px] font-bold text-slate-600">Fahrzeug:</label>
+                    <select id="receipt-filter-vehicle" onchange="renderFleetReceiptsList()" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 box-border">
+                        <option value="">Alle Fahrzeuge</option>
+                    </select>
+                </div>
+                <div id="fleet-receipts-container" class="space-y-3 w-full max-w-full box-border">
+                    <div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Noch keine Belege erfasst.</div>
+                </div>
+            </div>
         </section>
 
         <!-- VACATION VIEW -->
@@ -1332,6 +1357,77 @@
         </div>
     </div>
 
+
+    <!-- VEHICLE RECEIPT CAPTURE – photo / PDF to Firebase Storage -->
+    <div id="modal-fleet-receipt" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-5 shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto box-border">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-receipt text-indigo-600"></i> Beleg erfassen
+                </h3>
+                <button type="button" onclick="closeModal('modal-fleet-receipt')" class="text-slate-400 hover:text-slate-600 p-1" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="form-fleet-receipt" onsubmit="submitFleetReceipt(event)" class="space-y-3 w-full max-w-full box-border">
+                <div>
+                    <label for="receipt-vehicle" class="block text-[11px] font-bold text-slate-700 mb-1">Fahrzeug *</label>
+                    <select id="receipt-vehicle" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label for="receipt-type" class="block text-[11px] font-bold text-slate-700 mb-1">Belegart *</label>
+                        <select id="receipt-type" class="w-full px-2.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                            <option value="Rechnung">Rechnung</option>
+                            <option value="Kassenzettel">Kassenzettel</option>
+                            <option value="Tankbeleg">Tankbeleg</option>
+                            <option value="Sonstiger Beleg">Sonstiger Beleg</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="receipt-date" class="block text-[11px] font-bold text-slate-700 mb-1">Belegdatum *</label>
+                        <input id="receipt-date" type="date" required class="w-full px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label for="receipt-vendor" class="block text-[11px] font-bold text-slate-700 mb-1">Firma / Händler</label>
+                        <input id="receipt-vendor" type="text" maxlength="180" placeholder="z. B. Werkstatt" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                    </div>
+                    <div>
+                        <label for="receipt-amount" class="block text-[11px] font-bold text-slate-700 mb-1">Betrag (€)</label>
+                        <input id="receipt-amount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="z. B. 89,90" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                    </div>
+                </div>
+                <div>
+                    <label for="receipt-description" class="block text-[11px] font-bold text-slate-700 mb-1">Beschreibung / Verwendungszweck</label>
+                    <input id="receipt-description" type="text" maxlength="240" placeholder="z. B. Ölfilter, Kraftstoff, Reparatur" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                </div>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
+                    <p class="text-[11px] font-bold text-slate-800">Beleg fotografieren oder hochladen *</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="file" id="receipt-camera-input" accept="image/*" capture="environment" onchange="selectFleetReceiptFile(this)" class="hidden">
+                        <label for="receipt-camera-input" class="text-center px-3 py-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs font-bold text-indigo-700 cursor-pointer">
+                            <i class="fa-solid fa-camera mr-1"></i> Kamera
+                        </label>
+                        <input type="file" id="receipt-file-input" accept="image/*,application/pdf,.pdf,.heic,.heif" onchange="selectFleetReceiptFile(this)" class="hidden">
+                        <label for="receipt-file-input" class="text-center px-3 py-3 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-700 cursor-pointer">
+                            <i class="fa-solid fa-file-arrow-up mr-1"></i> Foto / PDF
+                        </label>
+                    </div>
+                    <p id="receipt-selected-file" class="text-[11px] text-slate-500 break-words">Noch keine Datei ausgewählt. Maximal 15 MB.</p>
+                </div>
+                <div>
+                    <label for="receipt-notes" class="block text-[11px] font-bold text-slate-700 mb-1">Zusätzliche Bemerkungen</label>
+                    <textarea id="receipt-notes" maxlength="2000" rows="2" placeholder="Optional…" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border resize-y"></textarea>
+                </div>
+                <div id="receipt-upload-status" class="hidden p-2.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 text-[11px]" role="status" aria-live="polite"></div>
+                <p class="text-[10px] text-slate-500">Die Datei wird in Firebase Storage abgelegt; die Zuordnung erscheint in der Cloud-Fahrzeugakte. Zugriff und Vertraulichkeit richten sich nach den Firebase-Sicherheitsregeln.</p>
+                <button type="submit" id="receipt-save-btn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-xs box-border">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Beleg in der Cloud speichern
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- ATTENDANCE MODAL -->
     <div id="modal-attendance" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
         <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 box-border">
@@ -1477,6 +1573,9 @@
         };
         
         let db = null;
+        let receiptStorage = null;
+        let receiptStorageError = null;
+        let selectedFleetReceiptFile = null;
         let firebaseStatus = { connected: false, error: null, count: 0 };
         
         try {
@@ -1484,6 +1583,12 @@
             db = firebase.firestore();
         } catch(e) {
             firebaseStatus.error = e.message || String(e);
+        }
+        try {
+            if (typeof firebase.storage !== 'function') throw new Error('Firebase Storage SDK nicht geladen');
+            receiptStorage = firebase.storage();
+        } catch (e) {
+            receiptStorageError = e.message || String(e);
         }
         
         const translations = {
@@ -2028,6 +2133,7 @@
                 cloudFleetVehicles = items;
                 renderFleetVehiclesList();
                 renderFleetRepairsList();
+                renderFleetReceiptsList();
             }, () => {});
         }
         
@@ -2087,7 +2193,7 @@
             if (pcBtn) pcBtn.className = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-sky-600 bg-sky-50 transition-colors';
         
             if (viewName === 'history') renderHistoryView();
-            if (viewName === 'vehicle_fleet') { renderFleetVehiclesList(); renderFleetRepairsList(); }
+            if (viewName === 'vehicle_fleet') { renderFleetVehiclesList(); renderFleetRepairsList(); renderFleetReceiptsList(); }
             if (viewName === 'vacation') renderVacationList();
             if (viewName === 'shifts') renderShiftList();
             if (viewName === 'admin') renderAdminEmployeesList();
@@ -2442,6 +2548,10 @@
             const idx = cloudFleetVehicles.findIndex(i => i.id === docId);
             if (idx > -1) {
                 const item = cloudFleetVehicles[idx];
+                if (Array.isArray(item.belege) && item.belege.length) {
+                    showToast('Fahrzeug enthält Belege. Bitte diese zuerst in der Belegserfassung entfernen.');
+                    return;
+                }
                 if (item.id && db) db.collection('fahrzeuge_park').doc(item.id).delete().catch(() => {});
                 cloudFleetVehicles.splice(idx, 1);
                 renderFleetVehiclesList();
@@ -2646,6 +2756,243 @@
         function finishFleetRepair(vehicleId, repairId) { return changeFleetRepair(vehicleId, repairId, 'finish'); }
         function deleteFleetRepair(vehicleId, repairId) { return changeFleetRepair(vehicleId, repairId, 'delete'); }
 
+
+        // Fahrzeug-Belege: Dateien in Firebase Storage, Metadaten direkt am
+        // bestehenden Fahrzeugdokument ("fahrzeuge_park"/{id}.belege).
+        // Keine lokale/offline Ersatzspeicherung und keine neuen Firestore-Collections.
+        function fleetReceiptStatus(message, error) {
+            const target = document.getElementById('receipt-upload-status');
+            if (!target) return;
+            target.className = 'p-2.5 rounded-xl border text-[11px] ' + (error
+                ? 'bg-rose-50 border-rose-200 text-rose-800'
+                : 'bg-sky-50 border-sky-200 text-sky-900');
+            target.textContent = message;
+        }
+        function receiptStorageReady() {
+            if (!db) throw new Error('Firebase Firestore ist nicht verbunden.');
+            if (!receiptStorage) throw new Error('Firebase Storage ist nicht verfügbar: ' + (receiptStorageError || 'Dienst nicht geladen.'));
+            if (typeof navigator.onLine === 'boolean' && !navigator.onLine) throw new Error('Keine Internetverbindung. Belege werden nicht lokal gespeichert.');
+        }
+        function openNewReceiptModal(vehicleId) {
+            if (!cloudFleetVehicles.length) { showToast('Bitte zuerst ein Fahrzeug anlegen.'); return; }
+            const form = document.getElementById('form-fleet-receipt');
+            form.reset();
+            selectedFleetReceiptFile = null;
+            document.getElementById('receipt-selected-file').textContent = 'Noch keine Datei ausgewählt. Maximal 15 MB.';
+            const status = document.getElementById('receipt-upload-status');
+            status.classList.add('hidden');
+            const select = document.getElementById('receipt-vehicle');
+            select.innerHTML = '<option value="">-- Fahrzeug wählen --</option>' +
+                cloudFleetVehicles.map(function(car) {
+                    return '<option value="' + escapeRepairHtml(car.id) + '">' +
+                        escapeRepairHtml(car.plate || car.model || car.id) + '</option>';
+                }).join('');
+            if (vehicleId && cloudFleetVehicles.some(car => car.id === vehicleId)) select.value = vehicleId;
+            const now = new Date();
+            document.getElementById('receipt-date').value = now.getFullYear() + '-' +
+                String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+            openModal('modal-fleet-receipt');
+        }
+        function selectFleetReceiptFile(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            selectedFleetReceiptFile = file;
+            document.getElementById('receipt-selected-file').textContent =
+                file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
+            if (input.id === 'receipt-camera-input') document.getElementById('receipt-file-input').value = '';
+            else document.getElementById('receipt-camera-input').value = '';
+        }
+        function receiptMimeType(file) {
+            const ext = String(file.name || '').split('.').pop().toLowerCase();
+            const types = {pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',
+                png:'image/png',webp:'image/webp',heic:'image/heic',heif:'image/heif'};
+            const mime = (file.type || '').toLowerCase().split(';')[0];
+            if (mime === 'application/pdf' || /^image\/(jpeg|png|webp|heic|heif)$/.test(mime)) return mime;
+            return types[ext] || '';
+        }
+        async function submitFleetReceipt(event) {
+            event.preventDefault();
+            const btn = document.getElementById('receipt-save-btn');
+            if (btn.disabled) return;
+            const vehicleId = document.getElementById('receipt-vehicle').value;
+            const vehicle = cloudFleetVehicles.find(v => v.id === vehicleId);
+            const file = selectedFleetReceiptFile;
+            if (!vehicle) { fleetReceiptStatus('Bitte ein vorhandenes Fahrzeug auswählen.', true); return; }
+            if (!file) { fleetReceiptStatus('Bitte einen Kassenzettel oder eine Rechnung fotografieren bzw. auswählen.', true); return; }
+            if (file.size === 0 || file.size > 15 * 1024 * 1024) { fleetReceiptStatus('Die Datei muss zwischen 1 Byte und 15 MB groß sein.', true); return; }
+            const mime = receiptMimeType(file);
+            if (!mime) { fleetReceiptStatus('Nur Bilder (JPG, PNG, WEBP, HEIC) oder PDF-Dateien sind erlaubt.', true); return; }
+            const date = document.getElementById('receipt-date').value;
+            if (!date) { fleetReceiptStatus('Bitte das Belegdatum eintragen.', true); return; }
+            const amt = document.getElementById('receipt-amount').value;
+            if (amt !== '' && (!Number.isFinite(Number(amt)) || Number(amt) < 0)) {
+                fleetReceiptStatus('Bitte einen gültigen Betrag eingeben.', true); return;
+            }
+            btn.disabled = true;
+            let uploadedRef = null;
+            try {
+                receiptStorageReady();
+                const uid = 'b-' + Date.now().toString(36) + '-' +
+                    Math.random().toString(36).slice(2,10);
+                const extension = {
+                    'application/pdf':'pdf','image/jpeg':'jpg','image/png':'png',
+                    'image/webp':'webp','image/heic':'heic','image/heif':'heif'
+                }[mime];
+                // No supplied filename is ever used as a storage path.
+                const path = 'fahrzeugbelege/' + vehicleId + '/' + uid + '.' + extension;
+                const record = {
+                    id: uid,
+                    date: date,
+                    kind: document.getElementById('receipt-type').value,
+                    vendor: document.getElementById('receipt-vendor').value.trim(),
+                    amount: amt === '' ? null : Number(amt),
+                    description: document.getElementById('receipt-description').value.trim(),
+                    notes: document.getElementById('receipt-notes').value.trim(),
+                    fileName: file.name.slice(0,200),
+                    mime: mime,
+                    bytes: file.size,
+                    storagePath: path,
+                    createdAt: Date.now()
+                };
+                fleetReceiptStatus('Datei wird in Firebase Storage hochgeladen …', false);
+                uploadedRef = receiptStorage.ref().child(path);
+                const uploadTask = uploadedRef.put(file, { contentType:mime });
+                uploadTask.on('state_changed', snapshot => {
+                    if (snapshot.totalBytes) fleetReceiptStatus(
+                        'Hochladen: ' + Math.floor(snapshot.bytesTransferred / snapshot.totalBytes * 100) + ' %', false);
+                });
+                await uploadTask;
+                fleetReceiptStatus('Datei hochgeladen. Fahrzeugzuordnung wird gespeichert …', false);
+                try {
+                    await db.collection('fahrzeuge_park').doc(vehicleId).update({
+                        belege: firebase.firestore.FieldValue.arrayUnion(record)
+                    });
+                } catch (dbError) {
+                    // When the server proves the metadata is absent, clean up the upload.
+                    // Avoid deleting a successfully registered attachment on timeout.
+                    let absent = false;
+                    try {
+                        const snapshot = await db.collection('fahrzeuge_park').doc(vehicleId).get({source:'server'});
+                        absent = !snapshot.exists ||
+                            !(snapshot.data().belege || []).some(b => b.id === uid);
+                    } catch (ignored) {}
+                    if (absent) await uploadedRef.delete().catch(() => {});
+                    throw dbError;
+                }
+                fleetReceiptStatus('Beleg erfolgreich hochgeladen und dem Fahrzeug zugeordnet.', false);
+                selectedFleetReceiptFile = null;
+                closeModal('modal-fleet-receipt');
+                showToast('Beleg erfolgreich in der Cloud beim Fahrzeug gespeichert!');
+            } catch (error) {
+                const message = error && (error.code || error.message) || 'Unbekannter Upload-Fehler';
+                fleetReceiptStatus('Speichern fehlgeschlagen: ' + message + '. Bitte Firebase Storage und die Sicherheitsregeln prüfen.', true);
+                showToast('Beleg konnte nicht gespeichert werden.');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+        function renderFleetReceiptsList() {
+            const container = document.getElementById('fleet-receipts-container');
+            const filter = document.getElementById('receipt-filter-vehicle');
+            if (!container || !filter) return;
+            const previous = filter.value;
+            filter.innerHTML = '<option value="">Alle Fahrzeuge</option>' +
+                cloudFleetVehicles.map(function(car) {
+                    return '<option value="' + escapeRepairHtml(car.id) + '">' +
+                        escapeRepairHtml(car.plate || car.model || car.id) + '</option>';
+                }).join('');
+            if (previous && cloudFleetVehicles.some(car => car.id === previous)) filter.value = previous;
+            const selected = filter.value;
+            const rows = [];
+            cloudFleetVehicles.forEach(function(car) {
+                if (selected && car.id !== selected) return;
+                (Array.isArray(car.belege) ? car.belege : []).forEach(function(receipt) {
+                    rows.push({vehicle:car, receipt:receipt});
+                });
+            });
+            rows.sort((a,b) => (b.receipt.date || '').localeCompare(a.receipt.date || '') ||
+                (b.receipt.createdAt || 0) - (a.receipt.createdAt || 0));
+            if (!rows.length) {
+                container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Keine Belege für die gewählte Fahrzeugauswahl vorhanden.</div>';
+                return;
+            }
+            const money = new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'});
+            container.innerHTML = rows.map(function(entry) {
+                const r = entry.receipt, vehicle = entry.vehicle;
+                const id = /^[A-Za-z0-9_-]+$/.test(r.id || '') ? r.id : '';
+                const vid = /^[A-Za-z0-9_-]+$/.test(vehicle.id || '') ? vehicle.id : '';
+                const canOpen = id && vid && r.storagePath && r.storagePath.startsWith('fahrzeugbelege/');
+                const openBtn = canOpen ?
+                    '<button type="button" onclick="openFleetReceipt(\'' + vid + '\',\'' + id + '\')" class="px-3 py-2 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 font-bold text-[11px]"><i class="fa-solid fa-eye"></i> Beleg ansehen</button>' : '';
+                const deleteBtn = isAdminLoggedIn && id && vid ?
+                    '<button type="button" onclick="deleteFleetReceipt(\'' + vid + '\',\'' + id + '\')" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 font-bold text-[11px]"><i class="fa-solid fa-trash"></i> Löschen</button>' : '';
+                const amount = r.amount == null || r.amount === '' ? '–' :
+                    (Number.isFinite(Number(r.amount)) ? money.format(Number(r.amount)) : '–');
+                return '<div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-2">' +
+                    '<div class="flex items-start justify-between gap-2"><div class="min-w-0"><strong class="text-sm text-slate-900">' +
+                    escapeRepairHtml(r.kind || 'Beleg') + ' · ' + escapeRepairHtml(vehicle.plate || '-') +
+                    '</strong><p class="text-[11px] text-slate-500 mt-0.5">' + escapeRepairHtml(r.date || '-') +
+                    ' · ' + escapeRepairHtml(r.vendor || 'Ohne Händler') + '</p></div>' +
+                    '<span class="text-xs font-black text-indigo-800 shrink-0">' + escapeRepairHtml(amount) + '</span></div>' +
+                    (r.description ? '<div class="text-slate-700">' + escapeRepairHtml(r.description) + '</div>' : '') +
+                    (r.notes ? '<p class="text-slate-600 whitespace-pre-line">' + escapeRepairHtml(r.notes) + '</p>' : '') +
+                    '<div class="text-[10px] text-slate-500 break-all"><i class="fa-solid fa-paperclip"></i> ' +
+                    escapeRepairHtml(r.fileName || 'Datei') + '</div>' +
+                    '<div class="flex flex-wrap gap-2 pt-1">' + openBtn + deleteBtn + '</div></div>';
+            }).join('');
+        }
+        async function openFleetReceipt(vehicleId, receiptId) {
+            const vehicle = cloudFleetVehicles.find(v => v.id === vehicleId);
+            const receipt = vehicle && (vehicle.belege || []).find(b => b.id === receiptId);
+            if (!receipt || !receipt.storagePath) { showToast('Beleg nicht gefunden.'); return; }
+            let tab = null;
+            // Popup is opened directly during the tap to also support iPhone Safari.
+            try { tab = window.open('about:blank', '_blank'); } catch (ignored) {}
+            if (tab) {
+                try {
+                    tab.document.title = 'Beleg wird geladen';
+                    tab.document.body.textContent = 'Beleg wird geladen …';
+                } catch (ignored) {}
+            }
+            try {
+                receiptStorageReady();
+                const url = await receiptStorage.ref().child(receipt.storagePath).getDownloadURL();
+                if (tab && !tab.closed) tab.location.replace(url);
+                else {
+                    const link = document.createElement('a');
+                    link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+                    document.body.appendChild(link); link.click(); link.remove();
+                }
+            } catch (error) {
+                if (tab && !tab.closed) tab.close();
+                showToast('Beleg konnte nicht geöffnet werden: ' + (error.code || error.message || 'Fehler'));
+            }
+        }
+        async function deleteFleetReceipt(vehicleId, receiptId) {
+            if (!isAdminLoggedIn) { showToast('Nur für Administratoren erlaubt.'); return; }
+            if (!window.confirm('Diesen Fahrzeugbeleg wirklich löschen?')) return;
+            try {
+                receiptStorageReady();
+                const ref = db.collection('fahrzeuge_park').doc(vehicleId);
+                let deleted = null;
+                await db.runTransaction(async function(tx) {
+                    const doc = await tx.get(ref);
+                    if (!doc.exists) throw new Error('Fahrzeug nicht gefunden');
+                    const receipts = Array.isArray(doc.data().belege) ? doc.data().belege : [];
+                    deleted = receipts.find(b => b.id === receiptId);
+                    if (!deleted) throw new Error('Beleg nicht gefunden');
+                    tx.update(ref, {belege:receipts.filter(b => b.id !== receiptId)});
+                });
+                if (deleted && deleted.storagePath) {
+                    try { await receiptStorage.ref().child(deleted.storagePath).delete(); }
+                    catch (error) { showToast('Zuordnung gelöscht, Datei konnte in Storage nicht entfernt werden: ' + (error.code || error.message)); return; }
+                }
+                showToast('Fahrzeugbeleg und Datei aus der Cloud gelöscht.');
+            } catch (error) {
+                showToast('Löschen fehlgeschlagen: ' + (error.code || error.message || 'Cloud-Fehler'));
+            }
+        }
+
         function toggleManagerLogin() {
             const dropdown = document.getElementById('manager-login-dropdown');
             const chevron = document.getElementById('manager-chevron');
@@ -2668,6 +3015,7 @@
                 showToast(t('toast_saved'));
                 renderVacationList();
                 renderFleetRepairsList();
+                renderFleetReceiptsList();
             } else {
                 showToast('Falsches Passwort!');
             }
@@ -2687,6 +3035,7 @@
                 renderAdminEmployeesList();
                 saveEmployeesToStorage();
                 renderFleetRepairsList();
+                renderFleetReceiptsList();
                 showToast('Admin-Bereich entsperrt!');
             } else {
                 showToast('Falsches Passwort!');
