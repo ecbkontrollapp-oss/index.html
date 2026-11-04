@@ -278,29 +278,54 @@
     const lib=await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js','pdfjsLib');
     lib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     const pdf=await lib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
-    const chunks=[];let worker=null;
-    try{
-      for(let n=1;n<=Math.min(2,pdf.numPages);n++){
-        status('PDF-Seite '+n+' wird lokal gelesen …');
+    const chunks=[];let worker=null;let cells={};
+    try {
+      const pagesToRead=Math.min(4,pdf.numPages);
+      const pageInfo=[];
+      for(let n=1;n<=pagesToRead;n++){
+        const p=await pdf.getPage(n);
+        const v=p.getViewport({scale:1});
+        pageInfo.push({n,ratio:v.width/v.height});
+      }
+      // Two-page German vehicle documents often show their reverse in
+      // portrait and the data-bearing front in landscape. Never stop
+      // after OCR of the back's printed field explanations.
+      const front=pageInfo.filter(p=>p.ratio>1.58&&p.ratio<2.62);
+      const pageNumbers=front.length?front.map(p=>p.n):pageInfo.map(p=>p.n);
+      for(const n of pageNumbers){
+        status('PDF-Seite '+n+'/'+pdf.numPages+' wird lokal ausgelesen …');
         const page=await pdf.getPage(n);
-        let line=pdfText((await page.getTextContent()).items||[]);
-        if(line.replace(/\s/g,'').length<75){
+        const content=await page.getTextContent();
+        let text=pdfText(content.items||[]);
+        const raw=page.getViewport({scale:1});
+        const isFront=raw.width/raw.height>1.58 && raw.width/raw.height<2.62;
+        if(text.replace(/\s/g,'').length<75 || isFront){
           if(!worker)worker=await workerFor(status);
-          const raw=page.getViewport({scale:1});
-          const viewport=page.getViewport({scale:Math.min(3,2300/raw.width,2800/raw.height)});
+          const scale=Math.min(3.8,2600/raw.width,2800/raw.height);
+          const viewport=page.getViewport({scale:Math.max(.7,scale)});
           const canvas=document.createElement('canvas');
-          canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+          canvas.width=Math.ceil(viewport.width);
+          canvas.height=Math.ceil(viewport.height);
           const ctx=canvas.getContext('2d');
-          ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+          ctx.fillStyle='#fff';
+          ctx.fillRect(0,0,canvas.width,canvas.height);
           try{
             await page.render({canvasContext:ctx,viewport}).promise;
-            line=(await worker.recognize(canvas)).data.text||'';
-          }finally{canvas.width=0;canvas.height=0;}
+            await worker.setParameters({tessedit_pageseg_mode:'11'});
+            const recognition=await worker.recognize(canvas);
+            text+='\n'+(recognition.data&&recognition.data.text||'');
+            if(isFront && window.ECBRegistrationLayout){
+              const found=await window.ECBRegistrationLayout.scan(canvas,worker,status);
+              if(Object.keys(found).length)cells={...cells,...found};
+            }
+          }finally{
+            canvas.width=0;canvas.height=0;
+          }
         }
-        chunks.push(line);
+        chunks.push(text);
         if(page.cleanup)page.cleanup();
       }
-      return chunks.join('\n');
+      return {text:chunks.join('\n'),cells};
     }finally{
       if(worker)await worker.terminate();
       if(pdf.destroy)await pdf.destroy();
