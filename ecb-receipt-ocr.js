@@ -538,7 +538,9 @@
       // If total or header is still missing, try a second contrast/segment
       // configuration for only the relevant area.
       const data=parse(combined);
-      const needsHeader=!data.date||!data.plate||!data.vendor;
+      // An extra unwarped header read also cross-checks the odometer,
+      // where tiny 8/6 digits are frequently confused.
+      const needsHeader=!data.date||!data.plate||!data.vendor||data.km!==null;
       const needsItems=!data.items.length ||
         (data.items.length===1 && /(?:ölwechsel|olwechsel)/i.test(data.items[0].name));
       if(model.detected && (needsHeader || needsItems || data.amount===null)){
@@ -850,7 +852,11 @@
       if(debug)debug.classList.remove('hidden');
       if(best.length){
         let existing=[];
-        try {existing=collect();} catch(ignored) {existing=[];}
+        try {existing=collect();}
+        catch(error) {
+          show('Bitte einen bereits eingetragenen, unvollständigen Artikel zuerst korrigieren. Die bisherigen Positionen wurden nicht verändert.',true);
+          return;
+        }
         const merged=mergeReceiptItems(existing,best,true);
         clearRows();
         merged.forEach(addItem);
@@ -862,7 +868,12 @@
         const wrapper=el('receipt-ocr-review-wrap');
         if(review)review.checked=false;
         if(wrapper)wrapper.classList.remove('hidden');
-        show(merged.length+' Artikelpositionen in der Maske. Neue Positionen aus mehreren Bildausschnitten ergänzt. Bitte alle Angaben mit dem Beleg vergleichen; die anderen Rechnungsdaten wurden nicht geändert.',false);
+        const potentiallyMissing=merged.length===1 &&
+          /(?:ölwechsel|olwechsel)/i.test(merged[0].name);
+        show(merged.length+' Artikelpositionen in der Maske. '+(
+          potentiallyMissing?'Weitere Positionen (z. B. Filter) konnten nicht sicher erkannt werden. Bitte am Originalbeleg prüfen und ergänzen. ':
+          'Positionen aus mehreren Bildausschnitten zusammengeführt. Bitte Vollständigkeit und Preise prüfen. ')+
+          'Andere Rechnungsdaten wurden nicht geändert.',potentiallyMissing);
       } else {
         show('Auch im separaten Ausschnitt sind keine Artikel zuverlässig lesbar. Öffne „Erkannten Text zur Fehlersuche ansehen“ und prüfe den Abschnitt „Artikel separat ausgelesen“ – oder ergänze die Artikel manuell.',true);
       }
