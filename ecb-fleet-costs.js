@@ -339,6 +339,11 @@
         sh.getCell('C1').value='E.C.B. Reinigungssysteme GmbH';
         sh.getCell('C1').font={size:15,bold:true,color:{argb:'FF14532D'}};
         sh.getCell('C3').value='Fahrzeugkosten · Stand '+infoDate();
+        const scope=mode==='single'?(report.groups[0]?vehicleName(report.groups[0].car):'-'):'Gesamter Fuhrpark';
+        const range=report.range.from||report.range.to?
+          dateDE(report.range.from)+' bis '+dateDE(report.range.to):'Gesamter Zeitraum';
+        sh.getCell('C4').value=scope+' · '+range;
+        sh.getCell('C4').font={size:10,color:{argb:'FF64748B'}};
         sh.getRow(5).values=headers;
         const head=sh.getRow(5);head.font={bold:true,color:{argb:'FFFFFFFF'}};
         head.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF4D8A30'}};
