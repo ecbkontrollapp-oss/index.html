@@ -301,6 +301,71 @@
     return {vendor,date,amount,totalDerived,items,netAmount,netCalculated,taxAmount,km,kmUncertain,plate};
   }
 
+
+  // OCR-only supplements can fill missing invoice metadata, never overwrite
+  // an already-read date, merchant, line item, vehicle or total price.
+  // Odometer values are used only with corroboration; a digit error on a
+  // thermal receipt is common and should not silently update the fleet.
+  function mergeReceiptEvidence(base, samples) {
+    const result={...base};
+    const parsed=(samples||[]).map(s=>({
+      kind:s.kind,
+      fields:parse(s.text)
+    }));
+    function uniqueValues(kind,field) {
+      const values=parsed.filter(x=>x.kind===kind).map(x=>x.fields[field])
+        .filter(x=>x!==null && x!==undefined && Number.isFinite(x));
+      return {values,unique:[...new Set(values)]};
+    }
+    const vat=uniqueValues('finance','taxAmount');
+    const net=uniqueValues('finance','netAmount');
+    if(result.taxAmount===null && vat.unique.length===1){
+      const candidate=vat.unique[0];
+      if(candidate>=0 && candidate>0 &&
+        (result.amount===null || candidate<result.amount*.35)) {
+        if(result.netAmount===null ||
+          Math.abs(Math.round((result.netAmount+candidate-result.amount)*100))<=1)
+          result.taxAmount=candidate;
+      }
+    }
+    if(result.netAmount===null && net.unique.length===1){
+      const candidate=net.unique[0];
+      if(candidate>=0 && (result.amount===null || candidate<=result.amount) &&
+        (result.taxAmount===null || result.amount===null ||
+          Math.abs(Math.round((candidate+result.taxAmount-result.amount)*100))<=1)){
+        result.netAmount=candidate;
+      }
+    }
+    if(result.netAmount===null && result.amount!==null && result.taxAmount!==null &&
+      result.amount>result.taxAmount){
+      result.netAmount=(Math.round(result.amount*100)-Math.round(result.taxAmount*100))/100;
+      result.netCalculated=true;
+    }
+    if(result.taxAmount===null && result.amount!==null && result.netAmount!==null &&
+      result.amount>result.netAmount){
+      // Difference alone can include tips, fees or zero-rated line items.
+      // Do not infer VAT without an OCR-supported tax figure.
+    }
+    const km=uniqueValues('mileage','km');
+    if(km.unique.length>1){
+      result.km=null;
+      result.kmUncertain=true;
+    } else if(km.unique.length===1) {
+      const count=km.values.length;
+      const candidate=km.unique[0];
+      if(result.km!==null && result.km!==candidate) {
+        result.km=null;
+        result.kmUncertain=true;
+      } else if(result.km===null && count>=2 && !result.kmUncertain) {
+        result.km=candidate;
+      } else if(result.km===null && count>=2 && result.kmUncertain) {
+        // Existing conflicts need human verification even if one later pass
+        // has matching digits; never silently resolve disagreements.
+      }
+    }
+    return result;
+  }
+
   function clearRows() { const node=el('receipt-items-list'); if(node)node.innerHTML=''; }
   function addItem(item) {
     const list=el('receipt-items-list');
@@ -316,7 +381,7 @@
       '<label class="col-span-4 sm:col-span-2 text-[10px] font-bold text-slate-600">Menge',
       '<input type="number" min="0.001" max="1000" step="any" inputmode="decimal" class="receipt-item-qty mt-1 w-full px-2 py-2 rounded-lg border border-slate-200 text-xs" value="'+escapeHtml(item && item.quantity != null ? item.quantity : 1)+'"></label>',
       '<label class="col-span-6 sm:col-span-3 text-[10px] font-bold text-slate-600">Positionspreis (€)',
-      '<input type="number" min="0" step="0.01" inputmode="decimal" class="receipt-item-price mt-1 w-full px-2 py-2 rounded-lg border border-slate-200 text-xs" placeholder="0,00" value="'+escapeHtml(item && item.amount != null ? item.amount.toFixed(2) : '')+'"></label>',
+      '<input type="number" min="0" step="0.01" inputmode="decimal" class="receipt-item-price mt-1 w-full px-2 py-2 rounded-lg border border-slate-200 text-xs" placeholder="Kein Einzelpreis" value="'+escapeHtml(item && item.amount != null ? item.amount.toFixed(2) : '')+'"></label>',
       '<button type="button" class="receipt-item-remove col-span-2 sm:col-span-1 p-2 text-rose-700 rounded-lg bg-rose-50" aria-label="Artikel entfernen"><i class="fa-solid fa-trash"></i></button>'
     ].join('');
     row.querySelector('.receipt-item-remove').addEventListener('click',()=>row.remove());
@@ -585,7 +650,33 @@
           } finally {canvas.width=0;canvas.height=0;}
         }
       }
-      return combined;
+      // Read tax summary and odometer from their own zones instead of
+      // replacing already-correct amounts with new whole-document OCR text.
+      const base=parse(combined);
+      const supplements=[];
+      const windows=[];
+      if(model.detected && (base.netAmount===null || base.taxAmount===null)) {
+        windows.push({kind:'finance',from:.56,to:.75,contrast:1.55});
+        windows.push({kind:'finance',from:.61,to:.82,contrast:1.9});
+      }
+      if(model.detected && base.km===null) {
+        windows.push({kind:'mileage',from:.18,to:.39,contrast:1.55});
+        windows.push({kind:'mileage',from:.20,to:.43,contrast:1.95});
+      }
+      if(windows.length){
+        await worker.setParameters({tessedit_pageseg_mode:'6'});
+        for(const w of windows){
+          const canvas=drawUnwarpedPhotoPart(model,model.top+length*w.from,
+            model.top+length*w.to,w.contrast);
+          setStatus('Zusatzprüfung für '+(w.kind==='finance'?'Netto und MwSt.':'Kilometerstand')+' …');
+          try {
+            const recognized=await worker.recognize(canvas);
+            const txt=recognized.data && recognized.data.text || '';
+            if(txt.trim())supplements.push({kind:w.kind,text:txt});
+          } finally {canvas.width=0;canvas.height=0;}
+        }
+      }
+      return {text:combined,supplements};
     } finally { await worker.terminate(); }
   }
   function pdfLines(items) {
@@ -653,13 +744,17 @@
     const update=message=>{if(number===scanSerial)show(message,false);};
     try {
       const isPdf=file.type==='application/pdf'||/\.pdf$/i.test(file.name);
-      const raw=isPdf?await scanPdf(file,update):await scanImage(file,update);
+      const readResult=isPdf?await scanPdf(file,update):await scanImage(file,update);
       if(number!==scanSerial || file!==window.ECB_CURRENT_RECEIPT_FILE)return;
+      const raw=typeof readResult==='string'?readResult:readResult.text;
+      const supplements=typeof readResult==='string'?[]:readResult.supplements||[];
       const debug=el('receipt-ocr-debug');
       const rawNode=el('receipt-ocr-raw');
       if(debug)debug.classList.remove('hidden');
-      if(rawNode)rawNode.value=String(raw||'').slice(0,12000);
-      const extracted=parse(raw);
+      if(rawNode)rawNode.value=(String(raw||'')+
+        supplements.map(s=>'\n\n--- '+(s.kind==='finance'?'Netto/MwSt.':'KM')+
+          ' Zusatzlesung ---\n'+s.text).join('')).slice(0,12000);
+      const extracted=mergeReceiptEvidence(parse(raw),supplements);
       let detected=0;
       if(extracted.vendor) {el('receipt-vendor').value=extracted.vendor;detected++;}
       // Never replace a manually checked value with a missing OCR date.
