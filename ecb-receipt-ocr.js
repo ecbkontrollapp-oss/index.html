@@ -94,16 +94,20 @@
     return recent[0].date;
   }
   function identifyVendor(lines) {
-    const bad = /^(?:rechnung|kassenbon|beleg|quittung|tax|invoice|customer|danke|willkommen|filiale|adresse|str(?:asse|aße)|tel|fax|www|https?|[0-9\s.,:/\-]+|ust|steuer|bon.nr|datum|uhrzeit|kasse|eur|zahlung|kunden|artikel|betrag)\b/i;
-    for (const raw of lines.slice(0,8)) {
-      const line=raw.trim();
-      const tokens=line.split(/\s+/).filter(Boolean);
-      // OCR of tiny distant print can produce isolated random letters.
-      if(tokens.length>=5 && tokens.filter(t=>t.length<=2).length>=3)continue;
-      if (line.length < 3 || line.length > 85 || bad.test(line) ||
-          /^\d/.test(line) || /(?:IBAN|BIC|@|\.de\b|\.com\b)/i.test(line) ||
-          !/[A-Za-zÄÖÜäöüß]{3}/.test(line)) continue;
-      return line.replace(/\s{2,}/g,' ').replace(/[^\p{L}\p{N}.)&\/\-]+$/gu,'').trim().slice(0,180);
+    const candidates=lines.slice(0,13);
+    const known=/^\s*mac\s*[o0]\s*[i1lt]\s*l(?:\b|[^\p{L}])/iu;
+    for(const line of candidates)if(known.test(line))return 'macOIL';
+    const forbidden=/(?:\b(?:rechnung|kassenbon|beleg|quittung|tax|invoice|danke|willkommen|filiale|adresse|inhaber|telefon|kunde|kundennummer|vorgang|vorgangsnummer|belegnummer|kilometer|kennzeichen|steuer|ust|mwst|mehrwertsteuer|netto|brutto|gesamtbetrag|summe|gesamt|zahlbetrag|betrag|kasse|artikel|leistung|zahlung|datum|uhrzeit|maschinen|tse|signature|bon)\b|rechnungs(?:datum|betrag|nummer)|\d{2}[./-]\d{2}[./-]\d{2,4})/i;
+    const address=/(?:stra(?:ße|sse|be)|str\.?|weg|platz|gasse|allee|avenue|street|road|m[öo]hlstra\w*)\s*[-.,]?\s*\d+\s*(?:[-/]\s*\d+)?\b/i;
+    for(const raw of candidates.slice(0,9)){
+      const line=String(raw||'').trim();
+      if(line.length<3||line.length>80||forbidden.test(line)||address.test(line)||
+         /(?:IBAN|BIC|@|\.de\b|\.com\b)/i.test(line)||
+         /^\d/.test(line)||/\b\d{5}\b/.test(line)||
+         !/[A-Za-zÄÖÜäöüß]{3}/.test(line))continue;
+      const tokens=line.split(/\s+/);
+      if(tokens.length>=5&&tokens.filter(x=>x.length<=2).length>=3)continue;
+      return line.replace(/[^\p{L}\p{N}.)&/\-]+$/gu,'').slice(0,180);
     }
     return '';
   }
@@ -191,11 +195,26 @@
     const summaryIdx=lines.findIndex(line=>totalRx.test(line)||netRx.test(line)||taxRx.test(line));
     const stop=summaryIdx>=1?summaryIdx:candidates.length?candidates[0].index:lines.length;
     const items=[];
+    function itemIdentity(name) {
+      let normalized=String(name||'').toLowerCase().normalize('NFD')
+        .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+      if(/\b(?:5w\s*30|5w\s*40|0w\s*30)\b/.test(normalized))
+        normalized=normalized.replace(/^(?:olwechsel|oelwechsel|motorol)\s+/,'');
+      return normalized.replace(/\s+/g,'');
+    }
     function push(name,quantity,price) {
       const clean=String(name||'').replace(/\s{2,}/g,' ').trim().slice(0,180);
       if(!clean || clean.length<3 || !/[A-Za-zÄÖÜäöüß]{2}/.test(clean) ||
          isNotItem(clean) || items.length>=MAX_ITEMS)return;
-      if(items.some(item=>item.name===clean&&item.amount===price))return;
+      const key=itemIdentity(clean);
+      const existing=items.find(item=>itemIdentity(item.name)===key &&
+        Number(item.quantity)===Number(quantity) &&
+        (item.amount===price||item.amount==null||price==null));
+      if(existing){
+        if(existing.amount===null&&price!==null)existing.amount=price;
+        if(clean.length>existing.name.length)existing.name=clean;
+        return;
+      }
       items.push({name:clean,quantity,amount:price});
     }
     function heading(line){
@@ -845,13 +864,14 @@
       const name=String(item.name || '').toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
         .replace(/[^a-z0-9]+/g,' ').trim();
+      if(/(?:^|\s)(?:5w\s*30|5w\s*40|0w\s*30)(?:\s|$)/.test(name))
+        return name.replace(/^(?:olwechsel|oelwechsel|motorol)\s+/,'').replace(/\s+/g,'');
       if (/^(olwechsel|olfilter|motorol)(?:\s|$)/.test(name)){
         const tokens=name.split(' ');
-        // Avoid accidentally merging different parts sharing the same generic name.
-        const numbers=name.match(/\b(?:w\s?\d{3,5}|5w\s?30|\d{4,})\b/g);
+        const numbers=name.match(/\b(?:w\s?\d{3,5}|\d{4,})\b/g);
         return tokens[0]+':'+(numbers&&numbers.length?numbers.join(','):'');
       }
-      return name;
+      return name.replace(/\s+/g,'');
     }
     function quality(item) {
       return (item.amount!==null && Number.isFinite(item.amount) ? 5 : 0)+
