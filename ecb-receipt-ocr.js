@@ -253,6 +253,10 @@
     if(status){status.textContent='';status.classList.add('hidden');}
     const retry=el('receipt-ocr-retry');
     if(retry)retry.disabled=false;
+    const debug=el('receipt-ocr-debug');
+    if(debug){debug.classList.add('hidden');debug.open=false;}
+    const raw=el('receipt-ocr-raw');
+    if(raw)raw.value='';
   }
 
   async function preparePhoto(file) {
@@ -511,6 +515,10 @@
       const isPdf=file.type==='application/pdf'||/\.pdf$/i.test(file.name);
       const raw=isPdf?await scanPdf(file,update):await scanImage(file,update);
       if(number!==scanSerial || file!==window.ECB_CURRENT_RECEIPT_FILE)return;
+      const debug=el('receipt-ocr-debug');
+      const rawNode=el('receipt-ocr-raw');
+      if(debug)debug.classList.remove('hidden');
+      if(rawNode)rawNode.value=String(raw||'').slice(0,12000);
       const extracted=parse(raw);
       let detected=0;
       if(extracted.vendor) {el('receipt-vendor').value=extracted.vendor;detected++;}
@@ -523,11 +531,18 @@
       if(extracted.km!==null) {el('receipt-km').value=String(extracted.km);detected++;}
       let plateMatched=false;
       const vehicleSelect=el('receipt-vehicle');
-      if(extracted.plate && vehicleSelect && !vehicleSelect.value) {
+      if(vehicleSelect && !vehicleSelect.value){
         const normalizePlate=value=>String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-        const normalized=normalizePlate(extracted.plate);
-        const matches=Array.from(vehicleSelect.options).filter(option=>
-          option.value && normalizePlate(option.textContent).startsWith(normalized));
+        const desired=extracted.plate?normalizePlate(extracted.plate):'';
+        const rawNormalized=normalizePlate(raw);
+        const matches=Array.from(vehicleSelect.options).filter(option=>{
+          if(!option.value)return false;
+          const candidate=normalizePlate(option.textContent);
+          // Match OCR plate directly first; when its label was unreadable,
+          // match only one exact fleet plate appearing in OCR text.
+          return candidate.length>=6 &&
+            ((desired && candidate===desired) || (!desired && rawNormalized.includes(candidate)));
+        });
         if(matches.length===1){
           vehicleSelect.value=matches[0].value;
           plateMatched=true;
@@ -553,7 +568,7 @@
         if(!extracted.date)missing.push('Belegdatum');
         if(extracted.amount===null)missing.push('Endbetrag');
         if(!extracted.items.length)missing.push('Artikelpositionen');
-        if(!extracted.plate)missing.push('Kennzeichen (Fahrzeug bitte auswählen)');
+        if(!plateMatched && !vehicleSelect?.value)missing.push('Fahrzeug (bitte auswählen)');
         show('Erkannt: '+[
           extracted.vendor?'Händler':'',
           extracted.date?'Datum':'',
@@ -567,7 +582,7 @@
         (missing.length ? 'Nicht zuverlässig erkannt: '+missing.join(', ')+'. Bitte selbst ergänzen. ' : '')+
         'Alle Daten und Preise mit dem Originalbeleg vergleichen und bestätigen.',missing.length>0);
       } else {
-        show('Aus diesem Beleg konnten keine sicheren Daten erkannt werden. Bitte Felder manuell eintragen.',true);
+        show('Aus diesem Beleg konnten keine sicheren Daten erkannt werden. Bitte Felder manuell eintragen und im Bereich „Erkannten Text“ prüfen, was lesbar war.',true);
       }
     } catch(error) {
       if(number===scanSerial)show('Automatische Erkennung fehlgeschlagen: '+
