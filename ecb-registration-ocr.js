@@ -23,6 +23,15 @@
   function sanitizeText(value,max=80){
     return normalize(value).replace(/[\r\n\t]/g,' ').replace(/\s{2,}/g,' ').slice(0,max);
   }
+  // Only copy a colour into the form when it is a plausible official
+  // vehicle colour. OCR fragments such as "[ul =" must remain blank.
+  function colorValue(raw){
+    const value=sanitizeText(raw,40).toUpperCase().replace(/\s+/g,' ').trim();
+    const core=value.replace(/^\d{1,2}\s*[-:.,/]?\s*/,'');
+    const normalized=core.replace(/Ä/g,'AE').replace(/Ö/g,'OE').replace(/Ü/g,'UE');
+    if(!/^(?:WEISS|SCHWARZ|GRAU|BLAU|ROT|GRUEN|GELB|BRAUN|SILBER|GOLD|BEIGE|ORANGE|VIOLETT|ROSA|LILA|ANTHRAZIT|MEHRFARBIG|SONSTIGE|UNBEKANNT)(?:[ -](?:METALLIC|PERLEFFEKT|MATT))?$/.test(normalized))return '';
+    return core;
+  }
   function dateValue(text){
     const m=String(text||'').match(/\b([0-3]?\d)[./-]([01]?\d)[./-](19\d{2}|20\d{2}|21\d{2})\b/);
     if(!m)return '';
@@ -115,10 +124,10 @@
     }
     const data={
       plate,firstRegistration:dateValue(first('B')),manufacturer:maker,
-      model:trade||variant,type:variant,vin,hsn,tsn,
+      model:trade,type:variant,vin,hsn,tsn,
       fuel:sanitizeText(first('P.3'),50),
       powerKw:number('P.2'),displacement:number('P.1'),
-      color:sanitizeText(first('R'),40),seats:number('S.1'),
+      color:colorValue(first('R')),seats:number('S.1'),
       totalMass:number('F.2'),tyresFront:tyre(first('15.1')),
       tyresRear:tyre(first('15.2')),vehicleClass:sanitizeText(first('J'),30)
     };
@@ -186,6 +195,24 @@
     const check=$(mode==='vehicle'?'vehicle-ocr-review':'registration-ocr-review');
     return !!check&&check.checked;
   }
+  function validateParsed(result){
+    const d=result.data||{};
+    d.color=colorValue(d.color);
+    for(const [key,max] of Object.entries({
+      powerKw:1000,displacement:20000,seats:100,totalMass:200000
+    })){
+      const value=String(d[key]||'');
+      if(value && (!/^\d{1,6}$/.test(value)||Number(value)<1||Number(value)>max))d[key]='';
+    }
+    if(d.plate&&!/^[A-ZÄÖÜ]{1,3}-[A-ZÄÖÜ]{1,2} \d{1,4}[EH]?$/.test(d.plate))d.plate='';
+    if(d.vin&&!/^[A-HJ-NPR-Z0-9]{17}$/.test(d.vin))d.vin='';
+    if(d.hsn&&!/^\d{4}$/.test(d.hsn))d.hsn='';
+    if(d.tsn&&!/^[A-Z0-9]{3,12}$/.test(d.tsn))d.tsn='';
+    if(d.fuel&&!/^(?:DIESEL|BENZIN|ELEKTRO|HYBRID|CNG|LPG|ERDGAS|FLÜSSIGGAS|FLUESSIGGAS|WASSERSTOFF|AUTOGAS)(?:\b|\/)/i.test(d.fuel))d.fuel='';
+    if(d.vehicleClass&&!/^(?:M[1-3]|N[1-3]|O[1-4]|L\d[A-Z]?)$/i.test(d.vehicleClass))d.vehicleClass='';
+    result.keys=Object.keys(d).filter(key=>d[key]);
+    return result;
+  }
   function copyParsed(mode,result){
     const st=state[mode];
     for(const [key,id] of Object.entries(ids[mode])){
@@ -199,8 +226,10 @@
     }
     st.parsed=result;
     const list=result.keys.map(k=>LABELS[k]||k).join(', ');
+    const missing=['plate','model','color'].filter(key=>!result.data[key]);
+    const warning=missing.length?' Nicht sicher erkannt: '+missing.map(k=>LABELS[k]||k).join(', ')+'. Bitte manuell ergänzen.':'';
     setStatus(mode,result.keys.length?
-      'Lokal ausgelesen: '+list+'. Bitte jedes Feld mit dem Original prüfen. Noch NICHT hochgeladen.':
+      'Lokal ausgelesen: '+list+'.'+warning+' Alle Daten am Original prüfen. Noch NICHT hochgeladen.':
       'Keine verlässlichen Fahrzeugdaten erkannt. Bitte manuell eintragen. Noch NICHT hochgeladen.',
       !result.keys.length);
   }
@@ -350,7 +379,7 @@
       Object.entries(extracted).forEach(([key,value])=>{
         if(value)parsed.data[key]=value;
       });
-      parsed.keys=Object.keys(parsed.data).filter(k=>parsed.data[k]);
+      validateParsed(parsed);
       copyParsed(mode,parsed);
     }catch(err){
       if(serial===st.serial)setStatus(mode,'Auslesen fehlgeschlagen: '+(err.message||err)+'. Die Datei wurde nicht hochgeladen. Felder lassen sich manuell ausfüllen.',true);
