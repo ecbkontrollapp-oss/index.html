@@ -38,6 +38,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./ecb-supabase-config.js"></script>
+    <script src="./ecb-documents.js"></script>
     <script defer src="./kfz-admin.js"></script>
 
     <style>
@@ -1505,7 +1508,7 @@
                     <p id="registration-selected-file" class="text-[11px] text-slate-500 break-words">Noch keine Datei ausgewählt. Maximal 15 MB pro Datei.</p>
                 </div>
                 <p class="text-[10px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-2.5">
-                    Fahrzeugscheine können personenbezogene Daten enthalten. Bitte nur hochladen, wenn der Firebase-Zugriff auf berechtigte Mitarbeitende beschränkt ist.
+                    Fahrzeugscheine enthalten möglicherweise personenbezogene Daten. Der Supabase-Bucket muss privat sein; nur freigegebene Mitarbeitende dürfen sich anmelden.
                 </p>
                 <div id="registration-upload-status" class="hidden p-2.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 text-[11px]" role="status" aria-live="polite"></div>
                 <button type="submit" id="registration-save-btn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-xs box-border">
@@ -2896,8 +2899,27 @@
         }
         function receiptStorageReady() {
             if (!db) throw new Error('Firebase Firestore ist nicht verbunden.');
-            if (!receiptStorage) throw new Error('Firebase Storage ist nicht verfügbar: ' + (receiptStorageError || 'Dienst nicht geladen.'));
-            if (typeof navigator.onLine === 'boolean' && !navigator.onLine) throw new Error('Keine Internetverbindung. Belege werden nicht lokal gespeichert.');
+            if (typeof navigator.onLine === 'boolean' && !navigator.onLine)
+                throw new Error('Keine Internetverbindung. Dokumente werden nicht lokal gespeichert.');
+            if (!window.ECBFileStorage) throw new Error('Kostenloser Supabase-Dokumentenspeicher nicht geladen.');
+            window.ECBFileStorage.check();
+        }
+        async function fleetDocumentUrl(record) {
+            if (record.storageProvider === 'supabase') {
+                if (!window.ECBFileStorage) throw new Error('Supabase ist nicht geladen.');
+                return window.ECBFileStorage.signedUrl(record.storagePath);
+            }
+            // Existing documents without provider metadata remain on Firebase.
+            if (!receiptStorage) throw new Error('Der alte Firebase-Dateispeicher ist nicht erreichbar.');
+            return receiptStorage.ref().child(record.storagePath).getDownloadURL();
+        }
+        async function fleetDocumentRemove(record) {
+            if (record.storageProvider === 'supabase') {
+                if (!window.ECBFileStorage) throw new Error('Supabase ist nicht geladen.');
+                return window.ECBFileStorage.remove(record.storagePath);
+            }
+            if (!receiptStorage) throw new Error('Der alte Firebase-Dateispeicher ist nicht erreichbar.');
+            return receiptStorage.ref().child(record.storagePath).delete();
         }
         // Shared document upload for receipts and registration certificates.
         // Avoid Firebase's long default retry period leaving the mobile UI at 0%.
@@ -3032,11 +3054,12 @@
                     mime: mime,
                     bytes: file.size,
                     storagePath: path,
+                    storageProvider: 'supabase',
                     createdAt: Date.now()
                 };
-                fleetReceiptStatus('Datei wird in Firebase Storage hochgeladen …', false);
-                uploadedRef = receiptStorage.ref().child(path);
-                await uploadFleetDocument(uploadedRef, file, mime, percentage => {
+                fleetReceiptStatus('Geschützter Upload zu Supabase Free wird gestartet …', false);
+                uploadedRef = { storagePath:path, storageProvider:'supabase' };
+                await window.ECBFileStorage.upload(path, file, mime, percentage => {
                     fleetReceiptStatus('Hochladen: ' + percentage + ' %', false);
                 });
                 fleetReceiptStatus('Datei hochgeladen. Fahrzeugzuordnung wird gespeichert …', false);
@@ -3053,7 +3076,7 @@
                         absent = !snapshot.exists ||
                             !(snapshot.data().belege || []).some(b => b.id === uid);
                     } catch (ignored) {}
-                    if (absent) await uploadedRef.delete().catch(() => {});
+                    if (absent) await fleetDocumentRemove(uploadedRef).catch(() => {});
                     throw dbError;
                 }
                 fleetReceiptStatus('Beleg erfolgreich hochgeladen und dem Fahrzeug zugeordnet.', false);
@@ -3131,8 +3154,7 @@
                 } catch (ignored) {}
             }
             try {
-                receiptStorageReady();
-                const url = await receiptStorage.ref().child(receipt.storagePath).getDownloadURL();
+                const url = await fleetDocumentUrl(receipt);
                 if (tab && !tab.closed) tab.location.replace(url);
                 else {
                     const link = document.createElement('a');
@@ -3148,7 +3170,7 @@
             if (!(window.ECB_KFZ_ADMIN && window.ECB_KFZ_ADMIN.unlocked)) { showToast('KFZ-Adminpasswort erforderlich.'); return; }
             if (!window.confirm('Diesen Fahrzeugbeleg wirklich löschen?')) return;
             try {
-                receiptStorageReady();
+                if (!db) throw new Error('Firestore ist nicht verbunden.');
                 const ref = db.collection('fahrzeuge_park').doc(vehicleId);
                 let deleted = null;
                 await db.runTransaction(async function(tx) {
@@ -3160,7 +3182,7 @@
                     tx.update(ref, {belege:receipts.filter(b => b.id !== receiptId)});
                 });
                 if (deleted && deleted.storagePath) {
-                    try { await receiptStorage.ref().child(deleted.storagePath).delete(); }
+                    try { await fleetDocumentRemove(deleted); }
                     catch (error) { showToast('Zuordnung gelöscht, Datei konnte in Storage nicht entfernt werden: ' + (error.code || error.message)); return; }
                 }
                 showToast('Fahrzeugbeleg und Datei aus der Cloud gelöscht.');
@@ -3171,7 +3193,7 @@
 
 
         // Fahrzeugscheine (Zulassungsbescheinigung Teil I) werden je Fahrzeug
-        // in Firebase Storage abgelegt. Die Dokument-Metadaten liegen am
+        // im privaten Supabase-Free-Bucket abgelegt. Die Dokument-Metadaten liegen am
         // bestehenden fahrzeuge_park/{fahrzeugId}.fahrzeugscheine Array.
         // Keine Speicherung auf dem Endgerät als Alternative zur Cloud.
         function registrationStatus(message, error) {
@@ -3244,11 +3266,11 @@
                 const record = {
                     id:id, side:side, hsn:hsn, tsn:tsn, vin:vin,
                     fileName:file.name.slice(0,200), mime:mime, bytes:file.size,
-                    storagePath:path, createdAt:Date.now()
+                    storagePath:path, storageProvider:'supabase', createdAt:Date.now()
                 };
-                registrationStatus('Fahrzeugschein wird hochgeladen …', false);
-                const storageRef = receiptStorage.ref().child(path);
-                await uploadFleetDocument(storageRef, file, mime, percentage => {
+                registrationStatus('Fahrzeugschein wird zu Supabase Free hochgeladen …', false);
+                const storageRef = {storagePath:path, storageProvider:'supabase'};
+                await window.ECBFileStorage.upload(path, file, mime, percentage => {
                     registrationStatus('Hochladen: ' + percentage + ' %', false);
                 });
                 registrationStatus('Datei hochgeladen. Fahrzeugzuordnung wird gespeichert …', false);
@@ -3264,7 +3286,7 @@
                         const snap = await db.collection('fahrzeuge_park').doc(vehicleId).get({source:'server'});
                         absent = !snap.exists || !(snap.data().fahrzeugscheine || []).some(x => x.id === id);
                     } catch (ignored) {}
-                    if (absent) await storageRef.delete().catch(() => {});
+                    if (absent) await fleetDocumentRemove(storageRef).catch(() => {});
                     throw dbError;
                 }
                 selectedFleetRegistrationFile = null;
@@ -3342,8 +3364,7 @@
                 } catch (ignored) {}
             }
             try {
-                receiptStorageReady();
-                const url = await receiptStorage.ref().child(registration.storagePath).getDownloadURL();
+                const url = await fleetDocumentUrl(registration);
                 if (tab && !tab.closed) tab.location.replace(url);
                 else {
                     const a = document.createElement('a');
@@ -3359,7 +3380,7 @@
             if (!(window.ECB_KFZ_ADMIN && window.ECB_KFZ_ADMIN.unlocked)) { showToast('KFZ-Adminpasswort erforderlich.'); return; }
             if (!window.confirm('Diesen Fahrzeugschein wirklich löschen?')) return;
             try {
-                receiptStorageReady();
+                if (!db) throw new Error('Firestore ist nicht verbunden.');
                 const ref = db.collection('fahrzeuge_park').doc(vehicleId);
                 let deleted = null;
                 await db.runTransaction(async tx => {
@@ -3371,7 +3392,7 @@
                     tx.update(ref,{fahrzeugscheine:docs.filter(x => x.id !== registrationId)});
                 });
                 if (deleted && deleted.storagePath) {
-                    try { await receiptStorage.ref().child(deleted.storagePath).delete(); }
+                    try { await fleetDocumentRemove(deleted); }
                     catch (err) { showToast('Zuordnung entfernt, aber die Storage-Datei konnte nicht gelöscht werden: ' +
                         (err.code || err.message)); return; }
                 }
