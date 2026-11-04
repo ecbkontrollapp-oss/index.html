@@ -42,8 +42,8 @@
     <script src="./ecb-supabase-config.js"></script>
     <script src="./ecb-documents.js?v=20261104-invite-login-v2"></script>
     <script defer src="./ecb-receipt-ocr.js?v=20261104-vendor-dedupe-13"></script>
-    <script defer src="./ecb-registration-layout.js?v=20261105-zb1-rescan-v5"></script>
-    <script defer src="./ecb-registration-ocr.js?v=20261105-registration-verified-v7"></script>
+    <script defer src="./ecb-registration-layout.js?v=20261105-seat-validation-v6"></script>
+    <script defer src="./ecb-registration-ocr.js?v=20261105-vin-matching-v8"></script>
     <script defer src="./ecb-logo-data.js?v=20261104-vector-original-1"></script>
     <script defer src="./ecb-fleet-costs.js?v=20261104-logo-everywhere-5"></script>
     <script defer src="./kfz-admin.js?v=20261104-fahrzeugschein-tech-v5"></script>
@@ -3505,7 +3505,8 @@
             document.getElementById('registration-upload-status').classList.add('hidden');
             const select = document.getElementById('registration-vehicle');
             select.innerHTML = '<option value="">-- Fahrzeug wählen --</option>' +
-                cloudFleetVehicles.map(v => '<option value="' + escapeRepairHtml(v.id) + '">' +
+                cloudFleetVehicles.map(v => '<option value="' + escapeRepairHtml(v.id) +
+                    '" data-vin="' + escapeRepairHtml(v.vin || '') + '">' +
                     escapeRepairHtml(v.plate || v.model || v.id) + '</option>').join('');
             if (vehicleId && cloudFleetVehicles.some(v => v.id === vehicleId)) select.value = vehicleId;
             openModal('modal-fleet-registration');
