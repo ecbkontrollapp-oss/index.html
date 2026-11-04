@@ -228,8 +228,11 @@
     const list=result.keys.map(k=>LABELS[k]||k).join(', ');
     const missing=['plate','model','color'].filter(key=>!result.data[key]);
     const warning=missing.length?' Nicht sicher erkannt: '+missing.map(k=>LABELS[k]||k).join(', ')+'. Bitte manuell ergänzen.':'';
+    const conflict=result.plateConflict?' ACHTUNG: Erkanntes Kennzeichen '+result.plateConflict.recognized+
+      ' stimmt nicht mit dem ausgewählten Fahrzeug '+result.plateConflict.selected+
+      ' überein. OCR-Kennzeichen wurde NICHT übernommen. Bitte Kennzeichen (A) am Original prüfen und korrekt eintragen.':'';
     setStatus(mode,result.keys.length?
-      'Lokal ausgelesen: '+list+'.'+warning+' Alle Daten am Original prüfen. Noch NICHT hochgeladen.':
+      'Lokal ausgelesen: '+list+'.'+conflict+warning+' Alle Daten am Original prüfen. Noch NICHT hochgeladen.':
       'Keine verlässlichen Fahrzeugdaten erkannt. Bitte manuell eintragen. Noch NICHT hochgeladen.',
       !result.keys.length);
   }
@@ -380,6 +383,20 @@
         if(value)parsed.data[key]=value;
       });
       validateParsed(parsed);
+      // Existing fleet documents must never auto-fill an OCR plate which
+      // conflicts with the vehicle selected by the employee.
+      if(mode==='registration'&&parsed.data.plate){
+        const select=$('registration-vehicle');
+        const selectedOption=select&&select.selectedIndex>=0?
+          select.options[select.selectedIndex]:null;
+        const selectedText=normalize(selectedOption&&selectedOption.textContent||'').toUpperCase();
+        const expected=selectedText.match(/^([A-ZÄÖÜ]{1,3})\s*[- ]\s*([A-ZÄÖÜ]{1,2})\s*[- ]\s*(\d{1,4}[EH]?)$/);
+        if(expected && normalizePlate(parsed.data.plate)!==normalizePlate(selectedText)){
+          parsed.plateConflict={recognized:parsed.data.plate,selected:selectedText};
+          parsed.data.plate='';
+          parsed.keys=parsed.keys.filter(k=>k!=='plate');
+        }
+      }
       copyParsed(mode,parsed);
     }catch(err){
       if(serial===st.serial)setStatus(mode,'Auslesen fehlgeschlagen: '+(err.message||err)+'. Die Datei wurde nicht hochgeladen. Felder lassen sich manuell ausfüllen.',true);
