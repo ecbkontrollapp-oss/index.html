@@ -2904,7 +2904,7 @@
         function fleetStorageErrorMessage(error) {
             const code = error && error.code || '';
             const details = String(error && (error.serverResponse || error.message) || '');
-            if (/Blaze|Spark|billing|payment|required.*plan|\\b402\\b/i.test(details))
+            if (/Blaze|Spark|billing|payment|required.*plan|\b402\b/i.test(details))
                 return 'Firebase Storage benötigt den Blaze-Tarif mit aktivierter Abrechnung. Bitte den Firebase-Projekttarif prüfen.';
             if (code === 'storage/stalled')
                 return '45 Sekunden ohne Datenübertragung. Upload abgebrochen. Bitte Internetverbindung, Firebase-Storage-Tarif, Bucket und Zugriffsregeln prüfen.';
