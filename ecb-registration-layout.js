@@ -97,12 +97,46 @@ if(!result.model || !/[A-Za-zÄÖÜäöüß]{4,}/.test(result.model) || /^(?:HAN
     }finally{wider.width=0;wider.height=0;}
   }finally{await worker.setParameters({tessedit_pageseg_mode:'7'});}
 }
+// S.1 is a two-part field: the printed "1" in the label must never
+// be mistaken for the actual seating capacity. Check several overlapping
+// value regions; prefer two independent, matching readings.
+if(!interpret(result,'').seats){
+  const seatVotes=[];
+  const seatBoxes=[
+    [.875,.368,.970,.436],
+    [.887,.379,.977,.455],
+    [.851,.389,.954,.454]
+  ];
+  const savedParams={tessedit_char_whitelist:'0123456789'};
+  try{
+    await worker.setParameters(savedParams);
+    for(const bounds of seatBoxes){
+      const tile=crop(img,bounds);
+      try{
+        for(const psm of ['7','13']){
+          await worker.setParameters({tessedit_pageseg_mode:psm});
+          const reread=await worker.recognize(tile);
+          const text=String(reread.data&&reread.data.text||'').trim();
+          const match=text.match(/^([1-9])$/);
+          // A single "1" may still be the field-code suffix S.1.
+          if(match&&match[1]!=='1')seatVotes.push(match[1]);
+        }
+      }finally{tile.width=0;tile.height=0;}
+    }
+  }finally{
+    await worker.setParameters({tessedit_char_whitelist:'',tessedit_pageseg_mode:'7'});
+  }
+  const votes={};
+  for(const value of seatVotes)votes[value]=(votes[value]||0)+1;
+  const confirmed=Object.entries(votes).find(([,count])=>count>=2);
+  if(confirmed)result.seats=confirmed[0];
+}
 // Targeted second pass for fields which are frequently too small on iPhone
 // photos. Only accept a retry if its result passes the field parser.
 const retryBoxes={
   model:[[.310,.353,.607,.450],[.320,.345,.565,.432]],
   vehicleClass:[[.315,.087,.478,.154],[.297,.079,.535,.171]],
-  seats:[[.835,.355,.944,.446]],
+  seats:[[.875,.368,.970,.436],[.851,.389,.954,.454]],
   tyresFront:[[.655,.405,.907,.472]],
   tyresRear:[[.655,.446,.907,.525]]
 };
