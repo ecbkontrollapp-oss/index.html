@@ -72,6 +72,8 @@
       {key:'employee', label:'Mitarbeiter', max:100},
       {key:'status', label:'Status', type:'select', options:['Offen','In Bearbeitung','Erledigt']},
       {key:'notes', label:'Bemerkungen / Ersatzteile', type:'textarea', max:2000},
+      {key:'cost', label:'Zusätzliche Reparaturkosten ohne Beleg (€)', type:'number', min:0, step:'0.01'},
+      {key:'costSeparate', label:'Kosten sind noch nicht durch einen Beleg erfasst', type:'checkbox'},
       {key:'points', label:'Arbeitspunkte', type:'points'}
     ],
     receipt: [
@@ -101,6 +103,7 @@
       '<div class="flex justify-between items-center gap-2"><label class="text-[11px] font-bold text-slate-700">Artikel / Einzelpositionen</label>' +
       '<button type="button" onclick="ECBKfzAddReceiptItem()" class="px-2.5 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-[11px] font-bold border border-indigo-200"><i class="fa-solid fa-plus"></i> Artikel hinzufügen</button></div>' +
       '<div id="kfz-edit-items" class="space-y-2"></div><p class="text-[10px] text-slate-500">Artikelbezeichnung, Menge und Positionsendpreis. Angaben am Originalbeleg prüfen.</p></div>';
+    if(field.type==='checkbox')return '<label class="flex items-start gap-2 text-xs font-semibold bg-amber-50 p-3 border border-amber-200 rounded-xl"><input id="'+id+'" type="checkbox" class="mt-0.5 accent-indigo-700"><span>'+esc(field.label)+'</span></label>';
     if (field.type === 'points') return '<div class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2">' +
       '<div class="flex justify-between items-center gap-2"><label class="text-[11px] font-bold text-slate-700">Arbeitspunkte</label>' +
       '<button type="button" onclick="ECBKfzAddPoint()" class="px-2.5 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-[11px] font-bold border border-indigo-200"><i class="fa-solid fa-plus"></i> Punkt hinzufügen</button></div>' +
@@ -175,6 +178,9 @@
       } else if (f.type === 'receipt-items') {
         const entries = Array.isArray(item.items) ? item.items : [];
         entries.slice(0,40).forEach(addReceiptItem);
+      } else if(f.type==='checkbox') {
+        const el=document.getElementById('kfz-edit-'+f.key);
+        if(el)el.checked=item[f.key]===true;
       } else {
         const el = document.getElementById('kfz-edit-' + f.key);
         if (el) el.value = item[f.key] == null ? '' : String(item[f.key]);
@@ -227,6 +233,8 @@
           items.push({name,quantity,amount});
         }
         patch.items = items;
+      } else if(f.type==='checkbox') {
+        patch[f.key]=document.getElementById('kfz-edit-'+f.key).checked;
       } else {
         const value = document.getElementById('kfz-edit-' + f.key).value.trim();
         if (f.required && !value) { showToast('Pflichtfeld fehlt: ' + f.label); return; }
@@ -234,10 +242,14 @@
           const num = Number(value);
           if (!Number.isFinite(num) || num < 0) { showToast('Ungültige Zahl: ' + f.label); return; }
           patch[f.key] = (f.key === 'amount' || f.key === 'netAmount' ||
-            f.key === 'taxAmount' || f.key === 'kmAtReceipt') ? num : String(value);
-        } else patch[f.key] = value;
+            f.key === 'taxAmount' || f.key === 'kmAtReceipt' || f.key === 'cost') ? num : String(value);
+        } else patch[f.key] = value === '' && f.key === 'cost' ? null : value;
       }
     }
+    if(kind==='repair' && patch.cost!==null && patch.cost>0 && !patch.costSeparate) {
+      showToast('Bitte bestätigen, dass diese Reparaturkosten nicht bereits als Beleg erfasst sind.');return;
+    }
+    if(kind==='repair' && patch.cost===null)patch.costSeparate=false;
     if (kind === 'vehicle' && !patch.plate) { showToast('Kennzeichen ist erforderlich.'); return; }
     if (kind === 'registration' && patch.vin && !/^[A-HJ-NPR-Z0-9]{17}$/.test(patch.vin.toUpperCase())) {
       showToast('FIN muss aus 17 gültigen Zeichen bestehen.'); return;
