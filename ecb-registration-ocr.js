@@ -188,12 +188,19 @@
     }
   }
   function getFile(mode){return state[mode]&&state[mode].file||null;}
+  function unresolvedPlateConflict(mode){
+    const st=state[mode];
+    if(mode!=='registration'||!st||!st.parsed||!st.parsed.plateConflict)return false;
+    const plate=$('registration-plate');
+    const selected=st.parsed.plateConflict.selected;
+    return !plate||!plate.value.trim()||normalizePlate(plate.value)!==normalizePlate(selected);
+  }
   function canSave(mode){
     const st=state[mode];
     if(!st||st.scanning)return false;
     if(!st.file)return true;
     const check=$(mode==='vehicle'?'vehicle-ocr-review':'registration-ocr-review');
-    return !!check&&check.checked;
+    return !!check&&check.checked&&!unresolvedPlateConflict(mode);
   }
   function validateParsed(result){
     const d=result.data||{};
@@ -430,6 +437,6 @@
     setStatus(mode,'Foto/PDF ausgewählt. Wird nur auf deinem Gerät ausgelesen; noch nichts hochgeladen.',false);
     scan(mode);
   }
-  window.ECBRegistrationOCR={parse,scan,onFile,reset,getFile,canSave,collect,
+  window.ECBRegistrationOCR={parse,scan,onFile,reset,getFile,canSave,unresolvedPlateConflict,collect,
     normalizePlate,fields:Object.keys(LABELS)};
 })();
