@@ -40,7 +40,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./ecb-supabase-config.js"></script>
-    <script src="./ecb-documents.js?v=20261104-invite-fix"></script>
+    <script src="./ecb-documents.js?v=20261104-invite-login-v2"></script>
     <script defer src="./kfz-admin.js"></script>
 
     <style>
@@ -840,6 +840,17 @@
                         Keine Fahrzeuge angelegt.
                     </div>
                 </div>
+            </div>
+
+            <!-- Supabase document login: visible without uploading a file -->
+            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="text-xs font-extrabold text-emerald-900"><i class="fa-solid fa-lock mr-1"></i> Geschützter Dokumentenspeicher</p>
+                    <p class="text-[11px] text-emerald-800 mt-1">Mit eingeladenem Supabase-Konto anmelden. Beim ersten Mal hier einen Passwort-Link anfordern.</p>
+                </div>
+                <button type="button" onclick="ECBFileStorage.openLogin().catch(e => showToast(e.message || 'Supabase-Anmeldung fehlgeschlagen.'))" class="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shrink-0">
+                    <i class="fa-solid fa-right-to-bracket mr-1"></i> Dokumentenzugang
+                </button>
             </div>
 
             <!-- REPAIRS – additional section in existing Fleet & Maintenance view -->
