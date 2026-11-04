@@ -92,7 +92,7 @@
     return '';
   }
   function isNotItem(line) {
-    return /(?:\b(?:summe|gesamt|total|endbetrag|rechnungsbetrag|netto|brutto|mwst|ust|steuer|rückgeld|wechselgeld|gegeben|kartenzahlung|zahlung|barzahlung|bar bezahlt|visa|mastercard|ec-karte|rabatt|gutschein|euro|steuerbetrag|zahlbetrag|beleg|rechnung|kasse|bedienung|telefon|iban|kontonr|kreditkarte|artikelnummer|warenwert|danke|filiale|adresse|transaktion|datum|uhrzeit|saldo|restbetrag|lieferkosten)\b|(?:www\.|https?:|@|ust-id|steuer-nr|^\*+$))/i.test(line);
+    return /(?:\b(?:summe|gesamt|total|endbetrag|rechnungsbetrag|netto|brutto|mwst|ust|steuer|rückgeld|wechselgeld|gegeben|kartenzahlung|zahlung|barzahlung|bar bezahlt|visa|mastercard|ec-karte|rabatt|gutschein|euro|steuerbetrag|zahlbetrag|beleg|rechnung|kasse|bedienung|telefon|iban|kontonr|kreditkarte|artikelnummer|warenwert|danke|filiale|adresse|transaktion|datum|uhrzeit|saldo|restbetrag|lieferkosten|nettobetrag|bruttobetrag|umsatzsteuer|mehrwertsteuer|steueranteil|zahlungsart)\b|(?:www\.|https?:|@|ust-id|steuer-nr|^\*+$))/i.test(line);
   }
 
   function parse(text) {
