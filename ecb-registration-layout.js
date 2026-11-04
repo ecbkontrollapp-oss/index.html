@@ -53,7 +53,18 @@ if(status)status('Tabellenfelder werden einzeln gelesen ('+(i+1)+'/'+cells.lengt
 const canvas=crop(img,entry[1]);
 try{
 const raw=await worker.recognize(canvas);
-result[entry[0]]=raw.data&&raw.data.text||'';
+let value=raw.data&&raw.data.text||'';
+if(entry[0]==='model' && !/\b[A-ZÄÖÜ]{4,}\b/.test(value.trim().toUpperCase())){
+  // Patterned registration paper sometimes confuses single-line layout
+  // detection; sparse-text mode reads the standalone model name better.
+  await worker.setParameters({tessedit_pageseg_mode:'11'});
+  try{
+    const retry=await worker.recognize(canvas);
+    const candidate=retry.data&&retry.data.text||'';
+    if(/\b[A-ZÄÖÜ]{4,}\b/.test(candidate.toUpperCase()))value=candidate;
+  }finally{await worker.setParameters({tessedit_pageseg_mode:'7'});}
+}
+result[entry[0]]=value;
 }finally{canvas.width=0;canvas.height=0;}
 }
 return result;
@@ -102,7 +113,8 @@ d.hsn=hsn?hsn[0]:'';
 const tsn=cleaned(r.tsn).toUpperCase().replace(/^[^A-Z]*(?:2[., ]*2)?\s*/,'').replace(/[^A-Z0-9]/g,'');
 d.tsn=/^[A-Z0-9]{3,12}$/.test(tsn)&&/[A-Z]/.test(tsn)?tsn:'';
 d.manufacturer=letters(r.manufacturer);
-d.model=letters(r.model);
+d.model=String(r.model||'').split(/\r?\n/).map(letters)
+  .find(x=>/^[A-Za-zÄÖÜäöüß]{4,}(?:[ -][A-Za-zÄÖÜäöüß0-9]{2,})?$/.test(x))||'';
 const variants=String(r.type||'').toUpperCase().match(/\b[A-Z0-9]{3,16}\b/g)||[];
 d.type=variants.length?variants[variants.length-1]:'';
 const fuel=letters(r.fuel).toUpperCase();
@@ -112,7 +124,8 @@ d.vehicleClass=group?group[1]:'';
 d.powerKw=number(r.powerKw,1000);
 d.displacement=number(r.displacement,20000);
 d.totalMass=number(r.totalMass,200000);
-d.seats=number(r.seats,100);
+const seatText=cleaned(r.seats).replace(/^\s*S[.,\s]*1\s*[:.\]-]?\s*/i,'');
+d.seats=number(seatText,100);
 d.tyresFront=tyre(r.tyresFront);
 d.tyresRear=tyre(r.tyresRear);
 for(const k of Object.keys(d))if(!d[k])delete d[k];
