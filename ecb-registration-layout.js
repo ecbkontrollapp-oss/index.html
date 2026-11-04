@@ -67,6 +67,36 @@ if(entry[0]==='model' && !/\b[A-ZÄÖÜ]{4,}\b/.test(value.trim().toUpperCase())
 result[entry[0]]=value;
 }finally{canvas.width=0;canvas.height=0;}
 }
+// If a narrow template crop misses A or D.3, try a wider OCR region.
+// These retries do not guess missing values or upload any document.
+if(!plate(result.plate)){
+  await worker.setParameters({tessedit_pageseg_mode:'11'});
+  try{
+    for(const bounds of [[.015,.39,.32,.55],[.015,.29,.34,.66]]){
+      const wider=crop(img,bounds);
+      try{
+        const retry=await worker.recognize(wider);
+        const candidate=retry.data&&retry.data.text||'';
+        if(plate(candidate)){result.plate=candidate;break;}
+      }finally{wider.width=0;wider.height=0;}
+    }
+  }finally{await worker.setParameters({tessedit_pageseg_mode:'7'});}
+}
+if(!result.model || !/[A-Za-zÄÖÜäöüß]{4,}/.test(result.model)){
+  await worker.setParameters({tessedit_pageseg_mode:'11'});
+  try{
+    const wider=crop(img,[.324,.354,.590,.443]);
+    try{
+      const retry=await worker.recognize(wider);
+      const lines=String(retry.data&&retry.data.text||'').split(/\r?\n/)
+        .map(x=>x.trim().toUpperCase());
+      const candidate=lines.find(x=>
+        /^[A-ZÄÖÜ]{4,}(?:[ -][A-ZÄÖÜ0-9]{2,})?$/.test(x)&&
+        !/^(?:HANDELSBEZEICHNUNG|FAHRZEUG|FAHRZEUGSCHEIN|VORDERSEITE|KRAFTSTOFF|HERSTELLER|VARIANTE|DIESEL|BENZIN|MARKE)$/.test(x));
+      if(candidate)result.model=candidate;
+    }finally{wider.width=0;wider.height=0;}
+  }finally{await worker.setParameters({tessedit_pageseg_mode:'7'});}
+}
 return result;
 }
 function cleaned(v){return String(v||'').replace(/[|¦]/g,'1').replace(/[\r\n]/g,' ').replace(/\s+/g,' ').trim();}
