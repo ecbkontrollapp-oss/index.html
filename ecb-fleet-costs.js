@@ -226,7 +226,8 @@
     let y=57;
     pdfHeader(doc,mode==='single'?'Einzelfahrzeug – Kostenreport':'Fuhrpark – Kostenreport',report);
     pdfLine(doc,'Gesamtkosten: '+fmt(report.grand).replace('€','EUR'),15,y,13,true);y+=8;
-    pdfLine(doc,'Belege: '+report.totalReceipts+'   Ohne erfassten Betrag: '+report.missing,15,y,8);y+=10;
+    pdfLine(doc,'Belege: '+report.totalReceipts+'   Ohne erfassten Betrag: '+report.missing,15,y,8);y+=5;
+    pdfLine(doc,'Endbetraege nur einmal je Beleg. Artikel sind Detailangaben, keine Zusatzkosten.',15,y,7);y+=9;
     if(mode==='all'){
       pdfLine(doc,'Fuhrpark – Kostenübersicht',15,y,11,true);y+=7;
       for(const g of report.groups){
@@ -252,10 +253,9 @@
           '  '+(i.price===null?'ohne Einzelpreis':fmt(i.price).replace('€','EUR')));
         const desc=r.company?(r.company+' · '+r.title):r.title;
         const detail=doc.splitTextToSize(desc,132).slice(0,3);
-        const extraHeight=Math.min(12,itemLines.length*4)+
+        const headHeight=13+detail.length*4+
           (r.fileName?4:0)+(r.net!==null||r.tax!==null?4:0);
-        const height=8+detail.length*4+extraHeight;
-        if(y+height>275)y=addPage();
+        if(y+headHeight>275)y=addPage();
         doc.setDrawColor(225,232,237);doc.line(15,y-2,195,y-2);
         pdfLine(doc,dateDE(r.date)+' · '+r.type,17,y+3,8,true);
         doc.setFont('helvetica','bold');doc.setFontSize(8);
@@ -267,8 +267,13 @@
           pdfLine(doc,'Netto: '+(r.net===null?'-':fmt(r.net).replace('€','EUR'))+
             '   MwSt.: '+(r.tax===null?'-':fmt(r.tax).replace('€','EUR')),19,y+2,7);y+=4;
         }
-        for(const line of itemLines.slice(0,3)){pdfLine(doc,line.slice(0,108),19,y+2,7);y+=4;}
-        if(itemLines.length>3){pdfLine(doc,'... weitere '+(itemLines.length-3)+' Positionen siehe Excel oder App',19,y+2,7);y+=4;}
+        for(const line of itemLines){
+          const wrapped=doc.splitTextToSize(line,166);
+          for(const part of wrapped){
+            if(y+5>275)y=addPage();
+            pdfLine(doc,part,19,y+2,7);y+=4;
+          }
+        }
         y+=4;
       }
       y+=4;
