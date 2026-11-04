@@ -84,6 +84,9 @@
     const bad = /^(?:rechnung|kassenbon|beleg|quittung|tax|invoice|customer|danke|willkommen|filiale|adresse|str(?:asse|aße)|tel|fax|www|https?|[0-9\s.,:/\-]+|ust|steuer|bon.nr|datum|uhrzeit|kasse|eur|zahlung|kunden|artikel|betrag)\b/i;
     for (const raw of lines.slice(0,8)) {
       const line=raw.trim();
+      const tokens=line.split(/\s+/).filter(Boolean);
+      // OCR of tiny distant print can produce isolated random letters.
+      if(tokens.length>=5 && tokens.filter(t=>t.length<=2).length>=3)continue;
       if (line.length < 3 || line.length > 85 || bad.test(line) ||
           /^\d/.test(line) || /(?:IBAN|BIC|@|\.de\b|\.com\b)/i.test(line) ||
           !/[A-Za-zÄÖÜäöüß]{3}/.test(line)) continue;
@@ -92,7 +95,7 @@
     return '';
   }
   function isNotItem(line) {
-    return /(?:\b(?:summe|gesamt|total|endbetrag|rechnungsbetrag|netto|brutto|mwst|ust|steuer|rückgeld|wechselgeld|gegeben|kartenzahlung|zahlung|barzahlung|bar bezahlt|visa|mastercard|ec-karte|rabatt|gutschein|euro|steuerbetrag|zahlbetrag|beleg|rechnung|kasse|bedienung|telefon|iban|kontonr|kreditkarte|artikelnummer|warenwert|danke|filiale|adresse|transaktion|datum|uhrzeit|saldo|restbetrag|lieferkosten|nettobetrag|bruttobetrag|umsatzsteuer|mehrwertsteuer|steueranteil|zahlungsart)\b|(?:www\.|https?:|@|ust-id|steuer-nr|^\*+$))/i.test(line);
+    return /(?:\b(?:summe|gesamt|total|endbetrag|rechnungsbetrag|netto|brutto|mwst|ust|steuer|rückgeld|wechselgeld|gegeben|kartenzahlung|zahlung|barzahlung|bar bezahlt|visa|mastercard|ec-karte|rabatt|gutschein|euro|steuerbetrag|zahlbetrag|beleg|rechnung|kasse|bedienung|telefon|iban|kontonr|kreditkarte|artikelnummer|warenwert|danke|filiale|adresse|transaktion|datum|uhrzeit|saldo|restbetrag|lieferkosten|nettobetrag|bruttobetrag|umsatzsteuer|mehrwertsteuer|steueranteil|zahlungsart|rechnungsnummer|belegnummer)\b|(?:www\.|https?:|@|ust-id|steuer-nr|^\*+$))/i.test(line);
   }
 
   function parse(text) {
@@ -100,59 +103,84 @@
       .replace(/\r/g,'\n')
       .split(/\n/)
       .map(s => s.replace(/[ \t]+/g,' ').trim())
-      .filter(Boolean).slice(0,350);
+      .filter(Boolean).slice(0,450);
     const date = identifyDate(lines);
     const vendor = identifyVendor(lines);
-    const totals = [];
-    lines.forEach((line,i) => {
-      const p = lastPrice(line);
-      if (!p) return;
-      const high = /\b(?:zu\s*zahlen|zahlbetrag|endbetrag|gesamtbetrag|gesamtsumme|endsumme|rechnungsbetrag|total|gesamtpreis|fälliger\s*betrag)\b/i.test(line);
-      const medium = /\b(?:gesamt|summe|bruttobetrag)\b/i.test(line);
-      const lower = /\b(?:betrag|bar|karte|kartenzahlung|ec-karte|visa|mastercard|zahlung)\b/i.test(line);
-      if (/rückgeld|wechselgeld|gegeben|zwischensumme|netto|mwst|umsatzsteuer|steuerbetrag|ust\s*[0-9]|rabatt|gutschein|trinkgeld/i.test(line)) return;
-      if (high || medium || lower) {
-        totals.push({index:i,amount:p.amount, score:(high?100:medium?65:35)+i/(lines.length||1)*15});
+    const totalRx = /(?:\b(?:gesamtbetrag|gesamtsumme|endbetrag|endsumme|rechnungsbetrag|gesamtpreis|gesamt\s*betrag|summe|brutto|zu\s*zahlen|zahlbetrag|total)\b)/i;
+    const netRx = /\b(?:nettobetrag|netto\s*betrag|nettosumme)\b/i;
+    const taxRx = /\b(?:mehrwertsteuer|umsatzsteuer|mwst|ust(?:\s+\d+)?|steuerbetrag)\b/i;
+    const cents = /^\s*(?:€|EUR)?\s*\d{1,7}(?:[.\s]\d{3})*[,.]\d{2}\s*(?:€|EUR)?\s*$/i;
+    function valueNear(index) {
+      const current = lastPrice(lines[index]);
+      if (current) return current.amount;
+      if (index+1<lines.length && cents.test(lines[index+1])) {
+        const next=lastPrice(lines[index+1]);
+        if(next)return next.amount;
       }
-    });
-    totals.sort((a,b)=>b.score-a.score);
-    const amount = totals.length ? totals[0].amount : null;
-    // Stop collecting article lines before summary/total block.
-    const summaryIdx=lines.findIndex(line=>/\b(?:zwischensumme|gesamtbetrag|gesamtsumme|summe|endbetrag|zu zahlen|rechnungsbetrag|brutto|total)\b/i.test(line));
-    const stop = summaryIdx > 0 ? summaryIdx : totals.length ? totals[0].index : lines.length;
-    const items = [];
-    const start=Math.min(lines.length,1);
-    for (let i=start; i<Math.min(stop,lines.length); i++) {
-      const line=lines[i];
-      if (isNotItem(line) || /\b(?:\d{2}\.\d{2}\.\d{4}|IBAN|BIC)\b/i.test(line)) continue;
-      const price=lastPrice(line);
-      if (!price) continue;
-      let prefix=price.prefix.trim();
-      if (prefix.length < 3 && i > 0) {
-        const prev=lines[i-1];
-        if (prev.length>=4 && prev.length<100 && !isNotItem(prev) &&
-            !/\d{2}[./-]\d{2}[./-]\d{2,4}/.test(prev) &&
-            !lastPrice(prev)) prefix=prev;
-      }
-      if (prefix.length < 3 || !/[A-Za-zÄÖÜäöüß]{3}/.test(prefix) ||
-          /(?:\b(?:strasse|straße|nummer|kundennr|plz|postfach)\b|[A-Za-z]+@)/i.test(prefix)) continue;
-      let quantity=1;
-      const quantityPrefix=prefix.match(/^(\d{1,3}(?:[.,]\d{1,3})?)\s*(?:x|X|stk\.?|stück)\s+/i);
-      if (quantityPrefix) {
-        const q=Number(quantityPrefix[1].replace(',','.'));
-        if (Number.isFinite(q) && q>0 && q<=1000) quantity=q;
-        prefix=prefix.slice(quantityPrefix[0].length);
-      }
-      const unitPrice=prefix.match(/^\d+[,.]\d{2}\s+(.+)$/);
-      if (unitPrice) prefix=unitPrice[1];
-      // Strip common POS item codes, without destroying article names.
-      prefix=prefix.replace(/^\d{5,14}\s+/,'').replace(/\s+(?:A|B|C|\*)$/,'').trim();
-      if (prefix.length<3 || !/[A-Za-zÄÖÜäöüß]{3}/.test(prefix))continue;
-      if (items.some(item=>item.name===prefix && item.amount===price.amount))continue;
-      items.push({name:prefix.slice(0,180),quantity:quantity,amount:price.amount});
-      if(items.length>=MAX_ITEMS)break;
+      return null;
     }
-    return {vendor,date,amount,items};
+    const candidates=[];
+    let netAmount=null, taxAmount=null;
+    lines.forEach((line,i)=>{
+      if (netRx.test(line) && netAmount===null)netAmount=valueNear(i);
+      if (taxRx.test(line) && taxAmount===null)taxAmount=valueNear(i);
+      if (!totalRx.test(line) ||
+          /\b(?:zwischensumme|netto|steuer|mwst|rabatt|gutschein|trinkgeld)\b/i.test(line)) return;
+      const amount=valueNear(i);
+      if (amount===null)return;
+      const highest = /\b(?:gesamtbetrag|gesamtsumme|endbetrag|endsumme|rechnungsbetrag|gesamtpreis|zu\s*zahlen|zahlbetrag)\b/i.test(line);
+      const medium=/\b(?:summe|brutto|total)\b/i.test(line);
+      candidates.push({amount,index:i,score:(highest?100:medium?65:35)+i/Math.max(1,lines.length)*10});
+    });
+    candidates.sort((a,b)=>b.score-a.score);
+    const amount=candidates.length?candidates[0].amount:null;
+    let km=null;
+    for (const line of lines) {
+      const m=line.match(/\b(?:kilometer[-\s]*stand|km[-\s]*stand|kilometerstand)\s*[:\-]?\s*(\d{3}(?:[.\s]\d{3})+|\d{4,7})\b/i);
+      if(m) {const n=Number(m[1].replace(/[.\s]/g,''));if(Number.isSafeInteger(n)&&n>=0){km=n;break;}}
+    }
+    const summaryIdx=lines.findIndex(line=>totalRx.test(line)||netRx.test(line)||taxRx.test(line));
+    const stop=summaryIdx>=1?summaryIdx:candidates.length?candidates[0].index:lines.length;
+    const items=[];
+    function push(name,quantity,price) {
+      const clean=String(name||'').replace(/\s{2,}/g,' ').trim().slice(0,180);
+      if(!clean || clean.length<3 || !/[A-Za-zÄÖÜäöüß]{2}/.test(clean) ||
+         isNotItem(clean) || items.length>=MAX_ITEMS)return;
+      if(items.some(item=>item.name===clean&&item.amount===price))return;
+      items.push({name:clean,quantity,amount:price});
+    }
+    function heading(line){
+      if(!/^[\p{L}][\p{L}\s\-()./]{2,40}:\s*$/u.test(line) ||
+          /(?:Hinweis|Empfänger|Bemerkung|Fahrzeug|Zahlung|Kilometer|Kennzeichen|Rechnung|Beleg|Summe|Netto|Steuer)/i.test(line))return '';
+      return line.slice(0,-1).trim();
+    }
+    for(let i=1;i<Math.min(stop,lines.length);i++){
+      const line=lines[i];
+      if(isNotItem(line) || /\b(?:IBAN|BIC|www\.)\b/i.test(line))continue;
+      const head=heading(i>0?lines[i-1]:'');
+      const price=lastPrice(line);
+      if(price){
+        let prefix=price.prefix;
+        let quantity=1;
+        const qty=prefix.match(/^\s*(\d{1,3}(?:[.,]\d{1,3})?)\s*(?:x|stk\.?|stück)\s+/i);
+        if(qty){
+          quantity=Number(qty[1].replace(',','.'))||1;
+          prefix=prefix.slice(qty[0].length);
+        }
+        prefix=prefix.replace(/^\d{5,14}\s+/,'').replace(/\s+(?:A|B|C|\*)$/,'').trim();
+        if(head && prefix.length>=3)prefix=head+': '+prefix;
+        push(prefix,quantity,price.amount);
+        continue;
+      }
+      // Many service receipts list a heading ("Ölfilter:") and then a
+      // part number without a separate price. Capture it without inventing €.
+      if(head){
+        const m=line.match(/^\s*(\d{1,3}(?:[.,]\d{1,3})?)\s*(?:x|stk\.?|stück)\s+(.{2,80})$/i);
+        if(m && /[A-Za-zÄÖÜäöüß0-9]{2}/.test(m[2]))
+          push(head+': '+m[2],Number(m[1].replace(',','.'))||1,null);
+      }
+    }
+    return {vendor,date,amount,items,netAmount,taxAmount,km};
   }
 
   function clearRows() { const node=el('receipt-items-list'); if(node)node.innerHTML=''; }
@@ -204,47 +232,172 @@
     if(retry)retry.disabled=false;
   }
 
-  async function drawImage(file) {
+  async function preparePhoto(file) {
     const blobUrl=URL.createObjectURL(file);
     try {
-      const img=await new Promise((resolve,reject)=>{
-        const photo=new Image();
-        photo.onload=()=>resolve(photo);
-        photo.onerror=()=>reject(new Error('Das Foto konnte nicht geöffnet werden. Bei HEIC bitte ein JPG verwenden.'));
-        photo.src=blobUrl;
+      const image=await new Promise((resolve,reject)=>{
+        const img=new Image();
+        img.onload=()=>resolve(img);
+        img.onerror=()=>reject(new Error('Das Foto konnte nicht geöffnet werden. Bitte als JPG fotografieren.'));
+        img.src=blobUrl;
       });
-      const scale=Math.min(1,2100/Math.max(img.naturalWidth,img.naturalHeight));
-      const canvas=document.createElement('canvas');
-      canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
-      canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
-      const ctx=canvas.getContext('2d',{willReadFrequently:false});
-      ctx.fillStyle='#fff';
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      return canvas;
+      // Detect narrow, bright thermal-paper receipts even when they occupy
+      // only one third of a large mobile photo.
+      const sample=document.createElement('canvas');
+      const sampleWidth=Math.min(900,image.naturalWidth);
+      const ratio=sampleWidth/image.naturalWidth;
+      sample.width=sampleWidth;
+      sample.height=Math.max(1,Math.round(image.naturalHeight*ratio));
+      const ctx=sample.getContext('2d',{willReadFrequently:true});
+      ctx.drawImage(image,0,0,sample.width,sample.height);
+      const data=ctx.getImageData(0,0,sample.width,sample.height).data;
+      const w=sample.width,h=sample.height;
+      function brightness(x,y) {
+        const vals=[];
+        for(const dy of [-9,-5,0,5,9]){
+          for(const dx of [-4,0,4]){
+            const xx=Math.max(0,Math.min(w-1,Math.round(x+dx)));
+            const yy=Math.max(0,Math.min(h-1,Math.round(y+dy)));
+            const k=(yy*w+xx)*4;
+            vals.push((data[k]+data[k+1]+data[k+2])/3);
+          }
+        }
+        vals.sort((a,b)=>a-b);
+        return vals[11]; // upper quartile ignores text strokes on white paper
+      }
+      const bounds=[];
+      const step=Math.max(22,Math.round(h*0.027));
+      for(let y=Math.round(h*0.04);y<h*0.985;y+=step){
+        let center=Math.round(w*.44);
+        if(brightness(center,y)<195){
+          // A dark letter may cover the center; search nearby for clean paper.
+          let max=0,best=center;
+          for(let x=Math.round(w*.39);x<=w*.55;x+=5){
+            const v=brightness(x,y);
+            if(v>max){max=v;best=x;}
+          }
+          if(max<197)continue;
+          center=best;
+        }
+        let left=center,right=center;
+        while(left>w*.10 && brightness(left-3,y)>195)left-=3;
+        while(right<w*.82 && brightness(right+3,y)>195)right+=3;
+        if(right-left>=w*.17 && right-left<=w*.69)
+          bounds.push({y,left,right,width:right-left});
+      }
+      if(bounds.length<8){
+        return {image, bounds:null,
+          top:0,bottom:image.naturalHeight,width:Math.max(550,Math.min(1150,image.naturalWidth)),
+          scale:Math.min(2,1150/image.naturalWidth),
+          ratio:1, detected:false};
+      }
+      const widths=bounds.map(b=>b.width).sort((a,b)=>a-b);
+      const median=widths[Math.floor(widths.length/2)];
+      const target=1150;
+      const scale=target/(median+18);
+      const top=Math.max(0,bounds[0].y-h*.025);
+      const bottom=Math.min(h,bounds[bounds.length-1].y+h*.035);
+      return {image,bounds,top,bottom,width:target,scale,ratio:ratio,detected:true};
     } finally {
       URL.revokeObjectURL(blobUrl);
     }
   }
+  function paperBounds(model,y) {
+    const points=model.bounds;
+    if(y<=points[0].y)return points[0];
+    if(y>=points[points.length-1].y)return points[points.length-1];
+    let low=0,high=points.length-1;
+    while(high-low>1){
+      const mid=(high+low)>>1;
+      if(points[mid].y<=y)low=mid;else high=mid;
+    }
+    const a=points[low],b=points[high],t=(y-a.y)/(b.y-a.y);
+    return {left:a.left+(b.left-a.left)*t,right:a.right+(b.right-a.right)*t};
+  }
+  function drawPhotoPart(model,from,to) {
+    const sourceRatio=model.detected?1/model.ratio:1;
+    const canvas=document.createElement('canvas');
+    canvas.width=model.width;
+    canvas.height=Math.max(1,Math.round((to-from)*model.scale));
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#fff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.filter='grayscale(1) contrast(1.65)';
+    if(model.detected){
+      for(let y=from;y<to;y+=8) {
+        const h=Math.min(8,to-y);
+        const edges=paperBounds(model,y+h/2);
+        const x=Math.max(0,(edges.left-9)*sourceRatio);
+        const width=Math.min(model.image.naturalWidth-x,(edges.right-edges.left+18)*sourceRatio);
+        // Straighten the slanted paper edges row by row, maintaining proportions.
+        ctx.drawImage(model.image,x,y*sourceRatio,width,h*sourceRatio,
+          0,(y-from)*model.scale,canvas.width,h*model.scale+1);
+      }
+    } else {
+      ctx.drawImage(model.image,0,from,model.image.naturalWidth,to-from,
+        0,0,canvas.width,canvas.height);
+    }
+    ctx.filter='none';
+    return canvas;
+  }
   async function newOcrWorker(setStatus) {
     const lib=await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js','Tesseract');
-    return lib.createWorker('deu+eng',1,{
+    const worker=await lib.createWorker('deu+eng',1,{
       logger: msg=>{
         if(msg && msg.status==='recognizing text' && msg.progress>=0) {
           setStatus('Texterkennung läuft: '+Math.round(msg.progress*100)+' %');
         }
       }
     });
+    await worker.setParameters({
+      tessedit_pageseg_mode:'4',
+      preserve_interword_spaces:'1'
+    });
+    return worker;
   }
   async function scanImage(file,setStatus) {
-    setStatus('Foto wird für die Erkennung vorbereitet …');
-    const canvas=await drawImage(file);
-    setStatus('Texterkennung wird geladen (beim ersten Mal etwas länger) …');
+    setStatus('Der schmale Kassenbeleg wird zugeschnitten und aufgerichtet …');
+    const model=await preparePhoto(file);
+    setStatus(model.detected ?
+      'Papier erkannt: Text wird vergrößert und kontrastiert …' :
+      'Automatische Papiererkennung unsicher. Foto wird vergrößert ausgelesen …');
     const worker=await newOcrWorker(setStatus);
+    const length=model.bottom-model.top;
+    const sectionCount=model.detected?
+      Math.max(1,Math.min(5,Math.ceil(length*model.scale/1750))):
+      Math.max(1,Math.ceil(length*model.scale/1750));
+    const parts=[];
     try {
-      const result=await worker.recognize(canvas);
-      return result.data && result.data.text || '';
-    } finally { await worker.terminate(); canvas.width=0;canvas.height=0; }
+      for(let i=0;i<sectionCount;i++){
+        const y0=model.top+length*i/sectionCount;
+        const y1=model.top+length*(i+1)/sectionCount;
+        const canvas=drawPhotoPart(model,y0,y1);
+        setStatus('Kassenbeleg: Abschnitt '+(i+1)+' von '+sectionCount+' wird gelesen …');
+        try {
+          const result=await worker.recognize(canvas);
+          parts.push(result.data && result.data.text || '');
+        } finally { canvas.width=0;canvas.height=0; }
+      }
+      let combined=parts.join('\n');
+      // If total or header is still missing, try a second contrast/segment
+      // configuration for only the relevant area.
+      const data=parse(combined);
+      if(model.detected && (data.amount===null || !data.vendor)){
+        await worker.setParameters({tessedit_pageseg_mode:'6'});
+        const sections=[];
+        if(!data.vendor)sections.push([model.top,model.top+length*.23]);
+        if(data.amount===null)sections.push([model.top+length*.65,model.bottom]);
+        for(const [y0,y1] of sections){
+          const canvas=drawPhotoPart(model,y0,y1);
+          setStatus('Zusätzliche Erkennung für '+(y0===model.top?'Händler':'Endbetrag')+' …');
+          try {
+            const result=await worker.recognize(canvas);
+            combined+='\n'+(result.data && result.data.text || '');
+          } finally {canvas.width=0;canvas.height=0;}
+        }
+      }
+      return combined;
+    } finally { await worker.terminate(); }
   }
   function pdfLines(items) {
     const groups=[];
