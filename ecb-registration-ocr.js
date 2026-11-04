@@ -316,18 +316,32 @@
     await worker.setParameters({preserve_interword_spaces:'1',tessedit_pageseg_mode:'3'});
     return worker;
   }
-  function imageCanvas(image){
-    const width=image.naturalWidth,height=image.naturalHeight;
-    const scale=Math.min(2.5,2300/width,2700/height);
+  function rotatedCanvas(img,degrees,maxSide=2500){
+    const w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+    const scale=Math.min(2.0,maxSide/Math.max(w,h));
+    const sw=Math.max(1,Math.round(w*scale)),sh=Math.max(1,Math.round(h*scale));
+    const isSideways=degrees%180!==0;
     const canvas=document.createElement('canvas');
-    canvas.width=Math.round(width*scale);
-    canvas.height=Math.round(height*scale);
+    canvas.width=isSideways?sh:sw;
+    canvas.height=isSideways?sw:sh;
     const ctx=canvas.getContext('2d');
-    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.filter='grayscale(1) contrast(1.45)';
-    ctx.drawImage(image,0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.imageSmoothingEnabled=true;
+    ctx.imageSmoothingQuality='high';
+    if(degrees===90){ctx.translate(canvas.width,0);ctx.rotate(Math.PI/2);}
+    else if(degrees===180){ctx.translate(canvas.width,canvas.height);ctx.rotate(Math.PI);}
+    else if(degrees===270){ctx.translate(0,canvas.height);ctx.rotate(-Math.PI/2);}
+    ctx.filter='grayscale(1) contrast(1.4)';
+    ctx.drawImage(img,0,0,sw,sh);
     ctx.filter='none';
     return canvas;
+  }
+  function orientationScore(raw){
+    const text=String(raw||'').toUpperCase();
+    const codes=(text.match(/(?:^|\W)(?:D[. ,]?[123]|P[. ,]?[123]|F[. ,]?2|S[. ,]?1|2[. ,]?[12]|15[. ,]?[12])(?=\W|$)/g)||[]).length;
+    const words=(text.match(/(?:ZULASSUNG|FAHRGESTELL|HANDELSBEZEICHNUNG|KRAFTSTOFF|REIFEN|ERSTZULASSUNG|DIESEL|RENAULT|BMW)/g)||[]).length;
+    const dates=(text.match(/\b[0-3]?\d[.][01]?\d[.]20\d{2}\b/g)||[]).length;
+    return Math.min(codes,16)*4+Math.min(words,10)*3+Math.min(dates,3);
   }
   async function readImage(file,status){
     const url=URL.createObjectURL(file);
@@ -340,17 +354,38 @@
         img.src=url;
       });
     }finally{URL.revokeObjectURL(url);}
-    const canvas=imageCanvas(image);
     const worker=await workerFor(status);
+    let full=null;
     try{
-      status('Fahrzeugschein wird lokal gelesen …');
+      // Recognition runs locally. Test a small image in all four orientations
+      // only when the original orientation is not confidently readable.
+      const rotations=[0,90,270,180];
+      let best={degrees:0,score:-1,text:''};
+      for(let i=0;i<rotations.length;i++){
+        const deg=rotations[i];
+        if(i>0&&best.score>=20)break;
+        status('Fahrzeugschein-Ausrichtung prüfen: '+deg+'° …');
+        const probe=rotatedCanvas(image,deg,1100);
+        try{
+          await worker.setParameters({tessedit_pageseg_mode:'11'});
+          const read=await worker.recognize(probe);
+          const text=read.data&&read.data.text||'';
+          const score=orientationScore(text);
+          if(score>best.score)best={degrees:deg,score,text};
+        }finally{probe.width=0;probe.height=0;}
+      }
+      full=rotatedCanvas(image,best.degrees,2700);
+      status('Fahrzeugschein lokal auslesen ('+best.degrees+'°) …');
       await worker.setParameters({tessedit_pageseg_mode:'11'});
-      const result=await worker.recognize(canvas);
+      const result=await worker.recognize(full);
       const text=result.data&&result.data.text||'';
       const cells=window.ECBRegistrationLayout?
-        await window.ECBRegistrationLayout.scan(image,worker,status):{};
-      return {text,cells};
-    }finally{canvas.width=0;canvas.height=0;await worker.terminate();}
+        await window.ECBRegistrationLayout.scan(full,worker,status):{};
+      return {text,cells,rotation:best.degrees};
+    }finally{
+      if(full){full.width=0;full.height=0;}
+      await worker.terminate();
+    }
   }
   function pdfText(items){
     const groups=[];
