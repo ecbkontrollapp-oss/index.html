@@ -11,6 +11,7 @@ const cells=[
 ['vin',[.331,.132,.581,.170]],
 ['manufacturer',[.331,.174,.490,.210]],
 ['vehicleClass',[.330,.095,.440,.134]],
+['color',[.620,.480,.845,.552]],
 ['type',[.332,.227,.514,.342]],
 ['model',[.329,.375,.490,.416]],
 ['fuel',[.330,.609,.467,.650]],
@@ -103,9 +104,9 @@ if(!result.model || !/[A-Za-zÄÖÜäöüß]{4,}/.test(result.model) || /^(?:HAN
 if(!interpret(result,'').seats){
   const seatVotes=[];
   const seatBoxes=[
-    [.875,.368,.970,.436],
-    [.887,.379,.977,.455],
-    [.851,.389,.954,.454]
+    [.870,.377,.914,.431],
+    [.873,.380,.920,.429],
+    [.864,.367,.925,.433]
   ];
   const savedParams={tessedit_char_whitelist:'0123456789'};
   try{
@@ -136,7 +137,8 @@ if(!interpret(result,'').seats){
 const retryBoxes={
   model:[[.310,.353,.607,.450],[.320,.345,.565,.432]],
   vehicleClass:[[.315,.087,.478,.154],[.297,.079,.535,.171]],
-  seats:[[.875,.368,.970,.436],[.851,.389,.954,.454]],
+  color:[[.615,.477,.850,.553],[.640,.485,.815,.542]],
+  seats:[[.875,.376,.912,.427],[.872,.380,.921,.431]],
   tyresFront:[[.655,.405,.907,.472]],
   tyresRear:[[.655,.446,.907,.525]]
 };
@@ -193,6 +195,12 @@ return candidate[0]||'';
 function letters(raw){
 return cleaned(raw).replace(/^[^A-Za-zÄÖÜäöüß]+/,'').replace(/[^\p{L}\p{N} .-]+$/gu,'').slice(0,60);
 }
+function color(raw){
+  const v=cleaned(raw).toUpperCase().replace(/Ä/g,'AE').replace(/Ö/g,'OE').replace(/Ü/g,'UE');
+  const colors=v.match(/\b(?:WEISS|SCHWARZ|GRAU|BLAU|ROT|GRUEN|GELB|BRAUN|SILBER|GOLD|BEIGE|ORANGE|VIOLETT|ROSA|LILA|ANTHRAZIT)\b/g)||[];
+  const distinct=[...new Set(colors)];
+  return distinct.length===1?distinct[0]:'';
+}
 function tyre(raw){
 const m=cleaned(raw).toUpperCase().match(/(\d{3}\s*\/\s*\d{2,3}\s*R\s*\d{2})(?:\s*\(?\s*(\d{2,3})\s*\)?\s*([A-Z]))?/);
 return m?m[1].replace(/\s/g,'')+(m[2]?' '+m[2]+(m[3]||''):''):'';
@@ -207,6 +215,7 @@ d.hsn=hsn?hsn[0]:'';
 const tsn=cleaned(r.tsn).toUpperCase().replace(/^[^A-Z]*(?:2[., ]*2)?\s*/,'').replace(/[^A-Z0-9]/g,'');
 d.tsn=/^[A-Z0-9]{3,12}$/.test(tsn)&&/[A-Z]/.test(tsn)?tsn:'';
 d.manufacturer=letters(r.manufacturer);
+d.color=color(r.color);
 d.model=String(r.model||'').split(/\r?\n/).map(letters)
   .find(x=>/^[A-Za-zÄÖÜäöüß]{4,}(?:[ -][A-Za-zÄÖÜäöüß0-9]{2,})?$/.test(x)&&! /^(?:HANDELSBEZEICHNUNG|FAHRZEUG|FAHRZEUGSCHEIN|VORDERSEITE|KRAFTSTOFF|HERSTELLER|VARIANTE|DIESEL|BENZIN|MARKE)$/i.test(x))||'';
 const variants=String(r.type||'').toUpperCase().match(/\b[A-Z0-9]{3,16}\b/g)||[];
