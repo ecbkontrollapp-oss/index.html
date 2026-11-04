@@ -64,6 +64,7 @@
   }
   function identifyDate(lines) {
     const rx = /(?:^|[^\d])(\d{1,2})\s*[./-]\s*(\d{1,2})\s*[./-]\s*(\d{4}|\d{2})(?!\d)/;
+    const nowYear=new Date().getFullYear();
     const options = [];
     lines.forEach((line,i) => {
       const match = line.match(rx);
@@ -71,16 +72,26 @@
       const day = Number(match[1]), month = Number(match[2]);
       let year = Number(match[3]);
       if (year < 100) year += year > 70 ? 1900 : 2000;
-      const d = new Date(Date.UTC(year,month - 1,day));
-      if (year < 2000 || year > 2100 || d.getUTCFullYear() !== year ||
+      const d = new Date(Date.UTC(year,month-1,day));
+      if (year < 1990 || year > nowYear+1 || d.getUTCFullYear() !== year ||
           d.getUTCMonth() !== month-1 || d.getUTCDate() !== day) return;
       const score = (/datum|kaufdatum|rechnungsdatum|belegdatum/i.test(line) ? 35 : 0) -
         (/tse|start\/ende|signatur|serial|z[üu]r[üu]ckgestellt/i.test(line) ? 30 : 0) -
         i / 2;
-      options.push({date:year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0'),score});
+      options.push({year,day,month,date:year+'-'+String(month).padStart(2,'0')+
+          '-'+String(day).padStart(2,'0'),score});
     });
-    options.sort((a,b) => b.score-a.score);
-    return options.length ? options[0].date : '';
+    if(!options.length) return '';
+    // When OCR disagrees on a digit of the year, another date with identical
+    // day/month and a plausible recent year is stronger corroborating evidence.
+    const recent=options.filter(x=>x.year>=nowYear-10);
+    if(!recent.length) return ''; // historical invoices require manual confirmation
+    recent.sort((a,b)=>{
+      const ac=options.filter(o=>o.date===a.date).length;
+      const bc=options.filter(o=>o.date===b.date).length;
+      return bc-ac || b.score-a.score;
+    });
+    return recent[0].date;
   }
   function identifyVendor(lines) {
     const bad = /^(?:rechnung|kassenbon|beleg|quittung|tax|invoice|customer|danke|willkommen|filiale|adresse|str(?:asse|aße)|tel|fax|www|https?|[0-9\s.,:/\-]+|ust|steuer|bon.nr|datum|uhrzeit|kasse|eur|zahlung|kunden|artikel|betrag)\b/i;
@@ -137,7 +148,8 @@
       candidates.push({amount,index:i,score:(highest?100:medium?65:35)+i/Math.max(1,lines.length)*10});
     });
     candidates.sort((a,b)=>b.score-a.score);
-    const amount=candidates.length?candidates[0].amount:null;
+    let amount=candidates.length?candidates[0].amount:null;
+    let totalDerived=false;
     let netCalculated=false;
     if (netAmount===null && amount!==null && taxAmount!==null &&
         amount>0 && taxAmount>=0 && taxAmount < amount * .35) {
@@ -159,10 +171,22 @@
       if (hit) plates.push((hit[1]+'-'+hit[2]+' '+hit[3]).toUpperCase());
     }
     if (plates.length && plates.every(value=>value===plates[0])) plate=plates[0];
-    let km=null;
-    for (const line of lines) {
+    let km=null,kmUncertain=false;
+    const kms=[];
+    for(const line of lines) {
       const m=line.match(/\b(?:kilometer[-\s]*stand|km[-\s]*stand|kilometerstand)\s*[:\-]?\s*(\d{3}(?:[.\s]\d{3})+|\d{4,7})\b/i);
-      if(m) {const n=Number(m[1].replace(/[.\s]/g,''));if(Number.isSafeInteger(n)&&n>=0){km=n;break;}}
+      if(m) {
+        const n=Number(m[1].replace(/[.\s]/g,''));
+        if(Number.isSafeInteger(n) && n>=0)kms.push(n);
+      }
+    }
+    const countKm=new Map();
+    kms.forEach(v=>countKm.set(v,(countKm.get(v)||0)+1));
+    const rankedKms=Array.from(countKm.entries()).sort((a,b)=>b[1]-a[1]);
+    if(rankedKms.length===1)km=rankedKms[0][0];
+    else if(rankedKms.length>1) {
+      if(rankedKms[0][1]>rankedKms[1][1])km=rankedKms[0][0];
+      else kmUncertain=true;
     }
     const summaryIdx=lines.findIndex(line=>totalRx.test(line)||netRx.test(line)||taxRx.test(line));
     const stop=summaryIdx>=1?summaryIdx:candidates.length?candidates[0].index:lines.length;
@@ -250,7 +274,31 @@
       const itemName=titleMatch?titleMatch[1]+': '+name:name;
       push(itemName,quantity,amountOnLine);
     }
-    return {vendor,date,amount,items,netAmount,netCalculated,taxAmount,km,plate};
+    // Total derived only when arithmetic agrees exactly with the documented
+    // tax rate. It stays labelled as calculated and MUST be reviewed.
+    if(amount===null && netAmount!==null && taxAmount!==null) {
+      const sum=Math.round(netAmount*100)+Math.round(taxAmount*100);
+      if(sum>0) {
+        amount=sum/100;
+        totalDerived=true;
+      }
+    }
+    if(amount===null && taxAmount!==null) {
+      const priced=items.filter(item=>item.amount!==null);
+      if(priced.length===1){
+        const possible=priced[0].amount;
+        const vatCents=Math.round(taxAmount*100);
+        if([19,7].some(rate=>Math.abs(Math.round(possible*100*rate/(100+rate))-vatCents)<=1)){
+          amount=possible;
+          totalDerived=true;
+        }
+      }
+    }
+    if(netAmount===null && amount!==null && taxAmount!==null && amount>taxAmount){
+      netAmount=(Math.round(amount*100)-Math.round(taxAmount*100))/100;
+      netCalculated=true;
+    }
+    return {vendor,date,amount,totalDerived,items,netAmount,netCalculated,taxAmount,km,kmUncertain,plate};
   }
 
   function clearRows() { const node=el('receipt-items-list'); if(node)node.innerHTML=''; }
@@ -491,7 +539,8 @@
       // configuration for only the relevant area.
       const data=parse(combined);
       const needsHeader=!data.date||!data.plate||!data.vendor;
-      const needsItems=!data.items.length;
+      const needsItems=!data.items.length ||
+        (data.items.length===1 && /(?:ölwechsel|olwechsel)/i.test(data.items[0].name));
       if(model.detected && (needsHeader || needsItems || data.amount===null)){
         await worker.setParameters({tessedit_pageseg_mode:'6'});
         const sections=[];
@@ -611,9 +660,8 @@
       const extracted=parse(raw);
       let detected=0;
       if(extracted.vendor) {el('receipt-vendor').value=extracted.vendor;detected++;}
-      // Unrecognized dates must stay empty. Never silently persist today's date.
-      el('receipt-date').value=extracted.date||'';
-      if(extracted.date)detected++;
+      // Never replace a manually checked value with a missing OCR date.
+      if(extracted.date) {el('receipt-date').value=extracted.date;detected++;}
       if(extracted.amount!==null) {el('receipt-amount').value=extracted.amount.toFixed(2);detected++;}
       if(extracted.netAmount!==null) {el('receipt-net').value=extracted.netAmount.toFixed(2);detected++;}
       if(extracted.taxAmount!==null) {el('receipt-vat').value=extracted.taxAmount.toFixed(2);detected++;}
@@ -657,11 +705,13 @@
         if(!extracted.date)missing.push('Belegdatum');
         if(extracted.amount===null)missing.push('Endbetrag');
         if(!extracted.items.length)missing.push('Artikelpositionen');
+        if(extracted.totalDerived)missing.push('Gesamtbetrag wurde berechnet – bitte am Original prüfen');
+        if(extracted.kmUncertain)missing.push('Kilometerstand widersprüchlich – bitte manuell prüfen');
         if(!plateMatched && !vehicleSelect?.value)missing.push('Fahrzeug (bitte auswählen)');
         show('Erkannt: '+[
           extracted.vendor?'Händler':'',
           extracted.date?'Datum':'',
-          extracted.amount!==null?'Endbetrag':'',
+          extracted.amount!==null?(extracted.totalDerived?'Endbetrag berechnet':'Endbetrag'):'',
           extracted.netAmount!==null?(extracted.netCalculated?'Netto berechnet':'Netto erkannt'):'',
           extracted.taxAmount!==null?'MwSt.':'',
           extracted.km!==null?'Kilometerstand':'',
