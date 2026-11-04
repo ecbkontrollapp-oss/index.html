@@ -107,7 +107,9 @@
       .map(s => s.replace(/[ \t]+/g,' ').trim())
       .filter(Boolean).slice(0,450);
     const date = identifyDate(lines);
-    const vendor = identifyVendor(lines);
+    let vendor = identifyVendor(lines);
+    // Known merchant name that thermal OCR regularly confuses (I/T, O/0).
+    if (/^mac[O0][ITL]{2}$/i.test(vendor)) vendor='macOIL';
     const totalRx = /(?:\b(?:gesamtbetrag|gesamtsumme|endbetrag|endsumme|rechnungsbetrag|gesamtpreis|gesamt\s*betrag|summe|brutto|zu\s*zahlen|zahlbetrag|total)\b)/i;
     const netRx = /\b(?:nettobetrag|netto\s*betrag|nettosumme)\b/i;
     const taxRx = /\b(?:mehrwertsteuer|umsatzsteuer|mwst|ust(?:\s+\d+)?|steuerbetrag)\b/i;
@@ -682,5 +684,123 @@
       }
     }
   }
-  window.ECBReceiptOCR={scan,reset,addItem,collect,parse};
+
+  // OCR only the item table on a long receipt, without changing already
+  // verified totals, dates, merchant names or vehicle assignments.
+  async function scanItemsOnly(file) {
+    if(!file || !file.size) {
+      show('Bitte zuerst ein Belegfoto oder eine PDF-Datei auswählen.',true);
+      return;
+    }
+    const current=++scanSerial;
+    const retry=el('receipt-ocr-retry');
+    const itemsButton=el('receipt-ocr-items');
+    const save=el('receipt-save-btn');
+    if(retry)retry.disabled=true;
+    if(itemsButton)itemsButton.disabled=true;
+    if(save)save.disabled=true;
+    const update=message=>{if(current===scanSerial)show(message,false);};
+    let worker=null;
+    try {
+      const isPdf=file.type==='application/pdf'||/\.pdf$/i.test(file.name);
+      if(isPdf) {
+        // PDFs are usually laid out differently; use their searchable
+        // text rather than the thermal-paper photo-specific crop.
+        const raw=await scanPdf(file,update);
+        if(current!==scanSerial || file!==window.ECB_CURRENT_RECEIPT_FILE)return;
+        const rows=parse(raw).items;
+        if(!rows.length)throw new Error('Keine eindeutig lesbaren Artikelpositionen im PDF.');
+        clearRows();rows.forEach(addItem);
+        const description=el('receipt-description');
+        if(description && !description.value.trim()) description.value=
+          rows.slice(0,3).map(x=>x.name).join(', ').slice(0,240);
+        show(rows.length+' Artikelpositionen erkannt. Bitte alle Bezeichnungen und Preise prüfen.',false);
+        return;
+      }
+      update('Artikelbereich wird aus dem Kassenbon ausgeschnitten …');
+      const model=await preparePhoto(file);
+      const length=model.bottom-model.top;
+      worker=await newOcrWorker(update);
+      await worker.setParameters({tessedit_pageseg_mode:'6'});
+      const parts=[];
+      // Overlapping small windows avoid unrelated paragraphs/summary text.
+      // The sections also work with perspective-corrected paper detection.
+      const windows=[
+        [.51,.67,1.65],
+        [.57,.74,1.85],
+        [.47,.77,1.55]
+      ];
+      let best=[];
+      let bestRaw='';
+      for (let i=0;i<windows.length;i++) {
+        if(current!==scanSerial || file!==window.ECB_CURRENT_RECEIPT_FILE)return;
+        const [start,end,contrast]=windows[i];
+        const canvas=drawUnwarpedPhotoPart(model,model.top+length*start,
+          model.top+length*end,contrast);
+        update('Artikelbereich wird gesondert gelesen ('+(i+1)+'/'+windows.length+') …');
+        let raw='';
+        try {
+          const result=await worker.recognize(canvas);
+          raw=result.data && result.data.text || '';
+        } finally { canvas.width=0;canvas.height=0; }
+        parts.push(raw);
+        const items=parse(raw).items;
+        const score=items.reduce((n,item)=>n+(item.amount!==null?3:1)+
+          (item.name.length>12?1:0),0);
+        const currentScore=best.reduce((n,item)=>n+(item.amount!==null?3:1)+
+          (item.name.length>12?1:0),0);
+        if(items.length>best.length || (items.length===best.length && score>currentScore)){
+          best=items;bestRaw=raw;
+        }
+        if(best.length>=2 && best.some(x=>x.amount!==null))break;
+      }
+      if(!best.length) {
+        await worker.setParameters({tessedit_pageseg_mode:'11'});
+        const canvas=drawUnwarpedPhotoPart(model,model.top+length*.50,
+          model.top+length*.72,1.3);
+        update('Letzter Versuch mit zeilenweiser Artikelerkennung …');
+        try {
+          const result=await worker.recognize(canvas);
+          const raw=result.data && result.data.text || '';
+          parts.push(raw);
+          best=parse(raw).items;
+          if(best.length)bestRaw=raw;
+        } finally {canvas.width=0;canvas.height=0;}
+      }
+      if(current!==scanSerial || file!==window.ECB_CURRENT_RECEIPT_FILE)return;
+      const originalNode=el('receipt-ocr-raw');
+      const debug=el('receipt-ocr-debug');
+      if(originalNode)originalNode.value=(originalNode.value || '')+
+        '\n\n--- Artikel separat ausgelesen ---\n'+parts.join('\n--- Nächster Ausschnitt ---\n');
+      if(debug)debug.classList.remove('hidden');
+      if(best.length){
+        clearRows();
+        best.forEach(addItem);
+        const description=el('receipt-description');
+        if(description && !description.value.trim()) description.value=
+          best.slice(0,3).map(x=>x.name).join(', ').slice(0,240);
+        // The review checkbox is reset after new automatic entries.
+        const review=el('receipt-ocr-review');
+        const wrapper=el('receipt-ocr-review-wrap');
+        if(review)review.checked=false;
+        if(wrapper)wrapper.classList.remove('hidden');
+        show(best.length+' Artikelpositionen erkannt. Bitte die Angaben kontrollieren; bereits erkannte Beleg- und Fahrzeugdaten wurden nicht geändert.',false);
+      } else {
+        show('Auch im separaten Ausschnitt sind keine Artikel zuverlässig lesbar. Öffne „Erkannten Text zur Fehlersuche ansehen“ und prüfe den Abschnitt „Artikel separat ausgelesen“ – oder ergänze die Artikel manuell.',true);
+      }
+    } catch(error){
+      if(current===scanSerial)show('Artikelerkennung fehlgeschlagen: '+
+        (error && error.message || 'Unbekannter Fehler')+
+        '. Die bisherigen Rechnungsdaten bleiben unverändert.',true);
+    } finally {
+      if(worker)await worker.terminate().catch(()=>{});
+      if(current===scanSerial){
+        if(retry)retry.disabled=false;
+        if(itemsButton)itemsButton.disabled=false;
+        if(save)save.disabled=false;
+      }
+    }
+  }
+  window.ECBReceiptOCR={scan,scanItemsOnly,reset,addItem,collect,parse};
+
 })();
