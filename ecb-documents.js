@@ -323,6 +323,19 @@
     check: configuration,
     upload: upload,
     signedUrl: signedUrl,
-    remove: remove
+    remove: remove,
+    openLogin: async function () {
+      const ctx = getClient();
+      const current = await ctx.client.auth.getSession();
+      if (current.error) throw current.error;
+      if (current.data && current.data.session) {
+        if (typeof window.showToast === 'function') {
+          window.showToast('Du bist bereits für den ECB-Dokumentenspeicher angemeldet.');
+        }
+        return true;
+      }
+      await login(ctx.client);
+      return true;
+    }
   };
 })();
