@@ -18,14 +18,26 @@
   const infoDate=()=>new Date().toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'});
   function companyMark(){
     const canvas=document.createElement('canvas');
-    canvas.width=440;canvas.height=160;
+    canvas.width=590;canvas.height=286;
     const g=canvas.getContext('2d');
-    g.fillStyle='#5ea63b';
-    g.beginPath();g.roundRect(4,4,432,152,29);g.fill();
-    g.fillStyle='#ffffff';g.font='italic 900 111px Arial, Helvetica, sans-serif';
-    g.fillText('ecb',86,110);
-    g.beginPath();g.moveTo(112,129);g.bezierCurveTo(178,108,264,146,341,121);
-    g.bezierCurveTo(275,149,196,156,112,129);g.fill();
+    // Vector outline was traced from the actual original ECB logo supplied
+    // by the user. White lettering and the white ribbon stay negative space.
+    g.fillStyle='#ffffff';g.fillRect(0,0,canvas.width,canvas.height);
+    if(window.ECB_LOGO_PATH&&typeof Path2D==='function'){
+      const bounds=window.ECB_LOGO_BOUNDS||{x:31,y:173,width:585,height:280};
+      const scale=Math.min((canvas.width-18)/bounds.width,(canvas.height-12)/bounds.height);
+      g.save();
+      g.translate((canvas.width-bounds.width*scale)/2-bounds.x*scale,
+        (canvas.height-bounds.height*scale)/2-bounds.y*scale);
+      g.scale(scale,scale);
+      g.fillStyle=window.ECB_LOGO_COLOR||'#84b559';
+      g.fill(new Path2D(window.ECB_LOGO_PATH),'evenodd');
+      g.restore();
+    }else{
+      // Graceful fallback if the dedicated logo script is temporarily blocked.
+      g.fillStyle='#5ea63b';g.font='italic 900 190px Arial, sans-serif';
+      g.fillText('ecb',106,191);
+    }
     return canvas.toDataURL('image/png');
   }
   function period() {
@@ -223,7 +235,7 @@
   }
   function pdfHeader(doc,label,report){
     doc.setFillColor(250,252,250);doc.rect(0,0,210,40,'F');
-    doc.addImage(companyMark(),'PNG',14,9,37,14);
+    doc.addImage(companyMark(),'PNG',14,8,37,18);
     pdfLine(doc,'E.C.B. Reinigungssysteme GmbH',56,16,12,true);
     pdfLine(doc,label,56,22,9,false);
     pdfLine(doc,'Erstellt: '+infoDate(),56,28,8);
@@ -431,6 +443,13 @@
     finally{if(button)button.disabled=false;}
   }
   window.ECBFleetCosts={setVehicles,setMode,render,pdf,excel,getData:build};
+  // The existing fleet listener may already have fired before this deferred
+  // script loads. Initializing from its current snapshot avoids a blank pane.
+  try { if(typeof cloudFleetVehicles!=='undefined' && cloudFleetVehicles.length){
+    setVehicles(cloudFleetVehicles);
+  } } catch(ignored) {}
+  const mark=$('fleet-costs-brand');
+  if(mark)mark.src=companyMark();
   if(typeof window.addEventListener==='function'){
     window.addEventListener('load',function(){
       try {
