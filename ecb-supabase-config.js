@@ -3,6 +3,6 @@
  * Set up the PRIVATE bucket and policies in SUPABASE-EINRICHTUNG.md first. */
 window.ECB_DOCUMENTS_CONFIG = {
   projectUrl: "",
-  publishableKey: "",
+  publishableKey: "sb_publishable_Jr0loD4hyU69OjqbMIR2GQ_Ahw1pkBp",
   bucket: "ecb-fahrzeugdokumente"
 };
