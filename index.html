@@ -879,6 +879,30 @@
                     <div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Noch keine Belege erfasst.</div>
                 </div>
             </div>
+
+            <!-- VEHICLE REGISTRATION – assigned to existing fleet vehicles -->
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 w-full max-w-full box-border">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
+                    <div>
+                        <h2 class="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                            <i class="fa-solid fa-id-card text-indigo-600"></i> Fahrzeugscheine
+                        </h2>
+                        <p class="text-[11px] text-slate-500">Zulassungsbescheinigung Teil I für Ersatzteile abrufen. Vorder- und Rückseite oder vollständiges PDF beim Fahrzeug hinterlegen.</p>
+                    </div>
+                    <button type="button" onclick="openNewRegistrationModal()" class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs shrink-0">
+                        <i class="fa-solid fa-plus"></i> Fahrzeugschein hochladen
+                    </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label for="registration-filter-vehicle" class="text-[11px] font-bold text-slate-600">Fahrzeug:</label>
+                    <select id="registration-filter-vehicle" onchange="renderFleetRegistrationsList()" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 box-border">
+                        <option value="">Alle Fahrzeuge</option>
+                    </select>
+                </div>
+                <div id="fleet-registrations-container" class="space-y-3 w-full max-w-full box-border">
+                    <div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Noch keine Fahrzeugscheine hinterlegt.</div>
+                </div>
+            </div>
         </section>
 
         <!-- VACATION VIEW -->
@@ -1428,6 +1452,68 @@
         </div>
     </div>
 
+
+    <!-- VEHICLE REGISTRATION PHOTO/PDF CAPTURE -->
+    <div id="modal-fleet-registration" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-5 shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto box-border">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-id-card text-indigo-600"></i> Fahrzeugschein hochladen
+                </h3>
+                <button type="button" onclick="closeModal('modal-fleet-registration')" class="text-slate-400 hover:text-slate-600 p-1" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="form-fleet-registration" onsubmit="submitFleetRegistration(event)" class="space-y-3 w-full max-w-full box-border">
+                <div>
+                    <label for="registration-vehicle" class="block text-[11px] font-bold text-slate-700 mb-1">Fahrzeug *</label>
+                    <select id="registration-vehicle" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold box-border"></select>
+                </div>
+                <div>
+                    <label for="registration-side" class="block text-[11px] font-bold text-slate-700 mb-1">Dokumentseite *</label>
+                    <select id="registration-side" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                        <option value="Vorderseite">Vorderseite</option>
+                        <option value="Rückseite">Rückseite</option>
+                        <option value="Kompletter Fahrzeugschein">Kompletter Fahrzeugschein (PDF/Bild)</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label for="registration-hsn" class="block text-[11px] font-bold text-slate-700 mb-1">HSN (2.1)</label>
+                        <input id="registration-hsn" type="text" maxlength="12" placeholder="z. B. 0603" autocapitalize="characters" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                    </div>
+                    <div>
+                        <label for="registration-tsn" class="block text-[11px] font-bold text-slate-700 mb-1">TSN (2.2)</label>
+                        <input id="registration-tsn" type="text" maxlength="16" placeholder="z. B. BQY" autocapitalize="characters" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                    </div>
+                </div>
+                <div>
+                    <label for="registration-vin" class="block text-[11px] font-bold text-slate-700 mb-1">FIN / Fahrgestellnummer (optional)</label>
+                    <input id="registration-vin" type="text" maxlength="17" placeholder="17-stellige Fahrzeug-Identnummer" autocapitalize="characters" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                </div>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
+                    <p class="text-[11px] font-bold text-slate-800">Foto oder PDF des Fahrzeugscheins *</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="file" id="registration-camera-input" accept="image/*" capture="environment" onchange="selectFleetRegistrationFile(this)" class="hidden">
+                        <label for="registration-camera-input" class="text-center px-3 py-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs font-bold text-indigo-700 cursor-pointer">
+                            <i class="fa-solid fa-camera mr-1"></i> Foto aufnehmen
+                        </label>
+                        <input type="file" id="registration-file-input" accept="image/*,application/pdf,.pdf,.heic,.heif" onchange="selectFleetRegistrationFile(this)" class="hidden">
+                        <label for="registration-file-input" class="text-center px-3 py-3 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-700 cursor-pointer">
+                            <i class="fa-solid fa-file-arrow-up mr-1"></i> Datei / PDF
+                        </label>
+                    </div>
+                    <p id="registration-selected-file" class="text-[11px] text-slate-500 break-words">Noch keine Datei ausgewählt. Maximal 15 MB pro Datei.</p>
+                </div>
+                <p class="text-[10px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-2.5">
+                    Fahrzeugscheine können personenbezogene Daten enthalten. Bitte nur hochladen, wenn der Firebase-Zugriff auf berechtigte Mitarbeitende beschränkt ist.
+                </p>
+                <div id="registration-upload-status" class="hidden p-2.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 text-[11px]" role="status" aria-live="polite"></div>
+                <button type="submit" id="registration-save-btn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-xs box-border">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Fahrzeugschein in der Cloud speichern
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- ATTENDANCE MODAL -->
     <div id="modal-attendance" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
         <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 box-border">
@@ -1576,6 +1662,7 @@
         let receiptStorage = null;
         let receiptStorageError = null;
         let selectedFleetReceiptFile = null;
+        let selectedFleetRegistrationFile = null;
         let firebaseStatus = { connected: false, error: null, count: 0 };
         
         try {
@@ -2134,6 +2221,7 @@
                 renderFleetVehiclesList();
                 renderFleetRepairsList();
                 renderFleetReceiptsList();
+                renderFleetRegistrationsList();
             }, () => {});
         }
         
@@ -2193,7 +2281,7 @@
             if (pcBtn) pcBtn.className = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-sky-600 bg-sky-50 transition-colors';
         
             if (viewName === 'history') renderHistoryView();
-            if (viewName === 'vehicle_fleet') { renderFleetVehiclesList(); renderFleetRepairsList(); renderFleetReceiptsList(); }
+            if (viewName === 'vehicle_fleet') { renderFleetVehiclesList(); renderFleetRepairsList(); renderFleetReceiptsList(); renderFleetRegistrationsList(); }
             if (viewName === 'vacation') renderVacationList();
             if (viewName === 'shifts') renderShiftList();
             if (viewName === 'admin') renderAdminEmployeesList();
@@ -2550,6 +2638,10 @@
                 const item = cloudFleetVehicles[idx];
                 if (Array.isArray(item.belege) && item.belege.length) {
                     showToast('Fahrzeug enthält Belege. Bitte diese zuerst in der Belegserfassung entfernen.');
+                    return;
+                }
+                if (Array.isArray(item.fahrzeugscheine) && item.fahrzeugscheine.length) {
+                    showToast('Fahrzeug enthält Fahrzeugscheine. Bitte diese zuerst im Dokumentenbereich entfernen.');
                     return;
                 }
                 if (item.id && db) db.collection('fahrzeuge_park').doc(item.id).delete().catch(() => {});
@@ -2993,6 +3085,222 @@
             }
         }
 
+
+        // Fahrzeugscheine (Zulassungsbescheinigung Teil I) werden je Fahrzeug
+        // in Firebase Storage abgelegt. Die Dokument-Metadaten liegen am
+        // bestehenden fahrzeuge_park/{fahrzeugId}.fahrzeugscheine Array.
+        // Keine Speicherung auf dem Endgerät als Alternative zur Cloud.
+        function registrationStatus(message, error) {
+            const node = document.getElementById('registration-upload-status');
+            if (!node) return;
+            node.className = 'p-2.5 rounded-xl border text-[11px] ' + (error ?
+                'bg-rose-50 border-rose-200 text-rose-800' :
+                'bg-sky-50 border-sky-200 text-sky-900');
+            node.textContent = message;
+        }
+        function openNewRegistrationModal(vehicleId) {
+            if (!cloudFleetVehicles.length) { showToast('Bitte zuerst ein Fahrzeug anlegen.'); return; }
+            document.getElementById('form-fleet-registration').reset();
+            selectedFleetRegistrationFile = null;
+            document.getElementById('registration-selected-file').textContent =
+                'Noch keine Datei ausgewählt. Maximal 15 MB pro Datei.';
+            document.getElementById('registration-upload-status').classList.add('hidden');
+            const select = document.getElementById('registration-vehicle');
+            select.innerHTML = '<option value="">-- Fahrzeug wählen --</option>' +
+                cloudFleetVehicles.map(v => '<option value="' + escapeRepairHtml(v.id) + '">' +
+                    escapeRepairHtml(v.plate || v.model || v.id) + '</option>').join('');
+            if (vehicleId && cloudFleetVehicles.some(v => v.id === vehicleId)) select.value = vehicleId;
+            openModal('modal-fleet-registration');
+        }
+        function selectFleetRegistrationFile(input) {
+            const f = input.files && input.files[0];
+            if (!f) return;
+            selectedFleetRegistrationFile = f;
+            document.getElementById('registration-selected-file').textContent =
+                f.name + ' (' + (f.size / 1024 / 1024).toFixed(2) + ' MB)';
+            const other = document.getElementById(input.id === 'registration-camera-input' ?
+                'registration-file-input' : 'registration-camera-input');
+            other.value = '';
+        }
+        async function submitFleetRegistration(event) {
+            event.preventDefault();
+            const saveBtn = document.getElementById('registration-save-btn');
+            if (saveBtn.disabled) return;
+            const vehicleId = document.getElementById('registration-vehicle').value;
+            const vehicle = cloudFleetVehicles.find(v => v.id === vehicleId);
+            if (!vehicle) { registrationStatus('Bitte ein vorhandenes Fahrzeug auswählen.', true); return; }
+            const file = selectedFleetRegistrationFile;
+            if (!file) { registrationStatus('Bitte ein Foto oder PDF des Fahrzeugscheins auswählen.', true); return; }
+            if (!file.size || file.size > 15 * 1024 * 1024) {
+                registrationStatus('Maximale Dateigröße: 15 MB.', true); return;
+            }
+            const mime = receiptMimeType(file);
+            if (!mime) { registrationStatus('Erlaubt sind JPG, PNG, WEBP, HEIC/HEIF oder PDF.', true); return; }
+            const side = document.getElementById('registration-side').value;
+            if (!['Vorderseite','Rückseite','Kompletter Fahrzeugschein'].includes(side)) {
+                registrationStatus('Bitte die Dokumentseite wählen.', true); return;
+            }
+            const hsn = document.getElementById('registration-hsn').value.trim().toUpperCase();
+            const tsn = document.getElementById('registration-tsn').value.trim().toUpperCase();
+            const vin = document.getElementById('registration-vin').value.trim().toUpperCase();
+            if (vin && !/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) {
+                registrationStatus('Die Fahrgestellnummer (FIN) muss aus 17 gültigen Zeichen bestehen oder leer bleiben.', true);
+                return;
+            }
+            saveBtn.disabled = true;
+            try {
+                receiptStorageReady();
+                const id = 'fz-' + Date.now().toString(36) + '-' +
+                    Math.random().toString(36).slice(2,10);
+                const ext = {
+                    'application/pdf':'pdf','image/jpeg':'jpg','image/png':'png',
+                    'image/webp':'webp','image/heic':'heic','image/heif':'heif'
+                }[mime];
+                const path = 'fahrzeugscheine/' + vehicleId + '/' + id + '.' + ext;
+                const record = {
+                    id:id, side:side, hsn:hsn, tsn:tsn, vin:vin,
+                    fileName:file.name.slice(0,200), mime:mime, bytes:file.size,
+                    storagePath:path, createdAt:Date.now()
+                };
+                registrationStatus('Fahrzeugschein wird hochgeladen …', false);
+                const storageRef = receiptStorage.ref().child(path);
+                const upload = storageRef.put(file,{contentType:mime});
+                upload.on('state_changed', snapshot => {
+                    if (snapshot.totalBytes) registrationStatus(
+                        'Hochladen: ' + Math.floor(100 * snapshot.bytesTransferred / snapshot.totalBytes) + ' %', false);
+                });
+                await upload;
+                registrationStatus('Datei hochgeladen. Fahrzeugzuordnung wird gespeichert …', false);
+                try {
+                    await db.collection('fahrzeuge_park').doc(vehicleId).update({
+                        fahrzeugscheine: firebase.firestore.FieldValue.arrayUnion(record)
+                    });
+                } catch (dbError) {
+                    // Bei bestätigtem Fehlen der Metadaten die hochgeladene
+                    // Datei aufräumen; bei Netzfehlern nichts vorschnell löschen.
+                    let absent = false;
+                    try {
+                        const snap = await db.collection('fahrzeuge_park').doc(vehicleId).get({source:'server'});
+                        absent = !snap.exists || !(snap.data().fahrzeugscheine || []).some(x => x.id === id);
+                    } catch (ignored) {}
+                    if (absent) await storageRef.delete().catch(() => {});
+                    throw dbError;
+                }
+                selectedFleetRegistrationFile = null;
+                closeModal('modal-fleet-registration');
+                showToast('Fahrzeugschein dem Fahrzeug zugeordnet und in der Cloud gespeichert.');
+            } catch (err) {
+                registrationStatus('Cloud-Speicherung fehlgeschlagen: ' + (err.code || err.message || 'Fehler') +
+                    '. Bitte Firebase Storage und dessen Zugriffsregeln prüfen.', true);
+                showToast('Fahrzeugschein konnte nicht gespeichert werden.');
+            } finally {
+                saveBtn.disabled = false;
+            }
+        }
+        function renderFleetRegistrationsList() {
+            const container = document.getElementById('fleet-registrations-container');
+            const filter = document.getElementById('registration-filter-vehicle');
+            if (!container || !filter) return;
+            const prev = filter.value;
+            filter.innerHTML = '<option value="">Alle Fahrzeuge</option>' +
+                cloudFleetVehicles.map(v => '<option value="' + escapeRepairHtml(v.id) + '">' +
+                    escapeRepairHtml(v.plate || v.model || v.id) + '</option>').join('');
+            if (prev && cloudFleetVehicles.some(v => v.id === prev)) filter.value = prev;
+            const selected = filter.value;
+            const vehicles = cloudFleetVehicles.filter(v => (!selected || selected === v.id) &&
+                Array.isArray(v.fahrzeugscheine) && v.fahrzeugscheine.length);
+            if (!vehicles.length) {
+                container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Für die Auswahl sind noch keine Fahrzeugscheine hinterlegt.</div>';
+                return;
+            }
+            container.innerHTML = vehicles.map(v => {
+                const docs = v.fahrzeugscheine.slice().sort((a,b)=>(b.createdAt || 0)-(a.createdAt || 0));
+                const vid = /^[A-Za-z0-9_-]+$/.test(v.id || '') ? v.id : '';
+                const content = docs.map(d => {
+                    const did = /^[A-Za-z0-9_-]+$/.test(d.id || '') ? d.id : '';
+                    const canOpen = vid && did && typeof d.storagePath === 'string' &&
+                        d.storagePath.startsWith('fahrzeugscheine/' + v.id + '/');
+                    const open = canOpen ?
+                        '<button type="button" onclick="openFleetRegistration(\'' + vid + '\',\'' + did +
+                        '\')" class="px-3 py-2 bg-sky-50 border border-sky-200 text-sky-700 rounded-xl font-bold text-[11px]"><i class="fa-solid fa-eye"></i> Ansehen</button>' : '';
+                    const remove = isAdminLoggedIn && canOpen ?
+                        '<button type="button" onclick="deleteFleetRegistration(\'' + vid + '\',\'' + did +
+                        '\')" class="px-3 py-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl font-bold text-[11px]"><i class="fa-solid fa-trash"></i> Löschen</button>' : '';
+                    return '<div class="p-3 bg-white border border-slate-200 rounded-xl space-y-2">' +
+                        '<div class="flex flex-wrap items-center justify-between gap-2"><strong class="text-slate-900">' +
+                        '<i class="fa-solid fa-id-card text-indigo-600 mr-1"></i> ' + escapeRepairHtml(d.side || 'Fahrzeugschein') +
+                        '</strong><span class="text-[10px] text-slate-500 break-all">' +
+                        escapeRepairHtml(d.fileName || 'Dokument') + '</span></div>' +
+                        ((d.hsn || d.tsn) ? '<p class="text-[11px] text-slate-700"><b>HSN:</b> ' +
+                            escapeRepairHtml(d.hsn || '–') + ' &nbsp; <b>TSN:</b> ' +
+                            escapeRepairHtml(d.tsn || '–') + '</p>' : '') +
+                        (d.vin ? '<p class="text-[11px] text-slate-700 break-all"><b>FIN:</b> ' +
+                            escapeRepairHtml(d.vin) + '</p>' : '') +
+                        '<div class="flex gap-2 flex-wrap">' + open + remove + '</div></div>';
+                }).join('');
+                return '<div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">' +
+                    '<div class="flex items-center justify-between gap-2"><strong class="text-sm text-slate-900">' +
+                    '<i class="fa-solid fa-car text-indigo-600 mr-1"></i> ' +
+                    escapeRepairHtml(v.plate || v.model || '-') + '</strong>' +
+                    '<span class="text-[10px] font-bold text-slate-500">' + docs.length + ' Dokument(e)</span></div>' +
+                    '<div class="space-y-2">' + content + '</div></div>';
+            }).join('');
+        }
+        async function openFleetRegistration(vehicleId, registrationId) {
+            const vehicle = cloudFleetVehicles.find(v => v.id === vehicleId);
+            const registration = vehicle && (vehicle.fahrzeugscheine || []).find(x => x.id === registrationId);
+            if (!registration || !registration.storagePath ||
+                !registration.storagePath.startsWith('fahrzeugscheine/' + vehicleId + '/')) {
+                showToast('Fahrzeugschein nicht gefunden.'); return;
+            }
+            let tab = null;
+            try { tab = window.open('about:blank','_blank'); } catch (ignored) {}
+            if (tab) {
+                try {
+                    tab.document.title = 'Fahrzeugschein';
+                    tab.document.body.textContent = 'Fahrzeugschein wird geladen …';
+                } catch (ignored) {}
+            }
+            try {
+                receiptStorageReady();
+                const url = await receiptStorage.ref().child(registration.storagePath).getDownloadURL();
+                if (tab && !tab.closed) tab.location.replace(url);
+                else {
+                    const a = document.createElement('a');
+                    a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+                    document.body.appendChild(a); a.click(); a.remove();
+                }
+            } catch (err) {
+                if (tab && !tab.closed) tab.close();
+                showToast('Fahrzeugschein konnte nicht geöffnet werden: ' + (err.code || err.message || 'Fehler'));
+            }
+        }
+        async function deleteFleetRegistration(vehicleId, registrationId) {
+            if (!isAdminLoggedIn) { showToast('Nur Administratoren können Fahrzeugscheine löschen.'); return; }
+            if (!window.confirm('Diesen Fahrzeugschein wirklich löschen?')) return;
+            try {
+                receiptStorageReady();
+                const ref = db.collection('fahrzeuge_park').doc(vehicleId);
+                let deleted = null;
+                await db.runTransaction(async tx => {
+                    const snap = await tx.get(ref);
+                    if (!snap.exists) throw new Error('Fahrzeug nicht gefunden');
+                    const docs = Array.isArray(snap.data().fahrzeugscheine) ? snap.data().fahrzeugscheine : [];
+                    deleted = docs.find(x => x.id === registrationId);
+                    if (!deleted) throw new Error('Fahrzeugschein nicht gefunden');
+                    tx.update(ref,{fahrzeugscheine:docs.filter(x => x.id !== registrationId)});
+                });
+                if (deleted && deleted.storagePath) {
+                    try { await receiptStorage.ref().child(deleted.storagePath).delete(); }
+                    catch (err) { showToast('Zuordnung entfernt, aber die Storage-Datei konnte nicht gelöscht werden: ' +
+                        (err.code || err.message)); return; }
+                }
+                showToast('Fahrzeugschein gelöscht.');
+            } catch (err) {
+                showToast('Fahrzeugschein konnte nicht gelöscht werden: ' + (err.code || err.message || 'Fehler'));
+            }
+        }
+
         function toggleManagerLogin() {
             const dropdown = document.getElementById('manager-login-dropdown');
             const chevron = document.getElementById('manager-chevron');
@@ -3016,6 +3324,7 @@
                 renderVacationList();
                 renderFleetRepairsList();
                 renderFleetReceiptsList();
+                renderFleetRegistrationsList();
             } else {
                 showToast('Falsches Passwort!');
             }
@@ -3036,6 +3345,7 @@
                 saveEmployeesToStorage();
                 renderFleetRepairsList();
                 renderFleetReceiptsList();
+                renderFleetRegistrationsList();
                 showToast('Admin-Bereich entsperrt!');
             } else {
                 showToast('Falsches Passwort!');
