@@ -3030,6 +3030,9 @@
             selectedFleetReceiptFile = file;
             window.ECB_CURRENT_RECEIPT_FILE = file;
             if (window.ECBReceiptOCR) window.ECBReceiptOCR.reset();
+            // A chosen document must always be reviewed, even when OCR fails.
+            document.getElementById('receipt-ocr-review-wrap').classList.remove('hidden');
+            document.getElementById('receipt-ocr-review').checked = false;
             document.getElementById('receipt-selected-file').textContent =
                 file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
             if (input.id === 'receipt-camera-input') document.getElementById('receipt-file-input').value = '';
@@ -3063,6 +3066,18 @@
             const amt = document.getElementById('receipt-amount').value;
             if (amt !== '' && (!Number.isFinite(Number(amt)) || Number(amt) < 0)) {
                 fleetReceiptStatus('Bitte einen gültigen Betrag eingeben.', true); return;
+            }
+            // Vehicle expense receipts need real amounts; the previous app
+            // silently accepted empty totals even when OCR extracted nothing.
+            if (amt === '') {
+                fleetReceiptStatus('Endbetrag fehlt. Bitte den Rechnungs-Gesamtbetrag vom Originalbeleg eintragen oder die automatische Erkennung erneut starten.', true);
+                document.getElementById('receipt-amount').focus();
+                return;
+            }
+            if (!document.getElementById('receipt-vendor').value.trim()) {
+                fleetReceiptStatus('Händler fehlt. Bitte den Firmennamen vom Originalbeleg eintragen oder die Erkennung erneut starten.', true);
+                document.getElementById('receipt-vendor').focus();
+                return;
             }
             let items = [];
             try { items = window.ECBReceiptOCR ? window.ECBReceiptOCR.collect() : []; }
@@ -3169,8 +3184,15 @@
                 const canOpen = id && vid && r.storagePath && r.storagePath.startsWith('fahrzeugbelege/');
                 const openBtn = canOpen ?
                     '<button type="button" onclick="openFleetReceipt(\'' + vid + '\',\'' + id + '\')" class="px-3 py-2 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 font-bold text-[11px]"><i class="fa-solid fa-eye"></i> Beleg ansehen</button>' : '';
-                const deleteBtn = window.ECB_KFZ_ADMIN && window.ECB_KFZ_ADMIN.unlocked && id && vid ?
+                const canManage = window.ECB_KFZ_ADMIN && window.ECB_KFZ_ADMIN.unlocked && id && vid;
+                const deleteBtn = canManage ?
                     '<button type="button" onclick="deleteFleetReceipt(\'' + vid + '\',\'' + id + '\')" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 font-bold text-[11px]"><i class="fa-solid fa-trash"></i> Löschen</button>' : '';
+                const editBtn = canManage ?
+                    '<button type="button" onclick="ECBKfzEdit(\'receipt\',\'' + vid + '\',\'' + id + '\')" class="px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold text-[11px]"><i class="fa-solid fa-pen"></i> Daten nachtragen</button>' : '';
+                const missingData = !r.vendor || r.amount == null || !Array.isArray(r.items) || r.items.length === 0;
+                const dataWarning = missingData ?
+                    '<p class="text-[10px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5">Belegdaten unvollständig. Bitte mit Originalbeleg vergleichen.' +
+                    (canManage ? ' Über „Daten nachtragen“ ergänzen.' : ' Im KFZ-Adminbereich korrigierbar.') + '</p>' : '';
                 const amount = r.amount == null || r.amount === '' ? '–' :
                     (Number.isFinite(Number(r.amount)) ? money.format(Number(r.amount)) : '–');
                 return '<div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-2">' +
@@ -3186,9 +3208,10 @@
                             (item.amount == null ? '–' : escapeRepairHtml(money.format(Number(item.amount)))) + '</span></div>'; }).join('') +
                         '</div></details>' : '') +
                     (r.notes ? '<p class="text-slate-600 whitespace-pre-line">' + escapeRepairHtml(r.notes) + '</p>' : '') +
+                    dataWarning +
                     '<div class="text-[10px] text-slate-500 break-all"><i class="fa-solid fa-paperclip"></i> ' +
                     escapeRepairHtml(r.fileName || 'Datei') + '</div>' +
-                    '<div class="flex flex-wrap gap-2 pt-1">' + openBtn + deleteBtn + '</div></div>';
+                    '<div class="flex flex-wrap gap-2 pt-1">' + openBtn + editBtn + deleteBtn + '</div></div>';
             }).join('');
         }
         async function openFleetReceipt(vehicleId, receiptId) {
