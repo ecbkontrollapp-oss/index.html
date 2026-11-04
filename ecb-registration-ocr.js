@@ -282,8 +282,13 @@
       if(value&&(!/^\d{1,6}$/.test(value)||Number(value)<1||Number(value)>max))
         return {ok:false,message:label+' enthält keinen plausiblen Zahlenwert.'};
     }
-    if(info.firstRegistration&&(!/^\d{4}-\d{2}-\d{2}$/.test(info.firstRegistration)||!dateValue(info.firstRegistration.replace(/-/g,'.'))&&Number(info.firstRegistration.slice(0,4))<1900))
-      return {ok:false,message:'Datum der Erstzulassung (B) bitte prüfen.'};
+    if(info.firstRegistration){
+      const m=String(info.firstRegistration).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      const d=m?new Date(Date.UTC(+m[1],+m[2]-1,+m[3])):null;
+      if(!m||+m[1]<1900||+m[1]>new Date().getFullYear()+1||
+        d.getUTCFullYear()!==+m[1]||d.getUTCMonth()!==+m[2]-1||d.getUTCDate()!==+m[3])
+        return {ok:false,message:'Datum der Erstzulassung (B) bitte prüfen.'};
+    }
     return {ok:true};
   }
   function canSave(mode){
