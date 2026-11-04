@@ -226,6 +226,28 @@
       }
       push(name,qty,price);
     }
+    // Read explicit quantity x product lines even if another OCR section
+    // accidentally put the receipt totals before the products.
+    const quantityLine=/^\s*(\d{1,3}(?:[.,]\d{1,3})?)\s*(?:x|×|stk\.?|stück)\s+(.{2,120})$/i;
+    for(let i=0;i<lines.length;i++){
+      const line=lines[i];
+      if(isNotItem(line))continue;
+      const match=line.match(quantityLine);
+      if(!match)continue;
+      const quantity=Number(match[1].replace(',','.'));
+      if(!Number.isFinite(quantity)||quantity<=0||quantity>1000)continue;
+      let remainder=match[2];
+      const p=lastPrice(remainder);
+      const amountOnLine=p?p.amount:null;
+      if(p) remainder=p.prefix;
+      const name=remainder.replace(/\s+(?:EUR|€)\s*$/i,'').trim();
+      if(!/[A-Za-zÄÖÜäöüß]{1,}|[A-Z]?\s?\d{3,}/.test(name) ||
+         /(?:\b(?:mwst|steuer|netto|gesamt|betrag|eur)\b)/i.test(name))continue;
+      const previous=lines[i-1]||'';
+      const titleMatch=previous.match(/^\s*((?:[oö0]lwechsel|[oö0]lfilter|motor[oö0]l|luftfilter|inspektion|bremsbel[aä]ge|reifenwechsel))\s*[:\-]?\s*$/i);
+      const itemName=titleMatch?titleMatch[1]+': '+name:name;
+      push(itemName,quantity,amountOnLine);
+    }
     return {vendor,date,amount,items,netAmount,netCalculated,taxAmount,km,plate};
   }
 
@@ -390,6 +412,40 @@
     ctx.filter='none';
     return canvas;
   }
+
+  // OCR-only crop without row-by-row paper straightening. This avoids
+  // horizontal slice seams crossing tiny thermal-print characters.
+  function drawUnwarpedPhotoPart(model,from,to,contrast) {
+    const ratio=model.detected ? 1/model.ratio : 1;
+    let minLeft=Infinity,maxRight=-Infinity;
+    if(model.detected){
+      for(let n=0;n<=18;n++){
+        const y=from+(to-from)*n/18;
+        const p=paperBounds(model,y);
+        minLeft=Math.min(minLeft,p.left);
+        maxRight=Math.max(maxRight,p.right);
+      }
+    }else{
+      minLeft=0;maxRight=model.image.naturalWidth;
+    }
+    const left=Math.max(0,(minLeft-17)*ratio);
+    const top=Math.max(0,from*ratio);
+    const width=Math.min(model.image.naturalWidth-left,(maxRight-minLeft+34)*ratio);
+    const height=Math.min(model.image.naturalHeight-top,(to-from)*ratio);
+    const canvas=document.createElement('canvas');
+    const scale=Math.min(3.5,1500/Math.max(1,width));
+    canvas.width=Math.max(1,Math.round(width*scale));
+    canvas.height=Math.max(1,Math.round(height*scale));
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#fff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.imageSmoothingEnabled=true;
+    ctx.imageSmoothingQuality='high';
+    ctx.filter='grayscale(1) contrast('+contrast+')';
+    ctx.drawImage(model.image,left,top,width,height,0,0,canvas.width,canvas.height);
+    ctx.filter='none';
+    return canvas;
+  }
   async function newOcrWorker(setStatus) {
     const lib=await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js','Tesseract');
     const worker=await lib.createWorker('deu+eng',1,{
@@ -432,23 +488,18 @@
       // If total or header is still missing, try a second contrast/segment
       // configuration for only the relevant area.
       const data=parse(combined);
-      // Run focused passes for fields the full scan did not actually find;
-      // do not mistake a prefilled form date for recognized receipt data.
-      const needsHeader=(!data.date||!data.plate||!data.vendor);
+      const needsHeader=!data.date||!data.plate||!data.vendor;
       const needsItems=!data.items.length;
       if(model.detected && (needsHeader || needsItems || data.amount===null)){
         await worker.setParameters({tessedit_pageseg_mode:'6'});
         const sections=[];
         if(needsHeader)sections.push({start:model.top,end:model.top+length*.38,kind:'Kopfbereich'});
-        if(needsItems) {
-          // Thermal-paper invoices usually place item lines in the lower
-          // middle. Smaller overlapping windows yield less layout noise.
-          sections.push({start:model.top+length*.48,end:model.top+length*.70,kind:'Artikel'});
-          sections.push({start:model.top+length*.65,end:model.top+length*.84,kind:'Artikel'});
-        }
-        if(data.amount===null)sections.push({start:model.top+length*.69,end:model.bottom,kind:'Endbetrag'});
+        if(needsItems)sections.push({start:model.top+length*.48,end:model.top+length*.81,kind:'Artikel'});
+        if(data.amount===null)sections.push({start:model.top+length*.68,end:model.bottom,kind:'Endbetrag'});
         for(const section of sections){
-          const canvas=drawPhotoPart(model,section.start,section.end);
+          // Keep the paper at its natural perspective in this pass. Letter
+          // contours are much cleaner without per-8-pixel drawImage seams.
+          const canvas=drawUnwarpedPhotoPart(model,section.start,section.end,1.9);
           setStatus('Zusätzliche Erkennung: '+section.kind+' …');
           try {
             const result=await worker.recognize(canvas);
@@ -457,14 +508,27 @@
             if(section.kind==='Kopfbereich'){
               combined=extra+'\n'+combined;
             } else if(section.kind==='Artikel'){
-              const currentLines=combined.split('\n');
-              const footer=currentLines.findIndex(line=>
-                /\b(?:nettobetrag|nettosumme|mehrwertsteuer|umsatzsteuer|mwst|gesamtbetrag|gesamtsumme|endbetrag|rechnungsbetrag|summe|total|bruttobetrag)\b/i.test(line));
-              currentLines.splice(footer>=0?footer:currentLines.length,0,extra);
-              combined=currentLines.join('\n');
+              // Keep the separate OCR in the original text for debugging;
+              // extractItemLines() can read article lines independently of
+              // accidental summary text in an earlier OCR section.
+              combined+='\n' + extra;
             } else {
               combined+='\n'+extra;
             }
+          } finally {canvas.width=0;canvas.height=0;}
+        }
+        // For tiny article text, sparse-line recognition sometimes works
+        // better than block recognition. Only retry if the previous pass
+        // still did not produce any real article rows.
+        if(needsItems && !parse(combined).items.length){
+          await worker.setParameters({tessedit_pageseg_mode:'11'});
+          const canvas=drawUnwarpedPhotoPart(model,
+            model.top+length*.52,model.top+length*.77,1.35);
+          setStatus('Artikeltexte werden einzeln gelesen …');
+          try {
+            const result=await worker.recognize(canvas);
+            const extra=result.data && result.data.text || '';
+            if(extra.trim())combined+='\n'+extra;
           } finally {canvas.width=0;canvas.height=0;}
         }
       }
