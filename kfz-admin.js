@@ -80,7 +80,8 @@
       {key:'vendor', label:'Firma / Händler', max:180},
       {key:'amount', label:'Betrag (€)', type:'number', min:0, step:'0.01'},
       {key:'description', label:'Beschreibung', max:240},
-      {key:'notes', label:'Bemerkungen', type:'textarea', max:2000}
+      {key:'notes', label:'Bemerkungen', type:'textarea', max:2000},
+      {key:'items', label:'Artikel / Positionen', type:'receipt-items'}
     ],
     registration: [
       {key:'side', label:'Dokumentseite', type:'select', options:['Vorderseite','Rückseite','Kompletter Fahrzeugschein']},
@@ -93,6 +94,10 @@
     receipt:'Belegdaten bearbeiten',registration:'Fahrzeugschein bearbeiten'};
   function fieldMarkup(field) {
     const id = 'kfz-edit-' + field.key;
+    if (field.type === 'receipt-items') return '<div class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2">' +
+      '<div class="flex justify-between items-center gap-2"><label class="text-[11px] font-bold text-slate-700">Artikel / Einzelpositionen</label>' +
+      '<button type="button" onclick="ECBKfzAddReceiptItem()" class="px-2.5 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-[11px] font-bold border border-indigo-200"><i class="fa-solid fa-plus"></i> Artikel hinzufügen</button></div>' +
+      '<div id="kfz-edit-items" class="space-y-2"></div><p class="text-[10px] text-slate-500">Artikelbezeichnung, Menge und Positionsendpreis. Angaben am Originalbeleg prüfen.</p></div>';
     if (field.type === 'points') return '<div class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2">' +
       '<div class="flex justify-between items-center gap-2"><label class="text-[11px] font-bold text-slate-700">Arbeitspunkte</label>' +
       '<button type="button" onclick="ECBKfzAddPoint()" class="px-2.5 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-[11px] font-bold border border-indigo-200"><i class="fa-solid fa-plus"></i> Punkt hinzufügen</button></div>' +
@@ -130,6 +135,23 @@
     target.appendChild(row);
   }
   window.ECBKfzAddPoint = () => addPoint('', false);
+  function addReceiptItem(item) {
+    const container = document.getElementById('kfz-edit-items');
+    if (!container) return;
+    if (container.children.length >= 40) { showToast('Maximal 40 Positionen pro Beleg.'); return; }
+    const row = document.createElement('div');
+    row.className = 'kfz-edit-item rounded-xl border border-slate-200 bg-white p-2 grid grid-cols-12 gap-2 items-end';
+    row.innerHTML = '<label class="col-span-12 text-[10px] font-bold">Artikel / Leistung<input class="kfz-item-name mt-1 w-full border border-slate-200 rounded-lg p-2 text-xs" maxlength="180" placeholder="Artikel" required></label>' +
+      '<label class="col-span-4 text-[10px] font-bold">Menge<input type="number" min="0.001" max="1000" step="any" class="kfz-item-qty mt-1 w-full border border-slate-200 rounded-lg p-2 text-xs"></label>' +
+      '<label class="col-span-6 text-[10px] font-bold">Positionspreis (€)<input type="number" min="0" step="0.01" class="kfz-item-amount mt-1 w-full border border-slate-200 rounded-lg p-2 text-xs"></label>' +
+      '<button type="button" class="kfz-item-remove col-span-2 text-rose-700 bg-rose-50 rounded-lg p-2" aria-label="Artikel entfernen"><i class="fa-solid fa-xmark"></i></button>';
+    row.querySelector('.kfz-item-name').value = item && item.name || '';
+    row.querySelector('.kfz-item-qty').value = item && item.quantity != null ? item.quantity : 1;
+    row.querySelector('.kfz-item-amount').value = item && item.amount != null ? Number(item.amount).toFixed(2) : '';
+    row.querySelector('.kfz-item-remove').addEventListener('click', () => row.remove());
+    container.appendChild(row);
+  }
+  window.ECBKfzAddReceiptItem = () => addReceiptItem(null);
   window.ECBKfzEdit = function (kind, vehicleId, itemId) {
     if (locked()) return;
     const vehicle = carById(vehicleId);
@@ -147,6 +169,9 @@
         const ps = Array.isArray(item.points) ? item.points : [];
         if (!ps.length) addPoint('',false);
         else ps.forEach(p => addPoint(p.label,p.done));
+      } else if (f.type === 'receipt-items') {
+        const entries = Array.isArray(item.items) ? item.items : [];
+        entries.slice(0,40).forEach(addReceiptItem);
       } else {
         const el = document.getElementById('kfz-edit-' + f.key);
         if (el) el.value = item[f.key] == null ? '' : String(item[f.key]);
@@ -185,6 +210,20 @@
           label:row.querySelector('.kfz-point-label').value.trim(), done:row.querySelector('.kfz-point-done').checked
         })).filter(p => p.label);
         if (!patch.points.length) { showToast('Mindestens einen Arbeitspunkt eintragen.'); return; }
+      } else if (f.type === 'receipt-items') {
+        const items = [];
+        for (const row of document.querySelectorAll('#kfz-edit-items .kfz-edit-item')) {
+          const name = row.querySelector('.kfz-item-name').value.trim();
+          const quantity = Number(row.querySelector('.kfz-item-qty').value);
+          const raw = row.querySelector('.kfz-item-amount').value.trim();
+          const amount = raw === '' ? null : Number(raw);
+          if (!name || name.length > 180 || !Number.isFinite(quantity) || quantity <= 0 || quantity > 1000 ||
+              (amount !== null && (!Number.isFinite(amount) || amount < 0 || amount > 100000000))) {
+            showToast('Bitte Artikelbezeichnungen, Mengen und Preise prüfen.'); return;
+          }
+          items.push({name,quantity,amount});
+        }
+        patch.items = items;
       } else {
         const value = document.getElementById('kfz-edit-' + f.key).value.trim();
         if (f.required && !value) { showToast('Pflichtfeld fehlt: ' + f.label); return; }
