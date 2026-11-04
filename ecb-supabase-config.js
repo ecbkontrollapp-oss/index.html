@@ -2,7 +2,7 @@
  * Never use a service_role or sb_secret_ key in this public repository.
  * Set up the PRIVATE bucket and policies in SUPABASE-EINRICHTUNG.md first. */
 window.ECB_DOCUMENTS_CONFIG = {
-  projectUrl: "",
+  projectUrl: "https://tbagsmopgfvjpcjhekrw.supabase.co",
   publishableKey: "sb_publishable_Jr0loD4hyU69OjqbMIR2GQ_Ahw1pkBp",
   bucket: "ecb-fahrzeugdokumente"
 };
