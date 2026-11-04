@@ -2784,11 +2784,11 @@
             }
             const plate=document.getElementById('fleet-input-plate').value.trim().toUpperCase();
             const model=document.getElementById('fleet-input-model').value.trim()||'Standard';
-            const km=document.getElementById('fleet-input-km').value.trim()||'0';
+            const km=document.getElementById('fleet-input-km').value.trim();
             const tuev=document.getElementById('fleet-input-tuev').value||'';
             const oil=document.getElementById('fleet-input-oil').value||'';
             if(!plate){showToast('Bitte ein Kennzeichen oder einen Fahrzeugnamen eingeben.');return;}
-            if(!/^\d{1,9}$/.test(km)||oil&& !/^\d{1,9}$/.test(oil)){
+            if((km&&!/^\d{1,9}$/.test(km))||(oil&&!/^\d{1,9}$/.test(oil))){
                 showToast('Kilometerstände müssen gültige positive Zahlen sein.');return;
             }
             const norm=value=>String(value||'').replace(/[^A-Z0-9]/gi,'').toUpperCase();
@@ -2885,6 +2885,28 @@
             return String(v).includes('-') ? v : `${v} km`;
         }
 
+        function fleetSpecificationDetails(data) {
+            if(!data||typeof data!=='object')return '';
+            const allowed=[
+                ['Hersteller','manufacturer'],['Erstzulassung','firstRegistration'],
+                ['Typ / Variante','type'],['FIN','vin'],['HSN (2.1)','hsn'],
+                ['TSN (2.2)','tsn'],['Kraftstoff','fuel'],['Leistung (kW)','powerKw'],
+                ['Hubraum (cm³)','displacement'],['Farbe','color'],
+                ['Sitzplätze','seats'],['Gesamtmasse (kg)','totalMass'],
+                ['Reifen vorn','tyresFront'],['Reifen hinten','tyresRear'],
+                ['Fahrzeugklasse','vehicleClass']
+            ];
+            const values=allowed.filter(([,key])=>data[key]!==null &&
+                data[key]!==undefined && String(data[key]).trim());
+            if(!values.length)return '';
+            return '<details class="border border-indigo-100 bg-white rounded-xl p-2.5">'+
+                '<summary class="text-[11px] text-indigo-800 font-bold cursor-pointer">Technische Fahrzeugdaten für Ersatzteile ('+
+                values.length+' Angaben)</summary><div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">'+
+                values.map(([label,key])=>'<div class="text-[11px] bg-slate-50 rounded-lg px-2.5 py-2">'+
+                    '<span class="text-slate-500 block">'+escapeRepairHtml(label)+'</span>'+
+                    '<strong class="break-all text-slate-800">'+escapeRepairHtml(data[key])+'</strong></div>').join('')+
+                '</div></details>';
+        }
         function renderFleetVehiclesList() {
             const container = document.getElementById('fleet-vehicles-container');
             if (!container) return;
@@ -2912,7 +2934,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-[11px] text-slate-700 w-full max-w-full box-border">
                         <div class="bg-white p-2 rounded-lg border border-slate-200 w-full max-w-full box-border">
                             <div class="text-[9px] text-slate-400 uppercase font-bold">Kilometerstand</div>
-                            <div class="font-bold text-slate-900">${item.km || '0'} km</div>
+                            <div class="font-bold text-slate-900">${item.km ? escapeRepairHtml(item.km)+' km' : 'Nicht erfasst'}</div>
                         </div>
                         <div class="bg-white p-2 rounded-lg border border-slate-200 w-full max-w-full box-border">
                             <div class="text-[9px] text-slate-400 uppercase font-bold">Nächster TÜV</div>
@@ -2924,6 +2946,7 @@
                             ${hint ? `<div class="text-[10px] font-bold ${cls}">${hint}</div>` : ''}
                         </div>
                     </div>
+                    ${fleetSpecificationDetails(item)}
                 </div>`;
             }).join('');
         }
@@ -3629,6 +3652,7 @@
                             escapeRepairHtml(d.tsn || '–') + '</p>' : '') +
                         (d.vin ? '<p class="text-[11px] text-slate-700 break-all"><b>FIN:</b> ' +
                             escapeRepairHtml(d.vin) + '</p>' : '') +
+                        fleetSpecificationDetails(d.vehicleInfo || d) +
                         '<div class="flex gap-2 flex-wrap">' + open + remove + '</div></div>';
                 }).join('');
                 return '<div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">' +
