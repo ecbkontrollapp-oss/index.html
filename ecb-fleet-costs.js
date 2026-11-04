@@ -401,6 +401,19 @@
         report.extraRepairCost/100,report.grand/100,
         report.groups.reduce((n,g)=>n+g.net,0)/100,
         report.groups.reduce((n,g)=>n+g.tax,0)/100,report.missing]);
+      const last=footer.number-1;
+      const caches=[
+        report.groups.reduce((n,g)=>n+g.receiptGross,0)/100,
+        report.extraRepairCost/100,report.grand/100,
+        report.groups.reduce((n,g)=>n+g.net,0)/100,
+        report.groups.reduce((n,g)=>n+g.tax,0)/100
+      ];
+      ['E','F','G','H','I'].forEach((letter,i)=>{
+        footer.getCell(i+5).value={
+          formula:'SUM('+letter+'6:'+letter+last+')',
+          result:caches[i]
+        };
+      });
       footer.font={bold:true,color:{argb:'FF14532D'}};
       footer.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE6F4DF'}};
       [5,6,7,8,9].forEach(col=>footer.getCell(col).numFmt='#,##0.00 "€"');
