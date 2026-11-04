@@ -188,6 +188,41 @@
     }
   }
   function getFile(mode){return state[mode]&&state[mode].file||null;}
+  function selectedRegistrationPlate(){
+    const select=$('registration-vehicle');
+    if(!select||!select.value)return '';
+    const option=select.options&&select.options[select.selectedIndex];
+    const label=normalize(option&&option.textContent||'').toUpperCase();
+    return /^[A-ZÄÖÜ]{1,3}[ -][A-ZÄÖÜ]{1,2}[ -]\d{1,4}[EH]?$/.test(label)?label:'';
+  }
+  function reconcileRegistrationPlate(parsed){
+    if(!parsed||!parsed.data)return;
+    // A raw OCR plate is only a candidate. Never trust it on its own:
+    // printed sample codes and field legends can resemble real plates.
+    if(!('ocrPlate' in parsed))parsed.ocrPlate=parsed.data.plate||'';
+    const candidate=parsed.ocrPlate;
+    const selected=selectedRegistrationPlate();
+    const selector=$('registration-vehicle');
+    parsed.plateConflict=null;
+    parsed.platePending='';
+    parsed.data.plate='';
+    if(!selector||!selector.value){
+      parsed.platePending=candidate||'Kennzeichen nicht verifiziert';
+    }else if(!selected){
+      parsed.platePending=candidate||'Kennzeichen nicht verifiziert';
+    }else if(candidate&&normalizePlate(candidate)!==normalizePlate(selected)){
+      parsed.plateConflict={recognized:candidate,selected};
+    }else if(candidate){
+      parsed.data.plate=candidate;
+    }
+    parsed.keys=Object.keys(parsed.data).filter(k=>parsed.data[k]);
+  }
+  function onRegistrationVehicleChange(){
+    const st=state.registration;
+    if(!st||!st.parsed)return;
+    reconcileRegistrationPlate(st.parsed);
+    copyParsed('registration',st.parsed);
+  }
   function unresolvedPlateConflict(mode){
     const st=state[mode];
     if(mode!=='registration'||!st||!st.parsed||!st.parsed.plateConflict)return false;
@@ -238,8 +273,11 @@
     const conflict=result.plateConflict?' ACHTUNG: Erkanntes Kennzeichen '+result.plateConflict.recognized+
       ' stimmt nicht mit dem ausgewählten Fahrzeug '+result.plateConflict.selected+
       ' überein. OCR-Kennzeichen wurde NICHT übernommen. Bitte Kennzeichen (A) am Original prüfen und korrekt eintragen.':'';
+    const pending=!result.plateConflict&&result.platePending?
+      ' OCR-Kennzeichen '+(result.ocrPlate||'(unbekannt)')+
+      ' noch nicht bestätigt. Bitte Fahrzeug auswählen und Kennzeichen im Original prüfen.':'';
     setStatus(mode,result.keys.length?
-      'Lokal ausgelesen: '+list+'.'+conflict+warning+' Alle Daten am Original prüfen. Noch NICHT hochgeladen.':
+      'Lokal ausgelesen: '+list+'.'+conflict+pending+warning+' Alle Daten am Original prüfen. Noch NICHT hochgeladen.':
       'Keine verlässlichen Fahrzeugdaten erkannt. Bitte manuell eintragen. Noch NICHT hochgeladen.',
       !!result.plateConflict||!result.keys.length);
   }
@@ -390,20 +428,9 @@
         if(value)parsed.data[key]=value;
       });
       validateParsed(parsed);
-      // Existing fleet documents must never auto-fill an OCR plate which
-      // conflicts with the vehicle selected by the employee.
-      if(mode==='registration'&&parsed.data.plate){
-        const select=$('registration-vehicle');
-        const selectedOption=select&&select.selectedIndex>=0?
-          select.options[select.selectedIndex]:null;
-        const selectedText=normalize(selectedOption&&selectedOption.textContent||'').toUpperCase();
-        const expected=selectedText.match(/^([A-ZÄÖÜ]{1,3})\s*[- ]\s*([A-ZÄÖÜ]{1,2})\s*[- ]\s*(\d{1,4}[EH]?)$/);
-        if(expected && normalizePlate(parsed.data.plate)!==normalizePlate(selectedText)){
-          parsed.plateConflict={recognized:parsed.data.plate,selected:selectedText};
-          parsed.data.plate='';
-          parsed.keys=parsed.keys.filter(k=>k!=='plate');
-        }
-      }
+      // Keep an unverified OCR plate out of the visible form even if the
+      // user has not selected a vehicle yet. Recheck on selection changes.
+      if(mode==='registration')reconcileRegistrationPlate(parsed);
       copyParsed(mode,parsed);
     }catch(err){
       if(serial===st.serial)setStatus(mode,'Auslesen fehlgeschlagen: '+(err.message||err)+'. Die Datei wurde nicht hochgeladen. Felder lassen sich manuell ausfüllen.',true);
@@ -419,6 +446,12 @@
     const file=input.files&&input.files[0];
     if(!file)return;
     st.serial++;st.scanning=false;st.file=null;st.parsed=null;
+    // Remove previous automatic OCR values, but keep employee edits.
+    for(const [fieldId,autoValue] of Object.entries(st.applied)){
+      const node=$(fieldId);
+      if(node&&node.value===autoValue)node.value='';
+    }
+    st.applied={};
     const mime=file.type||'';
     if(!file.size||file.size>MAX_BYTES){setStatus(mode,'Datei muss zwischen 1 Byte und 15 MB groß sein.',true);return;}
     if(!/^image\//i.test(mime)&&mime!=='application/pdf'&&!/\.(jpe?g|png|webp|heic|heif|pdf)$/i.test(file.name)){
@@ -437,6 +470,8 @@
     setStatus(mode,'Foto/PDF ausgewählt. Wird nur auf deinem Gerät ausgelesen; noch nichts hochgeladen.',false);
     scan(mode);
   }
-  window.ECBRegistrationOCR={parse,scan,onFile,reset,getFile,canSave,unresolvedPlateConflict,collect,
-    normalizePlate,fields:Object.keys(LABELS)};
+  const vehicleSelect=$('registration-vehicle');
+  if(vehicleSelect)vehicleSelect.addEventListener('change',onRegistrationVehicleChange);
+  window.ECBRegistrationOCR={parse,scan,onFile,reset,getFile,canSave,unresolvedPlateConflict,
+    onRegistrationVehicleChange,collect,normalizePlate,fields:Object.keys(LABELS)};
 })();
