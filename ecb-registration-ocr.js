@@ -230,12 +230,21 @@
     const selected=st.parsed.plateConflict.selected;
     return !plate||!plate.value.trim()||normalizePlate(plate.value)!==normalizePlate(selected);
   }
+  function unresolvedFieldConflicts(mode){
+    const st=state[mode];
+    if(!st||!st.parsed||!st.parsed.fieldConflicts)return [];
+    return st.parsed.fieldConflicts.filter(key=>{
+      const el=$(ids[mode]&&ids[mode][key]);
+      return !el||!String(el.value||'').trim();
+    });
+  }
   function canSave(mode){
     const st=state[mode];
     if(!st||st.scanning)return false;
     if(!st.file)return true;
     const check=$(mode==='vehicle'?'vehicle-ocr-review':'registration-ocr-review');
-    return !!check&&check.checked&&!unresolvedPlateConflict(mode);
+    return !!check&&check.checked&&!unresolvedPlateConflict(mode)&&
+      unresolvedFieldConflicts(mode).length===0;
   }
   function validateParsed(result){
     const d=result.data||{};
@@ -278,8 +287,11 @@
     const pending=!result.plateConflict&&result.platePending?
       ' OCR-Kennzeichen '+(result.ocrPlate||'(unbekannt)')+
       ' noch nicht bestätigt. Bitte Fahrzeug auswählen und Kennzeichen im Original prüfen.':'';
+    const questionable=(result.fieldConflicts||[]).length?
+      ' WIDERSPRÜCHLICHE OCR-WERTE: '+result.fieldConflicts.map(key=>LABELS[key]||key).join(', ')+
+      '. Diese Felder bleiben leer und müssen am Original kontrolliert werden.':'';
     setStatus(mode,result.keys.length?
-      'Lokal ausgelesen: '+list+'.'+autoSelected+conflict+pending+warning+' Alle Daten am Original prüfen. Noch NICHT hochgeladen.':
+      'Lokal ausgelesen: '+list+'.'+autoSelected+conflict+questionable+pending+warning+' Alle Daten am Original prüfen. Noch NICHT hochgeladen.':
       'Keine verlässlichen Fahrzeugdaten erkannt. Bitte manuell eintragen. Noch NICHT hochgeladen.',
       !!result.plateConflict||!result.keys.length);
   }
@@ -426,9 +438,23 @@
       const parsed=parse(text);
       const extracted=window.ECBRegistrationLayout?
         window.ECBRegistrationLayout.interpret(fields,text):{};
+      parsed.fieldConflicts=[];
+      // Two independent OCR strategies must agree on sensitive values.
+      // The printed S.1 label can yield a spurious 1; don't count it.
+      const critical=['vin','hsn','tsn','firstRegistration','powerKw',
+        'displacement','totalMass','tyresFront','tyresRear'];
+      const comparable=value=>String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+      for(const key of critical){
+        const whole=parsed.data[key],cell=extracted[key];
+        if(whole&&cell&&comparable(whole)!==comparable(cell)){
+          parsed.fieldConflicts.push(key);
+        }
+      }
       Object.entries(extracted).forEach(([key,value])=>{
-        if(value)parsed.data[key]=value;
+        if(value&&!parsed.fieldConflicts.includes(key))parsed.data[key]=value;
       });
+      // Never auto-select one of two conflicting readings.
+      for(const key of parsed.fieldConflicts)parsed.data[key]='';
       validateParsed(parsed);
       // OCR sometimes reads only the printed field code "S.1" as the
       // number 1. A single uncorroborated digit must not enter fleet data.
