@@ -2899,6 +2899,60 @@
             if (!receiptStorage) throw new Error('Firebase Storage ist nicht verfügbar: ' + (receiptStorageError || 'Dienst nicht geladen.'));
             if (typeof navigator.onLine === 'boolean' && !navigator.onLine) throw new Error('Keine Internetverbindung. Belege werden nicht lokal gespeichert.');
         }
+        // Shared document upload for receipts and registration certificates.
+        // Avoid Firebase's long default retry period leaving the mobile UI at 0%.
+        function fleetStorageErrorMessage(error) {
+            const code = error && error.code || '';
+            const details = String(error && (error.serverResponse || error.message) || '');
+            if (/Blaze|Spark|billing|payment|required.*plan|\\b402\\b/i.test(details))
+                return 'Firebase Storage benötigt den Blaze-Tarif mit aktivierter Abrechnung. Bitte den Firebase-Projekttarif prüfen.';
+            if (code === 'storage/stalled')
+                return '45 Sekunden ohne Datenübertragung. Upload abgebrochen. Bitte Internetverbindung, Firebase-Storage-Tarif, Bucket und Zugriffsregeln prüfen.';
+            if (code === 'storage/unauthorized' || code === 'storage/unauthenticated')
+                return 'Keine Upload-Berechtigung in Firebase Storage (' + code + '). Firebase-Anmeldung und Storage-Sicherheitsregeln prüfen.';
+            if (code === 'storage/quota-exceeded')
+                return 'Firebase Storage ist wegen Tarif oder Speicher-/Übertragungskontingent gesperrt (' + code + '). Blaze-Tarif und Limits prüfen.';
+            if (code === 'storage/bucket-not-found' || code === 'storage/no-default-bucket')
+                return 'Der konfigurierte Firebase-Storage-Bucket existiert nicht oder ist falsch eingestellt (' + code + ').';
+            if (code === 'storage/retry-limit-exceeded')
+                return 'Firebase Storage antwortet nicht rechtzeitig. Internet, Browser, Bucket, Tarif und Zugriffsregeln prüfen.';
+            if (code === 'storage/canceled')
+                return 'Upload wurde abgebrochen.';
+            return code ? code + (details ? ': ' + details.slice(0,250) : '') :
+                (details || 'Unbekannter Firebase-Storage-Fehler.');
+        }
+        async function uploadFleetDocument(storageRef, file, mime, showProgress) {
+            const task = storageRef.put(file, {contentType:mime});
+            let bytesReceived = 0;
+            let stalled = false;
+            let watchdog = null;
+            const resetWatchdog = () => {
+                if (watchdog !== null) clearTimeout(watchdog);
+                watchdog = setTimeout(() => { stalled = true; task.cancel(); }, 45000);
+            };
+            resetWatchdog();
+            const stopObserving = task.on('state_changed', snapshot => {
+                if (snapshot.bytesTransferred > bytesReceived) {
+                    bytesReceived = snapshot.bytesTransferred;
+                    resetWatchdog();
+                }
+                if (snapshot.totalBytes) showProgress(Math.min(100,
+                    Math.floor(100 * snapshot.bytesTransferred / snapshot.totalBytes)));
+            });
+            try {
+                await task;
+            } catch (error) {
+                if (stalled) {
+                    const stallError = new Error('Keine Datenübertragung innerhalb von 45 Sekunden');
+                    stallError.code = 'storage/stalled';
+                    throw stallError;
+                }
+                throw error;
+            } finally {
+                if (watchdog !== null) clearTimeout(watchdog);
+                if (typeof stopObserving === 'function') stopObserving();
+            }
+        }
         function openNewReceiptModal(vehicleId) {
             if (!cloudFleetVehicles.length) { showToast('Bitte zuerst ein Fahrzeug anlegen.'); return; }
             const form = document.getElementById('form-fleet-receipt');
@@ -2982,12 +3036,9 @@
                 };
                 fleetReceiptStatus('Datei wird in Firebase Storage hochgeladen …', false);
                 uploadedRef = receiptStorage.ref().child(path);
-                const uploadTask = uploadedRef.put(file, { contentType:mime });
-                uploadTask.on('state_changed', snapshot => {
-                    if (snapshot.totalBytes) fleetReceiptStatus(
-                        'Hochladen: ' + Math.floor(snapshot.bytesTransferred / snapshot.totalBytes * 100) + ' %', false);
+                await uploadFleetDocument(uploadedRef, file, mime, percentage => {
+                    fleetReceiptStatus('Hochladen: ' + percentage + ' %', false);
                 });
-                await uploadTask;
                 fleetReceiptStatus('Datei hochgeladen. Fahrzeugzuordnung wird gespeichert …', false);
                 try {
                     await db.collection('fahrzeuge_park').doc(vehicleId).update({
@@ -3010,8 +3061,7 @@
                 closeModal('modal-fleet-receipt');
                 showToast('Beleg erfolgreich in der Cloud beim Fahrzeug gespeichert!');
             } catch (error) {
-                const message = error && (error.code || error.message) || 'Unbekannter Upload-Fehler';
-                fleetReceiptStatus('Speichern fehlgeschlagen: ' + message + '. Bitte Firebase Storage und die Sicherheitsregeln prüfen.', true);
+                fleetReceiptStatus('Speichern fehlgeschlagen: ' + fleetStorageErrorMessage(error), true);
                 showToast('Beleg konnte nicht gespeichert werden.');
             } finally {
                 btn.disabled = false;
@@ -3198,12 +3248,9 @@
                 };
                 registrationStatus('Fahrzeugschein wird hochgeladen …', false);
                 const storageRef = receiptStorage.ref().child(path);
-                const upload = storageRef.put(file,{contentType:mime});
-                upload.on('state_changed', snapshot => {
-                    if (snapshot.totalBytes) registrationStatus(
-                        'Hochladen: ' + Math.floor(100 * snapshot.bytesTransferred / snapshot.totalBytes) + ' %', false);
+                await uploadFleetDocument(storageRef, file, mime, percentage => {
+                    registrationStatus('Hochladen: ' + percentage + ' %', false);
                 });
-                await upload;
                 registrationStatus('Datei hochgeladen. Fahrzeugzuordnung wird gespeichert …', false);
                 try {
                     await db.collection('fahrzeuge_park').doc(vehicleId).update({
@@ -3224,8 +3271,7 @@
                 closeModal('modal-fleet-registration');
                 showToast('Fahrzeugschein dem Fahrzeug zugeordnet und in der Cloud gespeichert.');
             } catch (err) {
-                registrationStatus('Cloud-Speicherung fehlgeschlagen: ' + (err.code || err.message || 'Fehler') +
-                    '. Bitte Firebase Storage und dessen Zugriffsregeln prüfen.', true);
+                registrationStatus('Cloud-Speicherung fehlgeschlagen: ' + fleetStorageErrorMessage(err), true);
                 showToast('Fahrzeugschein konnte nicht gespeichert werden.');
             } finally {
                 saveBtn.disabled = false;
