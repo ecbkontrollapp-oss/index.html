@@ -104,7 +104,16 @@
     const range=period();
     const groups=selection().map(car=>summary(car,range));
     const allRows=groups.flatMap(g=>g.rows);
-    return {groups,allRows,range,grand:groups.reduce((s,g)=>s+g.gross,0),
+    const categoryMap=new Map();
+    allRows.forEach(r=>{
+      const label=r.source==='reparatur'?'Reparatur (Zusatzkosten)':r.type;
+      if(!categoryMap.has(label))categoryMap.set(label,{label,entries:0,gross:0});
+      const row=categoryMap.get(label);
+      row.entries+=1;
+      row.gross+=(r.gross||0);
+    });
+    const categories=Array.from(categoryMap.values()).sort((a,b)=>b.gross-a.gross);
+    return {groups,allRows,categories,range,grand:groups.reduce((s,g)=>s+g.gross,0),
       totalReceipts:groups.reduce((s,g)=>s+g.receiptCount,0),
       missing:groups.reduce((s,g)=>s+g.missing,0),
       extraRepairCost:groups.reduce((s,g)=>s+g.extraRepairCost,0)};
@@ -142,6 +151,12 @@
       '</p><p class="text-sm sm:text-base font-black text-slate-900 break-words mt-1">'+esc(v)+'</p></div>').join('')+'</div>';
     if(report.missing)output+='<p class="text-[11px] border border-amber-200 rounded-xl p-2.5 text-amber-800 bg-amber-50">'+
       esc(report.missing)+' Beleg(e) ohne Preis werden nicht in der Summe berücksichtigt. Bitte bei Bedarf nachtragen.</p>';
+    if(report.categories.length){
+      output+='<details class="bg-slate-50 border border-slate-200 rounded-xl p-3"><summary class="font-bold text-slate-800 text-xs cursor-pointer">Kosten nach Belegart</summary>'+
+        '<div class="mt-2 space-y-1">'+report.categories.map(row=>
+          '<div class="flex items-center justify-between gap-2 text-[11px]"><span>'+esc(row.label)+' ('+row.entries+')</span>'+
+          '<strong>'+esc(fmt(row.gross))+'</strong></div>').join('')+'</div></details>';
+    }
     if(mode==='all'){
       output+='<div class="overflow-x-auto border border-slate-200 rounded-xl"><table class="min-w-full text-xs"><thead class="bg-slate-100"><tr>'+
         '<th class="text-left p-2">Fahrzeug</th><th class="text-right p-2">Belege</th><th class="text-right p-2">Kosten brutto</th></tr></thead><tbody>'+
@@ -228,6 +243,17 @@
     pdfLine(doc,'Gesamtkosten: '+fmt(report.grand).replace('€','EUR'),15,y,13,true);y+=8;
     pdfLine(doc,'Belege: '+report.totalReceipts+'   Ohne erfassten Betrag: '+report.missing,15,y,8);y+=5;
     pdfLine(doc,'Endbetraege nur einmal je Beleg. Artikel sind Detailangaben, keine Zusatzkosten.',15,y,7);y+=9;
+    if(report.categories.length){
+      pdfLine(doc,'Kosten nach Belegart',15,y,9,true);y+=5;
+      for(const cat of report.categories){
+        if(y>268)y=addPage();
+        pdfLine(doc,cat.label+' ('+cat.entries+')',19,y,8);
+        doc.setFont('helvetica','bold');doc.setFontSize(8);
+        doc.text(fmt(cat.gross).replace('€','EUR'),193,y,{align:'right'});
+        y+=5;
+      }
+      y+=6;
+    }
     if(mode==='all'){
       pdfLine(doc,'Fuhrpark – Kostenübersicht',15,y,11,true);y+=7;
       for(const g of report.groups){
@@ -328,6 +354,12 @@
       const entries=sheet('Kostenbuchungen',['Fahrzeug','Datum','Art','Händler / Leistung','Brutto EUR','Netto EUR','MwSt EUR','Belegdatei','Beschreibung','Kilometerstand','Status / Hinweise','Beleg-ID']);
       entries.columns=[{width:21},{width:17},{width:19},{width:36},{width:17},{width:17},{width:17},{width:35},{width:47},{width:17},{width:23},{width:28}];
       entries.addImage(logo,{tl:{col:0,row:0},ext:{width:120,height:52}});
+      const categories=sheet('Kostenarten',['Belegart / Kategorie','Anzahl Einträge','Gesamtkosten brutto EUR','Hinweis']);
+      categories.columns=[{width:40},{width:18},{width:28},{width:52}];
+      categories.addImage(logo,{tl:{col:0,row:0},ext:{width:120,height:52}});
+      for(const cat of report.categories){
+        categories.addRow([cat.label,cat.entries,cat.gross/100,'Belegendbetrag wird einmal gezählt']);
+      }
       const items=sheet('Artikelpositionen',['Fahrzeug','Datum','Belegart','Artikel / Leistung','Menge','Positionspreis EUR','Preis ausgewiesen','Belegdatei','Beleg-ID']);
       items.columns=[{width:21},{width:16},{width:19},{width:50},{width:12},{width:21},{width:21},{width:30},{width:27}];
       items.addImage(logo,{tl:{col:0,row:0},ext:{width:120,height:52}});
@@ -344,7 +376,7 @@
             item.qty,item.price===null?null:item.price/100,item.price===null?'Nein':'Ja',r.fileName,r.id]);
         }
       }
-      const cols=[[overview,[5,6,7,8,9]],[entries,[5,6,7]],[items,[6]]];
+      const cols=[[overview,[5,6,7,8,9]],[entries,[5,6,7]],[categories,[3]],[items,[6]]];
       for(const [sh,moneyColumns] of cols){
         for(let i=6;i<=sh.rowCount;i++){
           const row=sh.getRow(i);
@@ -372,4 +404,11 @@
     finally{if(button)button.disabled=false;}
   }
   window.ECBFleetCosts={setVehicles,setMode,render,pdf,excel,getData:build};
+  if(typeof window.addEventListener==='function'){
+    window.addEventListener('load',function(){
+      try {
+        if(typeof cloudFleetVehicles!=='undefined')setVehicles(cloudFleetVehicles);
+      } catch(ignored){}
+    },{once:true});
+  }
 })();
