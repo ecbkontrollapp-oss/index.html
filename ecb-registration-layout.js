@@ -101,7 +101,7 @@ if(!result.model || !/[A-Za-zÄÖÜäöüß]{4,}/.test(result.model) || /^(?:HAN
 // photos. Only accept a retry if its result passes the field parser.
 const retryBoxes={
   model:[[.310,.353,.607,.450],[.320,.345,.565,.432]],
-  vehicleClass:[[.315,.087,.478,.154]],
+  vehicleClass:[[.315,.087,.478,.154],[.297,.079,.535,.171]],
   seats:[[.835,.355,.944,.446]],
   tyresFront:[[.655,.405,.907,.472]],
   tyresRear:[[.655,.446,.907,.525]]
@@ -184,8 +184,13 @@ d.vehicleClass=group?group[1]:'';
 d.powerKw=number(r.powerKw,1000);
 d.displacement=number(r.displacement,20000);
 d.totalMass=number(r.totalMass,200000);
-const seatText=cleaned(r.seats).replace(/^\s*S[.,\s]*1\s*[:.\]-]?\s*/i,'');
-d.seats=number(seatText,100);
+const seatRaw=cleaned(r.seats);
+const explicitSeatLabel=/^\s*S[.,\s]*1\s*[:.\]-]?\s*(\d{1,2})(?:\s|$)/i.test(seatRaw);
+const seatText=seatRaw.replace(/^\s*S[.,\s]*1\s*[:.\]-]?\s*/i,'');
+const extractedSeats=number(seatText,100);
+// A lone "1" in an isolated crop often comes from the printed "S.1"
+// field code, not from an actual one-seat vehicle. Do not guess.
+d.seats=extractedSeats==='1'&&!explicitSeatLabel?'':extractedSeats;
 d.tyresFront=tyre(r.tyresFront);
 d.tyresRear=tyre(r.tyresRear);
 for(const k of Object.keys(d))if(!d[k])delete d[k];
