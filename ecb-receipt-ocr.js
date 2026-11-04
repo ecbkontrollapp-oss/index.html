@@ -134,6 +134,21 @@
     });
     candidates.sort((a,b)=>b.score-a.score);
     const amount=candidates.length?candidates[0].amount:null;
+    let netCalculated=false;
+    if (netAmount===null && amount!==null && taxAmount!==null &&
+        amount>0 && taxAmount>=0 && taxAmount < amount * .35) {
+      // A deterministic subtraction, not an OCR guess.
+      const grossCents=Math.round(amount*100);
+      const vatCents=Math.round(taxAmount*100);
+      netAmount=(grossCents-vatCents)/100;
+      netCalculated=true;
+    }
+    let plate=null;
+    const plateRx=/(?:kennzeichen|amtliches\s+kennzeichen|kfz\s*kennzeichen)\s*[:\-]?\s*([A-ZÄÖÜ]{1,3})\s*[-\s]?\s*([A-ZÄÖÜ]{1,2})\s*[-\s]?\s*(\d{1,4})(?:\s*[EH])?\b/i;
+    for (const line of lines) {
+      const found=line.match(plateRx);
+      if(found){plate=(found[1]+'-'+found[2]+' '+found[3]).toUpperCase();break;}
+    }
     let km=null;
     for (const line of lines) {
       const m=line.match(/\b(?:kilometer[-\s]*stand|km[-\s]*stand|kilometerstand)\s*[:\-]?\s*(\d{3}(?:[.\s]\d{3})+|\d{4,7})\b/i);
@@ -180,7 +195,7 @@
           push(head+': '+m[2],Number(m[1].replace(',','.'))||1,null);
       }
     }
-    return {vendor,date,amount,items,netAmount,taxAmount,km};
+    return {vendor,date,amount,items,netAmount,netCalculated,taxAmount,km,plate};
   }
 
   function clearRows() { const node=el('receipt-items-list'); if(node)node.innerHTML=''; }
@@ -382,18 +397,32 @@
       // If total or header is still missing, try a second contrast/segment
       // configuration for only the relevant area.
       const data=parse(combined);
-      if(model.detected && (data.amount===null || !data.vendor)){
+      if(model.detected && (data.amount===null || !data.vendor || !data.items.length)){
         await worker.setParameters({tessedit_pageseg_mode:'6'});
         const sections=[];
-        if(!data.vendor)sections.push([model.top,model.top+length*.23]);
-        if(data.amount===null)sections.push([model.top+length*.65,model.bottom]);
-        for(const [y0,y1] of sections){
-          const canvas=drawPhotoPart(model,y0,y1);
-          setStatus('Zusätzliche Erkennung für '+(y0===model.top?'Händler':'Endbetrag')+' …');
+        if(!data.vendor)sections.push({start:model.top,end:model.top+length*.23,kind:'Händler'});
+        if(!data.items.length)sections.push({start:model.top+length*.43,end:model.top+length*.82,kind:'Artikel'});
+        if(data.amount===null)sections.push({start:model.top+length*.65,end:model.bottom,kind:'Endbetrag'});
+        for(const section of sections){
+          const canvas=drawPhotoPart(model,section.start,section.end);
+          setStatus('Zusätzliche Erkennung für '+section.kind+' …');
           try {
             const result=await worker.recognize(canvas);
             const extra=result.data && result.data.text || '';
-            combined=y0===model.top ? extra+'\n'+combined : combined+'\n'+extra;
+            if(!extra.trim())continue;
+            if(section.kind==='Händler'){
+              combined=extra+'\n'+combined;
+            } else if(section.kind==='Artikel'){
+              // Insert the additional section before the first totals row,
+              // otherwise the parser correctly excludes it as footer text.
+              const currentLines=combined.split('\n');
+              const footer=currentLines.findIndex(line=>
+                /\b(?:nettobetrag|nettosumme|mehrwertsteuer|umsatzsteuer|mwst|gesamtbetrag|gesamtsumme|endbetrag|rechnungsbetrag|summe|total|bruttobetrag)\b/i.test(line));
+              currentLines.splice(footer>=0?footer:currentLines.length,0,extra);
+              combined=currentLines.join('\n');
+            } else {
+              combined+='\n'+extra;
+            }
           } finally {canvas.width=0;canvas.height=0;}
         }
       }
@@ -475,6 +504,19 @@
       if(extracted.netAmount!==null) {el('receipt-net').value=extracted.netAmount.toFixed(2);detected++;}
       if(extracted.taxAmount!==null) {el('receipt-vat').value=extracted.taxAmount.toFixed(2);detected++;}
       if(extracted.km!==null) {el('receipt-km').value=String(extracted.km);detected++;}
+      let plateMatched=false;
+      const vehicleSelect=el('receipt-vehicle');
+      if(extracted.plate && vehicleSelect && !vehicleSelect.value) {
+        const normalizePlate=value=>String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+        const normalized=normalizePlate(extracted.plate);
+        const matches=Array.from(vehicleSelect.options).filter(option=>
+          option.value && normalizePlate(option.textContent).startsWith(normalized));
+        if(matches.length===1){
+          vehicleSelect.value=matches[0].value;
+          plateMatched=true;
+          detected++;
+        }
+      }
       if(extracted.items.length){
         clearRows();
         extracted.items.forEach(addItem);
@@ -492,13 +534,15 @@
         const missing=[];
         if(!extracted.vendor)missing.push('Händler');
         if(extracted.amount===null)missing.push('Endbetrag');
+        if(!extracted.items.length)missing.push('Artikelpositionen');
         show('Erkannt: '+[
           extracted.vendor?'Händler':'',
           extracted.date?'Datum':'',
           extracted.amount!==null?'Endbetrag':'',
-          extracted.netAmount!==null?'Netto':'',
+          extracted.netAmount!==null?(extracted.netCalculated?'Netto berechnet':'Netto erkannt'):'',
           extracted.taxAmount!==null?'MwSt.':'',
           extracted.km!==null?'Kilometerstand':'',
+          plateMatched?'Fahrzeug zugeordnet':'',
           extracted.items.length?extracted.items.length+' Artikel':''
         ].filter(Boolean).join(', ')+'. '+
         (missing.length ? 'Nicht zuverlässig erkannt: '+missing.join(', ')+'. Bitte selbst ergänzen. ' : '')+
