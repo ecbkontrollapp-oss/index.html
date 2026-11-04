@@ -737,6 +737,38 @@
 
   // OCR only the item table on a long receipt, without changing already
   // verified totals, dates, merchant names or vehicle assignments.
+  // Combine independent OCR passes rather than selecting just the best crop.
+  // The oil change may be legible in one crop and its filter in another.
+  function mergeReceiptItems(previous,newItems,preferPrevious) {
+    const result=[];
+    function key(item) {
+      const name=String(item.name || '').toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+        .replace(/[^a-z0-9]+/g,' ').trim();
+      if (/^(olwechsel|olfilter|motorol)(?:\s|$)/.test(name)){
+        const tokens=name.split(' ');
+        // Avoid accidentally merging different parts sharing the same generic name.
+        const numbers=name.match(/\b(?:w\s?\d{3,5}|5w\s?30|\d{4,})\b/g);
+        return tokens[0]+':'+(numbers&&numbers.length?numbers.join(','):'');
+      }
+      return name;
+    }
+    function quality(item) {
+      return (item.amount!==null && Number.isFinite(item.amount) ? 5 : 0)+
+        (String(item.name).length > 14 ? 2 : 0);
+    }
+    for(const item of [].concat(previous||[],newItems||[])){
+      if(!item || !item.name || result.length>=MAX_ITEMS)continue;
+      const normalized=key(item);
+      const found=result.findIndex(x=>key(x)===normalized);
+      if(found<0)result.push({...item});
+      else if(preferPrevious){
+        if(result[found].amount===null && item.amount!==null)
+          result[found].amount=item.amount;
+      }else if(quality(item)>quality(result[found]))result[found]={...item};
+    }
+    return result;
+  }
   async function scanItemsOnly(file) {
     if(!file || !file.size) {
       show('Bitte zuerst ein Belegfoto oder eine PDF-Datei auswählen.',true);
@@ -781,7 +813,6 @@
         [.47,.77,1.55]
       ];
       let best=[];
-      let bestRaw='';
       for (let i=0;i<windows.length;i++) {
         if(current!==scanSerial || file!==window.ECB_CURRENT_RECEIPT_FILE)return;
         const [start,end,contrast]=windows[i];
@@ -795,14 +826,9 @@
         } finally { canvas.width=0;canvas.height=0; }
         parts.push(raw);
         const items=parse(raw).items;
-        const score=items.reduce((n,item)=>n+(item.amount!==null?3:1)+
-          (item.name.length>12?1:0),0);
-        const currentScore=best.reduce((n,item)=>n+(item.amount!==null?3:1)+
-          (item.name.length>12?1:0),0);
-        if(items.length>best.length || (items.length===best.length && score>currentScore)){
-          best=items;bestRaw=raw;
-        }
-        if(best.length>=2 && best.some(x=>x.amount!==null))break;
+        best=mergeReceiptItems(best,items,false);
+        // Continue to the next overlapping crop even if an oil change was
+        // found; the filter code often appears only in a different crop.
       }
       if(!best.length) {
         await worker.setParameters({tessedit_pageseg_mode:'11'});
@@ -813,8 +839,7 @@
           const result=await worker.recognize(canvas);
           const raw=result.data && result.data.text || '';
           parts.push(raw);
-          best=parse(raw).items;
-          if(best.length)bestRaw=raw;
+          best=mergeReceiptItems(best,parse(raw).items,false);
         } finally {canvas.width=0;canvas.height=0;}
       }
       if(current!==scanSerial || file!==window.ECB_CURRENT_RECEIPT_FILE)return;
@@ -824,17 +849,20 @@
         '\n\n--- Artikel separat ausgelesen ---\n'+parts.join('\n--- Nächster Ausschnitt ---\n');
       if(debug)debug.classList.remove('hidden');
       if(best.length){
+        let existing=[];
+        try {existing=collect();} catch(ignored) {existing=[];}
+        const merged=mergeReceiptItems(existing,best,true);
         clearRows();
-        best.forEach(addItem);
+        merged.forEach(addItem);
         const description=el('receipt-description');
         if(description && !description.value.trim()) description.value=
-          best.slice(0,3).map(x=>x.name).join(', ').slice(0,240);
+          merged.slice(0,3).map(x=>x.name).join(', ').slice(0,240);
         // The review checkbox is reset after new automatic entries.
         const review=el('receipt-ocr-review');
         const wrapper=el('receipt-ocr-review-wrap');
         if(review)review.checked=false;
         if(wrapper)wrapper.classList.remove('hidden');
-        show(best.length+' Artikelpositionen erkannt. Bitte die Angaben kontrollieren; bereits erkannte Beleg- und Fahrzeugdaten wurden nicht geändert.',false);
+        show(merged.length+' Artikelpositionen in der Maske. Neue Positionen aus mehreren Bildausschnitten ergänzt. Bitte alle Angaben mit dem Beleg vergleichen; die anderen Rechnungsdaten wurden nicht geändert.',false);
       } else {
         show('Auch im separaten Ausschnitt sind keine Artikel zuverlässig lesbar. Öffne „Erkannten Text zur Fehlersuche ansehen“ und prüfe den Abschnitt „Artikel separat ausgelesen“ – oder ergänze die Artikel manuell.',true);
       }
