@@ -836,6 +836,24 @@
                     </div>
                 </div>
             </div>
+
+            <!-- REPAIRS – additional section in existing Fleet & Maintenance view -->
+            <div class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 w-full max-w-full box-border">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
+                    <div>
+                        <h2 class="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                            <i class="fa-solid fa-screwdriver-wrench text-indigo-600"></i> Reparaturen
+                        </h2>
+                        <p class="text-[11px] text-slate-500">Reparaturen erfassen und eigene Arbeitspunkte hinzufügen – automatisch in der Cloud gespeichert.</p>
+                    </div>
+                    <button type="button" onclick="openNewRepairModal()" class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs shrink-0">
+                        <i class="fa-solid fa-plus"></i> Reparatur erfassen
+                    </button>
+                </div>
+                <div id="fleet-repairs-container" class="space-y-3 w-full max-w-full box-border">
+                    <div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Noch keine Reparaturen erfasst.</div>
+                </div>
+            </div>
         </section>
 
         <!-- VACATION VIEW -->
@@ -1250,6 +1268,70 @@
         </div>
     </div>
 
+
+    <!-- CLOUD REPAIR RECORD – original ECB form styling -->
+    <div id="modal-fleet-repair" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-5 shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto box-border">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-screwdriver-wrench text-indigo-600"></i> Reparatur erfassen
+                </h3>
+                <button type="button" onclick="closeModal('modal-fleet-repair')" class="text-slate-400 hover:text-slate-600 p-1" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="form-fleet-repair" onsubmit="submitFleetRepair(event)" class="space-y-3 w-full max-w-full box-border">
+                <div>
+                    <label for="repair-vehicle" class="block text-[11px] font-bold text-slate-700 mb-1">Fahrzeug *</label>
+                    <select id="repair-vehicle" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label for="repair-date" class="block text-[11px] font-bold text-slate-700 mb-1">Datum *</label>
+                        <input id="repair-date" type="date" required class="w-full px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                    </div>
+                    <div>
+                        <label for="repair-km" class="block text-[11px] font-bold text-slate-700 mb-1">Kilometerstand</label>
+                        <input id="repair-km" type="number" min="0" placeholder="z. B. 125000" class="w-full px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                    </div>
+                </div>
+                <div>
+                    <label for="repair-employee" class="block text-[11px] font-bold text-slate-700 mb-1">Erfasst / durchgeführt von</label>
+                    <select id="repair-employee" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                        <option value="">-- Mitarbeiter wählen --</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="repair-title" class="block text-[11px] font-bold text-slate-700 mb-1">Reparatur / Beanstandung *</label>
+                    <input id="repair-title" type="text" required maxlength="180" placeholder="z. B. Bremsbeläge erneuern" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                </div>
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="text-xs font-bold text-slate-800">Eigene Reparaturpunkte *</label>
+                        <button type="button" onclick="addRepairPointRow()" class="text-[11px] text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg px-2.5 py-1.5 font-bold">
+                            <i class="fa-solid fa-plus"></i> Punkt hinzufügen
+                        </button>
+                    </div>
+                    <div id="repair-points-list" class="space-y-2"></div>
+                    <p class="text-[10px] text-slate-500">Du kannst beliebige Arbeitspunkte eintragen und als erledigt markieren.</p>
+                </div>
+                <div>
+                    <label for="repair-status" class="block text-[11px] font-bold text-slate-700 mb-1">Status</label>
+                    <select id="repair-status" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                        <option value="Offen">Offen</option>
+                        <option value="In Bearbeitung">In Bearbeitung</option>
+                        <option value="Erledigt">Erledigt</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="repair-notes" class="block text-[11px] font-bold text-slate-700 mb-1">Bemerkungen / Ersatzteile</label>
+                    <textarea id="repair-notes" rows="3" maxlength="2000" placeholder="Optional…" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border resize-y"></textarea>
+                </div>
+                <button type="submit" id="repair-save-btn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-xs box-border">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Reparatur in der Cloud speichern
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- ATTENDANCE MODAL -->
     <div id="modal-attendance" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
         <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 box-border">
@@ -1370,7 +1452,7 @@
         }
         
         function populateAllEmployeeDropdowns() {
-            const dropdownIds = ['demin-inspector', 'heating-inspector', 'outdoor-inspector', 'breakroom-inspector', 'vehicle-inspector', 'vac-employee', 'shift-employee'];
+            const dropdownIds = ['demin-inspector', 'heating-inspector', 'outdoor-inspector', 'breakroom-inspector', 'vehicle-inspector', 'vac-employee', 'shift-employee', 'repair-employee'];
             dropdownIds.forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
@@ -1945,6 +2027,7 @@
                 snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
                 cloudFleetVehicles = items;
                 renderFleetVehiclesList();
+                renderFleetRepairsList();
             }, () => {});
         }
         
@@ -2004,7 +2087,7 @@
             if (pcBtn) pcBtn.className = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-sky-600 bg-sky-50 transition-colors';
         
             if (viewName === 'history') renderHistoryView();
-            if (viewName === 'vehicle_fleet') renderFleetVehiclesList();
+            if (viewName === 'vehicle_fleet') { renderFleetVehiclesList(); renderFleetRepairsList(); }
             if (viewName === 'vacation') renderVacationList();
             if (viewName === 'shifts') renderShiftList();
             if (viewName === 'admin') renderAdminEmployeesList();
@@ -2413,6 +2496,156 @@
             }).join('');
         }
         
+
+        // Reparaturen bleiben im bestehenden Firestore-Fahrzeugdokument.
+        // Dadurch wird dieselbe Cloud-Collection wie für TÜV/Ölwechsel genutzt;
+        // die bisherigen Felder und Dokumente werden nicht überschrieben.
+        function escapeRepairHtml(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
+                return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch];
+            });
+        }
+
+        function openNewRepairModal(vehicleId) {
+            if (!db) { showToast('Cloud nicht verfügbar – keine lokale Speicherung.'); return; }
+            if (!cloudFleetVehicles.length) { showToast('Bitte zuerst ein Fahrzeug anlegen.'); return; }
+            const form = document.getElementById('form-fleet-repair');
+            form.reset();
+            const select = document.getElementById('repair-vehicle');
+            select.innerHTML = '<option value="">-- Fahrzeug wählen --</option>' + cloudFleetVehicles.map(function(v) {
+                return '<option value="' + escapeRepairHtml(v.id) + '">' + escapeRepairHtml(v.plate || v.model || v.id) + '</option>';
+            }).join('');
+            if (vehicleId && cloudFleetVehicles.some(function(v) { return v.id === vehicleId; })) select.value = vehicleId;
+            const d = new Date();
+            document.getElementById('repair-date').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+            document.getElementById('repair-points-list').innerHTML = '';
+            addRepairPointRow();
+            openModal('modal-fleet-repair');
+        }
+
+        function addRepairPointRow() {
+            const list = document.getElementById('repair-points-list');
+            if (!list) return;
+            if (list.children.length >= 30) { showToast('Maximal 30 Punkte pro Reparatur.'); return; }
+            const row = document.createElement('div');
+            row.className = 'repair-point-row flex flex-wrap items-center gap-2 p-2 bg-white border border-slate-200 rounded-xl';
+            row.innerHTML = '<input type="text" maxlength="180" class="repair-point-name flex-1 min-w-[150px] px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs box-border" placeholder="Arbeitspunkt eingeben…">'
+                + '<label class="text-[11px] font-semibold text-slate-600 whitespace-nowrap flex items-center gap-1"><input type="checkbox" class="repair-point-done w-4 h-4"> Erledigt</label>'
+                + '<button type="button" class="text-rose-500 p-1.5" aria-label="Punkt entfernen" title="Punkt entfernen"><i class="fa-solid fa-xmark"></i></button>';
+            row.querySelector('button').addEventListener('click', function() { row.remove(); });
+            list.appendChild(row);
+        }
+
+        async function submitFleetRepair(event) {
+            event.preventDefault();
+            if (!db) { showToast('Keine Cloud-Verbindung – nichts gespeichert.'); return; }
+            const vehicleId = document.getElementById('repair-vehicle').value;
+            if (!cloudFleetVehicles.some(function(v) { return v.id === vehicleId; })) { showToast('Bitte ein gültiges Fahrzeug wählen.'); return; }
+            const points = Array.from(document.querySelectorAll('#repair-points-list .repair-point-row')).map(function(row) {
+                return {
+                    label: row.querySelector('.repair-point-name').value.trim(),
+                    done: row.querySelector('.repair-point-done').checked
+                };
+            }).filter(function(p) { return p.label.length > 0; });
+            if (!points.length) { showToast('Bitte mindestens einen Reparaturpunkt eintragen.'); return; }
+            const record = {
+                id: 'rep-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,9),
+                date: document.getElementById('repair-date').value,
+                km: document.getElementById('repair-km').value.trim(),
+                employee: document.getElementById('repair-employee').value,
+                title: document.getElementById('repair-title').value.trim(),
+                points: points,
+                status: document.getElementById('repair-status').value,
+                notes: document.getElementById('repair-notes').value.trim(),
+                createdAt: Date.now()
+            };
+            if (!record.date || !record.title) { showToast('Datum und Reparatur sind Pflichtfelder.'); return; }
+            const button = document.getElementById('repair-save-btn');
+            if (button.disabled) return;
+            button.disabled = true;
+            try {
+                await db.collection('fahrzeuge_park').doc(vehicleId).update({
+                    reparaturen: firebase.firestore.FieldValue.arrayUnion(record)
+                });
+                closeModal('modal-fleet-repair');
+                showToast('Reparatur erfolgreich in der Cloud gespeichert!');
+            } catch (error) {
+                showToast('Reparatur konnte nicht gespeichert werden: ' + (error.code || error.message || 'Cloud-Fehler'));
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        function renderFleetRepairsList() {
+            const container = document.getElementById('fleet-repairs-container');
+            if (!container) return;
+            const repairs = [];
+            cloudFleetVehicles.forEach(function(vehicle) {
+                const rows = Array.isArray(vehicle.reparaturen) ? vehicle.reparaturen : [];
+                rows.forEach(function(repair) { repairs.push({ vehicle:vehicle, record:repair }); });
+            });
+            repairs.sort(function(a,b) {
+                return (b.record.date || '').localeCompare(a.record.date || '') || (b.record.createdAt || 0) - (a.record.createdAt || 0);
+            });
+            if (!repairs.length) {
+                container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Noch keine Reparaturen erfasst.</div>';
+                return;
+            }
+            container.innerHTML = repairs.map(function(entry) {
+                const repair = entry.record;
+                const vehicle = entry.vehicle;
+                const status = repair.status || 'Offen';
+                const statusStyle = status === 'Erledigt' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                    status === 'In Bearbeitung' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200';
+                const points = Array.isArray(repair.points) ? repair.points : [];
+                const pointHtml = points.map(function(p) {
+                    return '<div class="flex items-center gap-2"><i class="fa-solid ' + (p.done ? 'fa-circle-check text-emerald-600' : 'fa-circle text-slate-400') + '"></i><span>' +
+                        escapeRepairHtml(p.label) + '</span></div>';
+                }).join('');
+                const vehicleId = /^[A-Za-z0-9_-]+$/.test(vehicle.id || '') ? vehicle.id : '';
+                const repairId = /^[A-Za-z0-9_-]+$/.test(repair.id || '') ? repair.id : '';
+                const finish = status !== 'Erledigt' && vehicleId && repairId ?
+                    '<button type="button" onclick="finishFleetRepair(\'' + vehicleId + '\',\'' + repairId + '\')" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-[11px]"><i class="fa-solid fa-check"></i> Abschließen</button>' : '';
+                const remove = isAdminLoggedIn && vehicleId && repairId ?
+                    '<button type="button" onclick="deleteFleetRepair(\'' + vehicleId + '\',\'' + repairId + '\')" class="px-2.5 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 text-[11px] font-bold"><i class="fa-solid fa-trash"></i> Löschen</button>' : '';
+                return '<div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">' +
+                    '<div class="flex flex-wrap items-center justify-between gap-2"><strong class="text-sm text-slate-900">' +
+                    escapeRepairHtml(vehicle.plate || '-') + ' · ' + escapeRepairHtml(repair.title || '-') + '</strong>' +
+                    '<span class="px-2 py-1 rounded-lg border text-[10px] font-bold ' + statusStyle + '">' + escapeRepairHtml(status) + '</span></div>' +
+                    '<div class="text-[11px] text-slate-500">Datum: ' + escapeRepairHtml(repair.date || '-') +
+                    (repair.km ? ' · ' + escapeRepairHtml(repair.km) + ' km' : '') +
+                    (repair.employee ? ' · ' + escapeRepairHtml(repair.employee) : '') + '</div>' +
+                    (points.length ? '<div class="space-y-1.5 bg-white p-2.5 rounded-lg border border-slate-200">' + pointHtml + '</div>' : '') +
+                    (repair.notes ? '<p class="text-slate-700 whitespace-pre-line">' + escapeRepairHtml(repair.notes) + '</p>' : '') +
+                    ((finish || remove) ? '<div class="flex flex-wrap gap-2 pt-1">' + finish + remove + '</div>' : '') +
+                    '</div>';
+            }).join('');
+        }
+
+        async function changeFleetRepair(vehicleId, repairId, mode) {
+            if (!db) { showToast('Keine Cloud-Verbindung – nichts geändert.'); return; }
+            if (mode === 'delete' && !isAdminLoggedIn) { showToast('Nur für Administratoren.'); return; }
+            if (mode === 'delete' && !window.confirm('Diesen Reparatureintrag wirklich löschen?')) return;
+            try {
+                const ref = db.collection('fahrzeuge_park').doc(vehicleId);
+                await db.runTransaction(async function(transaction) {
+                    const snap = await transaction.get(ref);
+                    if (!snap.exists) throw new Error('Fahrzeug nicht gefunden');
+                    const existing = Array.isArray(snap.data().reparaturen) ? snap.data().reparaturen : [];
+                    const found = existing.some(function(r) { return r.id === repairId; });
+                    if (!found) throw new Error('Reparatur nicht gefunden');
+                    const updated = mode === 'delete' ? existing.filter(function(r) { return r.id !== repairId; }) :
+                        existing.map(function(r) { return r.id === repairId ? Object.assign({},r,{status:'Erledigt'}) : r; });
+                    transaction.update(ref,{reparaturen:updated});
+                });
+                showToast(mode === 'delete' ? 'Reparatur gelöscht.' : 'Reparatur abgeschlossen.');
+            } catch (error) {
+                showToast('Cloud-Aktualisierung fehlgeschlagen: ' + (error.code || error.message || 'Fehler'));
+            }
+        }
+        function finishFleetRepair(vehicleId, repairId) { return changeFleetRepair(vehicleId, repairId, 'finish'); }
+        function deleteFleetRepair(vehicleId, repairId) { return changeFleetRepair(vehicleId, repairId, 'delete'); }
+
         function toggleManagerLogin() {
             const dropdown = document.getElementById('manager-login-dropdown');
             const chevron = document.getElementById('manager-chevron');
@@ -2434,6 +2667,7 @@
                 document.getElementById('manager-lock-icon').innerHTML = '<i class="fa-solid fa-lock-open"></i>';
                 showToast(t('toast_saved'));
                 renderVacationList();
+                renderFleetRepairsList();
             } else {
                 showToast('Falsches Passwort!');
             }
@@ -2452,6 +2686,7 @@
                 }
                 renderAdminEmployeesList();
                 saveEmployeesToStorage();
+                renderFleetRepairsList();
                 showToast('Admin-Bereich entsperrt!');
             } else {
                 showToast('Falsches Passwort!');
