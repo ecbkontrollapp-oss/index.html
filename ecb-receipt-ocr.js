@@ -203,6 +203,29 @@
           push(head+': '+m[2],Number(m[1].replace(',','.'))||1,null);
       }
     }
+    // If thermal-print OCR recognized service headings but fragmented the
+    // associated price line, keep the ACTUAL recognized item and leave its
+    // price blank. Never invent a separate parts price.
+    const serviceHeading=/^\s*(ölwechsel|ölfilter|motoröl|luftfilter|kraftstofffilter|inspektion|bremsbeläge|bremsflüssigkeit|reifenwechsel|zündkerzen|scheibenwischer)\s*[:\-]?\s*$/i;
+    for (let i=0;i<stop;i++) {
+      const m=lines[i].match(serviceHeading);
+      if(!m)continue;
+      const title=m[1];
+      if(items.some(item=>item.name.toLowerCase().startsWith(title.toLowerCase())))continue;
+      let name=title,qty=1,price=null;
+      const next=lines[i+1]||'';
+      if(next && !isNotItem(next)) {
+        let row=next;
+        const p=lastPrice(row);
+        if(p){price=p.amount;row=p.prefix;}
+        const parts=row.match(/^\s*(\d{1,3}(?:[.,]\d{1,3})?)\s*(?:x|stk\.?|stück)\s+(.{2,90})$/i);
+        if(parts){
+          qty=Number(parts[1].replace(',','.'))||1;
+          if(/[A-Za-zÄÖÜäöüß0-9]{2}/.test(parts[2])) name=title+': '+parts[2].trim();
+        }
+      }
+      push(name,qty,price);
+    }
     return {vendor,date,amount,items,netAmount,netCalculated,taxAmount,km,plate};
   }
 
