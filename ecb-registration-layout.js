@@ -132,6 +132,36 @@ if(!interpret(result,'').seats){
   const confirmed=Object.entries(votes).find(([,count])=>count>=2);
   if(confirmed)result.seats=confirmed[0];
 }
+// D.2 is laid out in three stacked rows. A single OCR line often loses
+// the first two rows or confuses the security-print background with letters.
+if(!interpret(result,'').type || interpret(result,'').type.split(' / ').length<2){
+  const rowBounds=[
+    [.339,.224,.515,.260],
+    [.339,.260,.515,.302],
+    [.339,.302,.515,.345]
+  ];
+  const rowValues=[];
+  for(let i=0;i<rowBounds.length;i++){
+    const patch=crop(img,rowBounds[i]);
+    const votes={};
+    try{
+      for(const mode of ['7','13']){
+        await worker.setParameters({tessedit_pageseg_mode:mode});
+        const read=await worker.recognize(patch);
+        const candidate=typeValue(read.data&&read.data.text||'');
+        if(candidate&&!candidate.includes(' / ')){
+          votes[candidate]=(votes[candidate]||0)+1;
+        }
+      }
+    }finally{patch.width=0;patch.height=0;}
+    const accepted=Object.entries(votes).find(([key,count])=>count>=2);
+    if(accepted)rowValues.push(accepted[0]);
+  }
+  if(rowValues.length>=2){
+    result.type=rowValues.join('\n');
+  }
+}
+await worker.setParameters({tessedit_pageseg_mode:'7'});
 // Targeted second pass for fields which are frequently too small on iPhone
 // photos. Only accept a retry if its result passes the field parser.
 const retryBoxes={
@@ -205,6 +235,18 @@ function tyre(raw){
 const m=cleaned(raw).toUpperCase().match(/(\d{3}\s*\/\s*\d{2,3}\s*R\s*\d{2})(?:\s*\(?\s*(\d{2,3})\s*\)?\s*([A-Z]))?/);
 return m?m[1].replace(/\s/g,'')+(m[2]?' '+m[2]+(m[3]||''):''):'';
 }
+function typeValue(raw){
+  // D.2 has up to three rows: type / variant / version. Retain all
+  // legible entries in their original order instead of only the last.
+  const source=String(raw||'').toUpperCase().replace(/[^A-Z0-9\r\n /-]/g,' ');
+  const tokens=source.split(/[\s/|-]+/).filter(Boolean).filter(token=>
+    /^[A-Z0-9]{1,16}$/.test(token)&&
+    !/^(?:D2|TYP|TYPEN|VARIANTE|VERSION|D|HANDELSBEZEICHNUNG|HERSTELLER|FAHRZEUG|SCHEIN)$/.test(token));
+  const unique=[...new Set(tokens)];
+  // A single alphabetic OCR word such as FITS is too weak for a type code.
+  if(unique.length===1&&!/\d/.test(unique[0])&&unique[0].length>2)return '';
+  return unique.slice(0,3).join(' / ');
+}
 function interpret(raw,fullText) {
 const r=raw||{},d={};
 d.plate=plate(r.plate);
@@ -218,8 +260,7 @@ d.manufacturer=letters(r.manufacturer);
 d.color=color(r.color);
 d.model=String(r.model||'').split(/\r?\n/).map(letters)
   .find(x=>/^[A-Za-zÄÖÜäöüß]{4,}(?:[ -][A-Za-zÄÖÜäöüß0-9]{2,})?$/.test(x)&&! /^(?:HANDELSBEZEICHNUNG|FAHRZEUG|FAHRZEUGSCHEIN|VORDERSEITE|KRAFTSTOFF|HERSTELLER|VARIANTE|DIESEL|BENZIN|MARKE)$/i.test(x))||'';
-const variants=String(r.type||'').toUpperCase().match(/\b[A-Z0-9]{3,16}\b/g)||[];
-d.type=variants.length?variants[variants.length-1]:'';
+d.type=typeValue(r.type);
 const fuel=letters(r.fuel).toUpperCase();
 d.fuel=/^(DIESEL|BENZIN|ELEKTRO|HYBRID|CNG|LPG|ERDGAS|FLÜSSIGGAS|FLUESSIGGAS)\b/.test(fuel)?fuel:'';
 const group=cleaned(r.vehicleClass).toUpperCase().match(/\b(M1|N1|N2|N3|O[1-4]|L\d[Ee]?)\b/);
