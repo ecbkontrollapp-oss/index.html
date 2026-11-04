@@ -42,6 +42,7 @@
     <script src="./ecb-supabase-config.js"></script>
     <script src="./ecb-documents.js?v=20261104-invite-login-v2"></script>
     <script defer src="./ecb-receipt-ocr.js?v=20261104-vendor-dedupe-13"></script>
+    <script defer src="./ecb-registration-ocr.js?v=20261104-fahrzeugschein-ocr-1"></script>
     <script defer src="./ecb-logo-data.js?v=20261104-vector-original-1"></script>
     <script defer src="./ecb-fleet-costs.js?v=20261104-logo-everywhere-5"></script>
     <script defer src="./kfz-admin.js?v=20261104-repair-cost-v4"></script>
@@ -1322,14 +1323,26 @@
 
     <!-- FLEET VEHICLE MODAL -->
     <div id="modal-fleet-vehicle" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-4 sm:p-5 shadow-2xl space-y-3.5 box-border overflow-hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-5 shadow-2xl space-y-3.5 box-border max-h-[92vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                     <i class="fa-solid fa-car text-indigo-600"></i> <span data-i18n="fleet_modal_title">Neues Fahrzeug anlegen</span>
                 </h3>
                 <button onclick="closeModal('modal-fleet-vehicle')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form id="form-fleet-vehicle" onsubmit="submitFleetVehicle(event)" class="space-y-3 w-full max-w-full overflow-hidden box-border">
+            <form id="form-fleet-vehicle" onsubmit="submitFleetVehicle(event)" class="space-y-3 w-full max-w-full overflow-hidden box-border"><div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl space-y-2">
+<h4 class="text-xs font-black text-emerald-900"><i class="fa-solid fa-id-card mr-1"></i> Optional: Fahrzeugschein auslesen</h4>
+<p class="text-[11px] text-emerald-800">Foto oder PDF wird zunächst nur auf deinem Gerät erkannt. Daten prüfen, anschließend bewusst speichern. Manuelle Eingabe bleibt möglich.</p>
+<div class="grid grid-cols-2 gap-2">
+<input id="vehicle-camera-input" type="file" accept="image/*" capture="environment" onchange="ECBRegistrationOCR.onFile(this,'vehicle')" class="hidden">
+<label for="vehicle-camera-input" class="bg-white border border-emerald-300 text-emerald-800 text-center rounded-xl px-2 py-2.5 text-xs font-bold cursor-pointer">Kamera</label>
+<input id="vehicle-document-input" type="file" accept="image/*,.heic,.heif,.pdf,application/pdf" onchange="ECBRegistrationOCR.onFile(this,'vehicle')" class="hidden">
+<label for="vehicle-document-input" class="bg-white border border-emerald-300 text-emerald-800 text-center rounded-xl px-2 py-2.5 text-xs font-bold cursor-pointer">Bild / PDF</label></div>
+<p id="vehicle-ocr-selected-file" class="text-[10px] text-slate-600 break-words">Noch keine Datei ausgewählt. Maximal 15 MB.</p>
+<button type="button" id="vehicle-ocr-scan" onclick="ECBRegistrationOCR.scan('vehicle')" class="bg-white border border-emerald-300 rounded-lg px-3 py-2 text-[11px] font-bold text-emerald-900">Erneut auslesen</button>
+<div id="vehicle-ocr-status" class="hidden" role="status" aria-live="polite"></div>
+<label id="vehicle-ocr-review-wrap" class="hidden flex items-start gap-2 p-2.5 bg-white border border-amber-200 rounded-xl text-[11px]"><input id="vehicle-ocr-review" type="checkbox" class="mt-0.5">Ich habe alle ausgefüllten Fahrzeugdaten am Original kontrolliert und korrigiert.</label>
+<label class="flex gap-2 items-start text-[11px] text-emerald-900"><input id="vehicle-save-document" type="checkbox" checked class="mt-0.5">Original-Fahrzeugschein erst beim Speichern im privaten Cloud-Speicher hinterlegen.</label></div>
                 <div class="w-full max-w-full box-border">
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="fleet_label_plate">Kennzeichen / Name *</label>
                     <input type="text" id="fleet-input-plate" required placeholder="z. B. HP-EC 101" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none box-border max-w-full">
@@ -1352,7 +1365,22 @@
                     <label class="block text-[11px] font-bold text-slate-700 mb-1" data-i18n="fleet_label_oil">Nächster Ölwechsel (km)</label>
                     <input type="number" id="fleet-input-oil" placeholder="z. B. 135000" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none box-border max-w-full">
                 </div>
-                <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-xs mt-1 box-border">
+                <details open class="rounded-xl border border-slate-200 bg-slate-50 p-3"><summary class="cursor-pointer font-black text-xs text-slate-800">Weitere Fahrzeugdaten für Ersatzteile &amp; Prüfungen</summary><p class="text-[10px] text-slate-500 my-2">Nur erkennbare Fahrzeugdaten werden ergänzt. Keine Übernahme von Halternamen oder Adressen.</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><label class="block text-[11px] font-bold text-slate-700">Hersteller / Marke (D.1)<input id="fleet-input-manufacturer" type="text" maxlength="60" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Typ / Variante (D.2)<input id="fleet-input-type" type="text" maxlength="80" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Erstzulassung (B)<input id="fleet-input-first-registration" type="date"  autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">FIN (E)<input id="fleet-input-vin" type="text" maxlength="17" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">HSN (2.1)<input id="fleet-input-hsn" type="text" maxlength="12" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">TSN (2.2)<input id="fleet-input-tsn" type="text" maxlength="16" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Kraftstoff (P.3)<input id="fleet-input-fuel" type="text" maxlength="40" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Leistung kW (P.2)<input id="fleet-input-power" type="text" maxlength="10" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Hubraum cm³ (P.1)<input id="fleet-input-displacement" type="text" maxlength="10" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Farbe (R)<input id="fleet-input-color" type="text" maxlength="40" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Sitzplätze (S.1)<input id="fleet-input-seats" type="text" maxlength="6" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Gesamtmasse kg (F.2)<input id="fleet-input-weight" type="text" maxlength="12" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Reifen vorn (15.1)<input id="fleet-input-tyres-front" type="text" maxlength="50" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Reifen hinten (15.2)<input id="fleet-input-tyres-rear" type="text" maxlength="50" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Fahrzeugklasse (J)<input id="fleet-input-class" type="text" maxlength="35" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label></div></details>
+                <button type="submit" id="fleet-vehicle-save-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-xs mt-1 box-border">
                     <span data-i18n="fleet_btn_save">Fahrzeug speichern</span>
                 </button>
             </form>
@@ -1575,6 +1603,21 @@
                     <label for="registration-vin" class="block text-[11px] font-bold text-slate-700 mb-1">FIN / Fahrgestellnummer (optional)</label>
                     <input id="registration-vin" type="text" maxlength="17" placeholder="17-stellige Fahrzeug-Identnummer" autocapitalize="characters" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
                 </div>
+                <label class="block text-[11px] font-bold text-slate-700">Kennzeichen laut Fahrzeugschein (A)
+<input id="registration-plate" type="text" class="block w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" placeholder="z. B. MA-CB 126"></label>
+<label class="block text-[11px] font-bold text-slate-700">Handelsbezeichnung (D.3)<input id="registration-model" type="text" maxlength="80" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<details open class="rounded-xl border border-slate-200 bg-slate-50 p-3"><summary class="cursor-pointer font-black text-xs text-slate-800">Weitere Fahrzeugdaten für Ersatzteile &amp; Prüfungen</summary><p class="text-[10px] text-slate-500 my-2">Nur erkennbare Fahrzeugdaten werden ergänzt. Keine Übernahme von Halternamen oder Adressen.</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><label class="block text-[11px] font-bold text-slate-700">Hersteller / Marke (D.1)<input id="registration-manufacturer" type="text" maxlength="60" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Typ / Variante (D.2)<input id="registration-type" type="text" maxlength="80" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Erstzulassung (B)<input id="registration-first-registration" type="date"  autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Kraftstoff (P.3)<input id="registration-fuel" type="text" maxlength="40" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Leistung kW (P.2)<input id="registration-power" type="text" maxlength="10" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Hubraum cm³ (P.1)<input id="registration-displacement" type="text" maxlength="10" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Farbe (R)<input id="registration-color" type="text" maxlength="40" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Sitzplätze (S.1)<input id="registration-seats" type="text" maxlength="6" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Gesamtmasse kg (F.2)<input id="registration-weight" type="text" maxlength="12" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Reifen vorn (15.1)<input id="registration-tyres-front" type="text" maxlength="50" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Reifen hinten (15.2)<input id="registration-tyres-rear" type="text" maxlength="50" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label>
+<label class="block text-[11px] font-bold text-slate-700">Fahrzeugklasse (J)<input id="registration-class" type="text" maxlength="35" autocomplete="off" class="block w-full mt-1 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs"></label></div></details>
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
                     <p class="text-[11px] font-bold text-slate-800">Foto oder PDF des Fahrzeugscheins *</p>
                     <div class="grid grid-cols-2 gap-2">
@@ -1588,6 +1631,10 @@
                         </label>
                     </div>
                     <p id="registration-selected-file" class="text-[11px] text-slate-500 break-words">Noch keine Datei ausgewählt. Maximal 15 MB pro Datei.</p>
+                    <button type="button" id="registration-ocr-scan" onclick="ECBRegistrationOCR.scan('registration')" class="bg-white border border-indigo-300 text-indigo-700 rounded-xl px-3 py-2 text-[11px] font-bold">Erneut auslesen</button>
+                    <div id="registration-ocr-status" class="hidden" role="status" aria-live="polite"></div>
+                    <label id="registration-ocr-review-wrap" class="hidden flex gap-2 items-start border border-amber-200 bg-amber-50 rounded-xl p-2.5 text-[11px]"><input id="registration-ocr-review" type="checkbox" class="mt-0.5">Ich habe alle ausgelesenen Angaben am Original geprüft und gegebenenfalls korrigiert.</label>
+                    <label class="flex gap-2 items-start text-[11px]"><input id="registration-update-vehicle" type="checkbox" checked class="mt-0.5">Fehlende Fahrzeugstammdaten ergänzen, bestehende Daten nicht überschreiben.</label>
                 </div>
                 <p class="text-[10px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-2.5">
                     Fahrzeugscheine enthalten möglicherweise personenbezogene Daten. Der Supabase-Bucket muss privat sein; nur freigegebene Mitarbeitende dürfen sich anmelden.
