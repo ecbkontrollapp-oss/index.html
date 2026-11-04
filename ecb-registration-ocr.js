@@ -432,7 +432,7 @@
       validateParsed(parsed);
       // OCR sometimes reads only the printed field code "S.1" as the
       // number 1. A single uncorroborated digit must not enter fleet data.
-      if(parsed.data.seats==='1'&&!/^\s*S[.,\s]*1\s*[:.\]-]?\s*1(?:\s|$)/i.test(String(fields.seats||''))){
+      if(parsed.data.seats==='1'){
         parsed.data.seats='';
         parsed.keys=parsed.keys.filter(key=>key!=='seats');
       }
