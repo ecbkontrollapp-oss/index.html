@@ -42,6 +42,7 @@
     <script src="./ecb-supabase-config.js"></script>
     <script src="./ecb-documents.js?v=20261104-invite-login-v2"></script>
     <script defer src="./ecb-receipt-ocr.js?v=20261104-financial-fields-12"></script>
+    <script defer src="./ecb-fleet-costs.js?v=20261104-cost-report-1"></script>
     <script defer src="./kfz-admin.js?v=20261104-receipt-summary-v3"></script>
 
     <style>
@@ -840,6 +841,39 @@
                     <div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl" data-i18n="no_fleet_cars">
                         Keine Fahrzeuge angelegt.
                     </div>
+                </div>
+            </div>
+
+            <!-- Cloud fleet cost accounting / reporting -->
+            <div id="fleet-costs-section" class="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-xs space-y-4 w-full max-w-full box-border">
+                <div class="flex flex-wrap justify-between items-start gap-3 pb-2 border-b border-slate-100">
+                    <div>
+                        <h2 class="text-base font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-chart-column text-ecb"></i> Fahrzeugkosten &amp; Auswertungen</h2>
+                        <p class="text-[11px] text-slate-500 mt-1">Einzelfahrzeug, Belege, Reparaturen und Gesamtkosten · automatisch aus der Fahrzeug-Cloud aktualisiert.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="ECBFleetCosts.pdf()" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-800 border border-rose-200 font-bold text-xs"><i class="fa-solid fa-file-pdf mr-1"></i> PDF</button>
+                        <button type="button" id="cost-excel" onclick="ECBFleetCosts.excel()" class="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-xs"><i class="fa-solid fa-file-excel mr-1"></i> Excel</button>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2" role="group" aria-label="Art der Auswertung">
+                    <button id="cost-single" type="button" onclick="ECBFleetCosts.setMode('single')" class="px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white">Einzelfahrzeug</button>
+                    <button id="cost-all" type="button" onclick="ECBFleetCosts.setMode('all')" class="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200">Gesamter Fuhrpark</button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <label class="text-[11px] font-bold text-slate-700">Fahrzeug
+                        <select id="cost-vehicle" onchange="ECBFleetCosts.render()" class="block w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs"></select>
+                    </label>
+                    <label class="text-[11px] font-bold text-slate-700">Von
+                        <input id="cost-from" type="date" onchange="ECBFleetCosts.render()" class="block w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs">
+                    </label>
+                    <label class="text-[11px] font-bold text-slate-700">Bis
+                        <input id="cost-to" type="date" onchange="ECBFleetCosts.render()" class="block w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs">
+                    </label>
+                </div>
+                <p class="text-[10px] text-slate-500">Für die Summe zählt jeder Beleg-Endbetrag genau einmal. Artikel dienen der Detailprüfung und werden nicht zusätzlich addiert. Reparaturen ohne gesonderte Kostenangabe bleiben reine Wartungseinträge. Originalbelege bleiben privat und lassen sich in der App ansehen.</p>
+                <div id="fleet-costs-output" class="space-y-4">
+                    <div class="p-5 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Cloud-Auswertung wird geladen …</div>
                 </div>
             </div>
 
@@ -2299,6 +2333,7 @@
                 renderFleetRepairsList();
                 renderFleetReceiptsList();
                 renderFleetRegistrationsList();
+                if (window.ECBFleetCosts) window.ECBFleetCosts.setVehicles(items);
             }, () => {});
         }
         
