@@ -364,8 +364,17 @@
       items.columns=[{width:21},{width:16},{width:19},{width:50},{width:12},{width:21},{width:21},{width:30},{width:27}];
       items.addImage(logo,{tl:{col:0,row:0},ext:{width:120,height:52}});
       for(const g of report.groups){
-        overview.addRow([vehicleName(g.car),String(g.car.model||''),g.receiptCount,g.repairCount,
+        const totalRow=overview.addRow([vehicleName(g.car),String(g.car.model||''),g.receiptCount,g.repairCount,
           g.receiptGross/100,g.extraRepairCost/100,g.gross/100,g.net/100,g.tax/100,g.missing]);
+        const rn=totalRow.number;
+        const sum=(col,source)=>'SUMIFS(Kostenbuchungen!$'+col+'$6:$'+col+
+          '$10000,Kostenbuchungen!$A$6:$A$10000,$A'+rn+
+          ',Kostenbuchungen!$M$6:$M$10000,"'+source+'")';
+        totalRow.getCell(5).value={formula:sum('E','beleg'),result:g.receiptGross/100};
+        totalRow.getCell(6).value={formula:sum('E','reparatur'),result:g.extraRepairCost/100};
+        totalRow.getCell(7).value={formula:'E'+rn+'+F'+rn,result:g.gross/100};
+        totalRow.getCell(8).value={formula:sum('F','beleg'),result:g.net/100};
+        totalRow.getCell(9).value={formula:sum('G','beleg'),result:g.tax/100};
         for(const r of g.rows){
           entries.addRow([r.vehicle,dateDE(r.date),r.type,r.company||r.title,
             r.gross===null?null:r.gross/100,r.net===null?null:r.net/100,
