@@ -238,6 +238,54 @@
       return !el||!String(el.value||'').trim();
     });
   }
+  // Strict, read-only preflight for the selected fleet vehicle.  The original
+  // document never leaves the device during OCR; no cloud write occurs here.
+  function verifyForUpload(mode,vehicle){
+    if(mode!=='registration')return {ok:true};
+    if(!vehicle)return {ok:false,message:'Bitte ein bestehendes Fahrzeug auswählen.'};
+    if(!canSave(mode)){
+      const conflicts=unresolvedFieldConflicts(mode);
+      if(conflicts.length)return {ok:false,message:'Widersprüchliche Dokumentwerte bitte zuerst am Original überprüfen und korrigieren: '+
+        conflicts.map(k=>LABELS[k]||k).join(', ')+'.'};
+      if(unresolvedPlateConflict(mode))return {ok:false,message:'Das OCR-Kennzeichen weicht vom ausgewählten Fahrzeug ab. Bitte Kennzeichen (A) prüfen und korrigieren.'};
+      return {ok:false,message:'OCR-Auslesung abschließen und den Originalabgleich bestätigen.'};
+    }
+    const info=collect(mode);
+    const norm=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+    const plate=norm(info.plate),vehiclePlate=norm(vehicle.plate);
+    const vin=norm(info.vin),vehicleVin=norm(vehicle.vin);
+    if(info.plate&&vehiclePlate&&plate!==vehiclePlate)
+      return {ok:false,message:'Kennzeichen (A) stimmt nicht mit dem ausgewählten Fahrzeug überein.'};
+    if(vin&&vehicleVin&&vin!==vehicleVin)
+      return {ok:false,message:'FIN (E) stimmt nicht mit dem ausgewählten Fahrzeug überein. Bitte Zuordnung prüfen.'};
+    // A physical document must have at least one positive matching identifier
+    // before it can be associated with a cloud fleet vehicle.
+    if(!((plate&&vehiclePlate&&plate===vehiclePlate)||(vin&&vehicleVin&&vin===vehicleVin)))
+      return {ok:false,message:'Fahrzeugzuordnung nicht bestätigt: Bitte Kennzeichen (A) passend zum Fahrzeug eintragen oder eine mit dem Fahrzeug übereinstimmende FIN (E) verwenden.'};
+    if(info.vin&&!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin))
+      return {ok:false,message:'FIN benötigt 17 gültige Zeichen ohne I, O oder Q.'};
+    if(info.hsn&&!/^\d{4}$/.test(info.hsn))
+      return {ok:false,message:'HSN (2.1) muss genau vier Ziffern enthalten.'};
+    if(info.tsn&&!/^[A-Z0-9]{3,12}$/i.test(info.tsn))
+      return {ok:false,message:'TSN (2.2) ist ungültig.'};
+    for(const [name,label] of [['hsn','HSN (2.1)'],['tsn','TSN (2.2)']]){
+      if(info[name]&&vehicle[name]&&norm(info[name])!==norm(vehicle[name]))
+        return {ok:false,message:label+' weicht von den Fahrzeugstammdaten ab. Bitte Original prüfen.'};
+    }
+    for(const [key,label,max] of [
+      ['seats','Sitzplätze (S.1)',90],
+      ['powerKw','Leistung (P.2)',1000],
+      ['displacement','Hubraum (P.1)',20000],
+      ['totalMass','Gesamtmasse (F.2)',200000]
+    ]){
+      const value=String(info[key]||'').trim();
+      if(value&&(!/^\d{1,6}$/.test(value)||Number(value)<1||Number(value)>max))
+        return {ok:false,message:label+' enthält keinen plausiblen Zahlenwert.'};
+    }
+    if(info.firstRegistration&&(!/^\d{4}-\d{2}-\d{2}$/.test(info.firstRegistration)||!dateValue(info.firstRegistration.replace(/-/g,'.'))&&Number(info.firstRegistration.slice(0,4))<1900))
+      return {ok:false,message:'Datum der Erstzulassung (B) bitte prüfen.'};
+    return {ok:true};
+  }
   function canSave(mode){
     const st=state[mode];
     if(!st||st.scanning)return false;
@@ -554,5 +602,5 @@
   const vehicleSelect=$('registration-vehicle');
   if(vehicleSelect)vehicleSelect.addEventListener('change',onRegistrationVehicleChange);
   window.ECBRegistrationOCR={parse,scan,onFile,reset,getFile,canSave,unresolvedPlateConflict,
-    onRegistrationVehicleChange,collect,normalizePlate,fields:Object.keys(LABELS)};
+    unresolvedFieldConflicts,verifyForUpload,onRegistrationVehicleChange,collect,normalizePlate,fields:Object.keys(LABELS)};
 })();
