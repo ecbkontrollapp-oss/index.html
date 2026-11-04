@@ -41,7 +41,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./ecb-supabase-config.js"></script>
     <script src="./ecb-documents.js?v=20261104-invite-login-v2"></script>
-    <script defer src="./ecb-receipt-ocr.js?v=20261104-receipt-ocr-1"></script>
+    <script defer src="./ecb-receipt-ocr.js?v=20261104-thermal-receipt-2"></script>
     <script defer src="./kfz-admin.js?v=20261104-receipt-items-v2"></script>
 
     <style>
@@ -1436,6 +1436,20 @@
                         <label for="receipt-amount" class="block text-[11px] font-bold text-slate-700 mb-1">Betrag (€)</label>
                         <input id="receipt-amount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="z. B. 89,90" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
                     </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label for="receipt-net" class="block text-[11px] font-bold text-slate-700 mb-1">Netto (€)</label>
+                        <input id="receipt-net" type="number" min="0" step="0.01" inputmode="decimal" placeholder="optional" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                    </div>
+                    <div>
+                        <label for="receipt-vat" class="block text-[11px] font-bold text-slate-700 mb-1">MwSt. (€)</label>
+                        <input id="receipt-vat" type="number" min="0" step="0.01" inputmode="decimal" placeholder="optional" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
+                    </div>
+                </div>
+                <div>
+                    <label for="receipt-km" class="block text-[11px] font-bold text-slate-700 mb-1">Kilometerstand laut Beleg</label>
+                    <input id="receipt-km" type="number" min="0" step="1" inputmode="numeric" placeholder="z. B. 286452" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs box-border">
                 </div>
                 <div>
                     <label for="receipt-description" class="block text-[11px] font-bold text-slate-700 mb-1">Beschreibung / Verwendungszweck</label>
@@ -3088,6 +3102,15 @@
                 fleetReceiptStatus('Bitte die automatisch erkannten Angaben und Preise erst prüfen und das Kontrollkästchen aktivieren.', true);
                 return;
             }
+            const netRaw = document.getElementById('receipt-net').value.trim();
+            const taxRaw = document.getElementById('receipt-vat').value.trim();
+            const kmRaw = document.getElementById('receipt-km').value.trim();
+            for (const [label, raw] of [['Netto',netRaw],['MwSt.',taxRaw],['Kilometerstand',kmRaw]]) {
+                if (raw !== '' && (!Number.isFinite(Number(raw)) || Number(raw) < 0 ||
+                    (label === 'Kilometerstand' && !Number.isSafeInteger(Number(raw))))) {
+                    fleetReceiptStatus('Bitte eine gültige Zahl für ' + label + ' eintragen.',true); return;
+                }
+            }
             btn.disabled = true;
             let uploadedRef = null;
             try {
@@ -3106,6 +3129,9 @@
                     kind: document.getElementById('receipt-type').value,
                     vendor: document.getElementById('receipt-vendor').value.trim(),
                     amount: amt === '' ? null : Number(amt),
+                    netAmount: netRaw === '' ? null : Number(netRaw),
+                    taxAmount: taxRaw === '' ? null : Number(taxRaw),
+                    kmAtReceipt: kmRaw === '' ? null : Number(kmRaw),
                     description: document.getElementById('receipt-description').value.trim(),
                     items: items,
                     notes: document.getElementById('receipt-notes').value.trim(),
@@ -3199,6 +3225,11 @@
                     '</strong><p class="text-[11px] text-slate-500 mt-0.5">' + escapeRepairHtml(r.date || '-') +
                     ' · ' + escapeRepairHtml(r.vendor || 'Ohne Händler') + '</p></div>' +
                     '<span class="text-xs font-black text-indigo-800 shrink-0">' + escapeRepairHtml(amount) + '</span></div>' +
+                    (r.netAmount != null || r.taxAmount != null || r.kmAtReceipt != null ?
+                        '<div class="text-[11px] text-slate-600 flex flex-wrap gap-2">' +
+                        (r.netAmount != null ? '<span>Netto: ' + escapeRepairHtml(money.format(Number(r.netAmount))) + '</span>' : '') +
+                        (r.taxAmount != null ? '<span>MwSt.: ' + escapeRepairHtml(money.format(Number(r.taxAmount))) + '</span>' : '') +
+                        (r.kmAtReceipt != null ? '<span>KM: ' + escapeRepairHtml(new Intl.NumberFormat('de-DE').format(Number(r.kmAtReceipt))) + '</span>' : '') + '</div>' : '') +
                     (r.description ? '<div class="text-slate-700">' + escapeRepairHtml(r.description) + '</div>' : '') +
                     (Array.isArray(r.items) && r.items.length ? '<details class="bg-white border border-slate-200 rounded-xl p-2.5"><summary class="text-[11px] font-bold text-indigo-700 cursor-pointer">Artikel / Positionen (' + r.items.length + ')</summary><div class="mt-2 space-y-1">' +
                         r.items.map(function(item) { return '<div class="flex justify-between items-start gap-2 text-[11px] border-b border-slate-100 pb-1"><span class="break-words">' +
