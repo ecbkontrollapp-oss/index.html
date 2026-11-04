@@ -42,7 +42,7 @@
     <script src="./ecb-supabase-config.js"></script>
     <script src="./ecb-documents.js?v=20261104-invite-login-v2"></script>
     <script defer src="./ecb-receipt-ocr.js?v=20261104-receipt-ocr-1"></script>
-    <script defer src="./kfz-admin.js"></script>
+    <script defer src="./kfz-admin.js?v=20261104-receipt-items-v2"></script>
 
     <style>
         canvas.sig-canvas {
@@ -3187,12 +3187,10 @@
                 const canManage = window.ECB_KFZ_ADMIN && window.ECB_KFZ_ADMIN.unlocked && id && vid;
                 const deleteBtn = canManage ?
                     '<button type="button" onclick="deleteFleetReceipt(\'' + vid + '\',\'' + id + '\')" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 font-bold text-[11px]"><i class="fa-solid fa-trash"></i> Löschen</button>' : '';
-                const editBtn = canManage ?
-                    '<button type="button" onclick="ECBKfzEdit(\'receipt\',\'' + vid + '\',\'' + id + '\')" class="px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold text-[11px]"><i class="fa-solid fa-pen"></i> Daten nachtragen</button>' : '';
                 const missingData = !r.vendor || r.amount == null || !Array.isArray(r.items) || r.items.length === 0;
                 const dataWarning = missingData ?
                     '<p class="text-[10px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5">Belegdaten unvollständig. Bitte mit Originalbeleg vergleichen.' +
-                    (canManage ? ' Über „Daten nachtragen“ ergänzen.' : ' Im KFZ-Adminbereich korrigierbar.') + '</p>' : '';
+                    (canManage ? ' Über „Bearbeiten“ ergänzen.' : ' Im KFZ-Adminbereich korrigierbar.') + '</p>' : '';
                 const amount = r.amount == null || r.amount === '' ? '–' :
                     (Number.isFinite(Number(r.amount)) ? money.format(Number(r.amount)) : '–');
                 return '<div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-2">' +
@@ -3211,7 +3209,7 @@
                     dataWarning +
                     '<div class="text-[10px] text-slate-500 break-all"><i class="fa-solid fa-paperclip"></i> ' +
                     escapeRepairHtml(r.fileName || 'Datei') + '</div>' +
-                    '<div class="flex flex-wrap gap-2 pt-1">' + openBtn + editBtn + deleteBtn + '</div></div>';
+                    '<div class="flex flex-wrap gap-2 pt-1">' + openBtn + deleteBtn + '</div></div>';
             }).join('');
         }
         async function openFleetReceipt(vehicleId, receiptId) {
