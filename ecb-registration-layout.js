@@ -224,7 +224,10 @@ const seatText=seatRaw.replace(/^\s*S[.,\s]*1\s*[:.\]-]?\s*/i,'');
 const extractedSeats=number(seatText,100);
 // A lone "1" in an isolated crop often comes from the printed "S.1"
 // field code, not from an actual one-seat vehicle. Do not guess.
-d.seats=extractedSeats==='1'&&!explicitSeatLabel?'':extractedSeats;
+// A solitary 1 is ambiguous even after parsing "S.1 1": on some scans
+// this is duplicated from the field label. A true one-seater can be
+// corrected manually after reviewing the document.
+d.seats=extractedSeats==='1'?'':extractedSeats;
 d.tyresFront=tyre(r.tyresFront);
 d.tyresRear=tyre(r.tyresRear);
 for(const k of Object.keys(d))if(!d[k])delete d[k];
