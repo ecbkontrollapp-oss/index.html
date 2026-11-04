@@ -78,7 +78,10 @@
       {key:'kind', label:'Belegart', type:'select', options:['Rechnung','Kassenzettel','Tankbeleg','Sonstiger Beleg']},
       {key:'date', label:'Belegdatum *', type:'date', required:true},
       {key:'vendor', label:'Firma / Händler', max:180},
-      {key:'amount', label:'Betrag (€)', type:'number', min:0, step:'0.01'},
+      {key:'amount', label:'Gesamtbetrag (€)', type:'number', min:0, step:'0.01'},
+      {key:'netAmount', label:'Netto (€)', type:'number', min:0, step:'0.01'},
+      {key:'taxAmount', label:'MwSt. (€)', type:'number', min:0, step:'0.01'},
+      {key:'kmAtReceipt', label:'Kilometerstand laut Beleg', type:'number', min:0, step:'1'},
       {key:'description', label:'Beschreibung', max:240},
       {key:'notes', label:'Bemerkungen', type:'textarea', max:2000},
       {key:'items', label:'Artikel / Positionen', type:'receipt-items'}
@@ -230,8 +233,8 @@
         if (f.type === 'number' && value !== '') {
           const num = Number(value);
           if (!Number.isFinite(num) || num < 0) { showToast('Ungültige Zahl: ' + f.label); return; }
-          patch[f.key] = f.key === 'amount' ? num : String(value);
-          if (f.key === 'amount') patch[f.key] = num;
+          patch[f.key] = (f.key === 'amount' || f.key === 'netAmount' ||
+            f.key === 'taxAmount' || f.key === 'kmAtReceipt') ? num : String(value);
         } else patch[f.key] = value;
       }
     }
