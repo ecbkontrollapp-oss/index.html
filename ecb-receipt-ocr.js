@@ -471,6 +471,9 @@
       if(extracted.vendor) {el('receipt-vendor').value=extracted.vendor;detected++;}
       if(extracted.date) {el('receipt-date').value=extracted.date;detected++;}
       if(extracted.amount!==null) {el('receipt-amount').value=extracted.amount.toFixed(2);detected++;}
+      if(extracted.netAmount!==null) {el('receipt-net').value=extracted.netAmount.toFixed(2);detected++;}
+      if(extracted.taxAmount!==null) {el('receipt-vat').value=extracted.taxAmount.toFixed(2);detected++;}
+      if(extracted.km!==null) {el('receipt-km').value=String(extracted.km);detected++;}
       if(extracted.items.length){
         clearRows();
         extracted.items.forEach(addItem);
@@ -489,6 +492,9 @@
           extracted.vendor?'Händler':'',
           extracted.date?'Datum':'',
           extracted.amount!==null?'Endbetrag':'',
+          extracted.netAmount!==null?'Netto':'',
+          extracted.taxAmount!==null?'MwSt.':'',
+          extracted.km!==null?'Kilometerstand':'',
           extracted.items.length?extracted.items.length+' Artikel':''
         ].filter(Boolean).join(', ')+'. Bitte alle Angaben und Preise mit dem Originalbeleg vergleichen und bestätigen.',false);
       } else {
