@@ -707,6 +707,9 @@
         if(!extracted.date)missing.push('Belegdatum');
         if(extracted.amount===null)missing.push('Endbetrag');
         if(!extracted.items.length)missing.push('Artikelpositionen');
+        else if(extracted.items.length===1 &&
+          /(?:ölwechsel|olwechsel)/i.test(extracted.items[0].name))
+          missing.push('weitere Positionen (z. B. Ölfilter) auf dem Original prüfen');
         if(extracted.totalDerived)missing.push('Gesamtbetrag wurde berechnet – bitte am Original prüfen');
         if(extracted.kmUncertain)missing.push('Kilometerstand widersprüchlich – bitte manuell prüfen');
         if(!plateMatched && !vehicleSelect?.value)missing.push('Fahrzeug (bitte auswählen)');
