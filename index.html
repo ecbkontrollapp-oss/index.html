@@ -2768,27 +2768,90 @@
         
         function openNewFleetVehicleModal() {
             document.getElementById('form-fleet-vehicle').reset();
+            if(window.ECBRegistrationOCR)window.ECBRegistrationOCR.reset('vehicle');
             openModal('modal-fleet-vehicle');
         }
         
-        function submitFleetVehicle(e) {
+        async function submitFleetVehicle(e) {
             e.preventDefault();
-            const plate = document.getElementById('fleet-input-plate').value.trim();
-            const model = document.getElementById('fleet-input-model').value.trim() || 'Standard';
-            const km = document.getElementById('fleet-input-km').value.trim() || '0';
-            const tuev = document.getElementById('fleet-input-tuev').value || '';
-            const oil = document.getElementById('fleet-input-oil').value || '';
-            if (!plate) return;
-        
-            const rec = { plate, model, km, tuev, oil, createdAt: Date.now() };
-            if (db) db.collection('fahrzeuge_park').add(rec).catch(() => {});
-            else cloudFleetVehicles.unshift(rec);
-        
-            renderFleetVehiclesList();
-            closeModal('modal-fleet-vehicle');
-            showToast(t('toast_saved'));
+            const saveBtn=document.getElementById('fleet-vehicle-save-btn');
+            if(saveBtn.disabled)return;
+            if(!db){showToast('Die Fahrzeug-Cloud ist nicht verbunden. Es wurden keine Daten gespeichert.');return;}
+            const ocr=window.ECBRegistrationOCR;
+            const file=ocr&&ocr.getFile('vehicle');
+            if(file&&!ocr.canSave('vehicle')){
+                showToast('Texterkennung abschließen und die Fahrzeugdaten vor dem Speichern bestätigen.');return;
+            }
+            const plate=document.getElementById('fleet-input-plate').value.trim().toUpperCase();
+            const model=document.getElementById('fleet-input-model').value.trim()||'Standard';
+            const km=document.getElementById('fleet-input-km').value.trim()||'0';
+            const tuev=document.getElementById('fleet-input-tuev').value||'';
+            const oil=document.getElementById('fleet-input-oil').value||'';
+            if(!plate){showToast('Bitte ein Kennzeichen oder einen Fahrzeugnamen eingeben.');return;}
+            if(!/^\d{1,9}$/.test(km)||oil&& !/^\d{1,9}$/.test(oil)){
+                showToast('Kilometerstände müssen gültige positive Zahlen sein.');return;
+            }
+            const norm=value=>String(value||'').replace(/[^A-Z0-9]/gi,'').toUpperCase();
+            if(cloudFleetVehicles.some(v=>norm(v.plate)===norm(plate))){
+                showToast('Dieses Kennzeichen ist bereits im Fahrzeugpark vorhanden.');return;
+            }
+            const details=ocr?ocr.collect('vehicle'):{};
+            if(details.vin&&!/^[A-HJ-NPR-Z0-9]{17}$/.test(details.vin)){
+                showToast('FIN prüfen: sie muss genau 17 gültige Zeichen enthalten.');return;
+            }
+            if(details.hsn&&!/^\d{4}$/.test(details.hsn)){
+                showToast('HSN (2.1) bitte als vierstellige Zahl eintragen.');return;
+            }
+            const rec={plate,model,km,tuev,oil,createdAt:Date.now(),
+                ...details,plate,model};
+            const ref=db.collection('fahrzeuge_park').doc();
+            let storageRef=null;
+            let wrote=false;
+            saveBtn.disabled=true;
+            try{
+                if(file&&document.getElementById('vehicle-save-document').checked){
+                    if(!file.size||file.size>15*1024*1024)
+                        throw Error('Fahrzeugschein darf maximal 15 MB groß sein.');
+                    receiptStorageReady();
+                    const mime=receiptMimeType(file);
+                    if(!mime)throw Error('Bitte ein unterstütztes Bild- oder PDF-Format auswählen.');
+                    const ext={
+                        'application/pdf':'pdf','image/jpeg':'jpg','image/png':'png',
+                        'image/webp':'webp','image/heic':'heic','image/heif':'heif'
+                    }[mime];
+                    const id='fz-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);
+                    const path='fahrzeugscheine/'+ref.id+'/'+id+'.'+ext;
+                    storageRef={storagePath:path,storageProvider:'supabase'};
+                    const progress=document.getElementById('vehicle-ocr-status');
+                    if(progress)progress.textContent='Bestätigt. Original-Fahrzeugschein wird jetzt in die Cloud hochgeladen …';
+                    await window.ECBFileStorage.upload(path,file,mime,percent=>{
+                        if(progress)progress.textContent='Fahrzeugschein hochladen: '+percent+' %';
+                    });
+                    rec.fahrzeugscheine=[{
+                        id,side:'Kompletter Fahrzeugschein',fileName:file.name.slice(0,200),
+                        mime,bytes:file.size,storagePath:path,storageProvider:'supabase',
+                        hsn:details.hsn||'',tsn:details.tsn||'',vin:details.vin||'',
+                        vehicleInfo:details,createdAt:Date.now()
+                    }];
+                }
+                await ref.set(rec);
+                wrote=true;
+                closeModal('modal-fleet-vehicle');
+                if(ocr)ocr.reset('vehicle');
+                showToast(file&&rec.fahrzeugscheine?
+                    'Fahrzeug und ausgelesener Fahrzeugschein in der Cloud gespeichert.':
+                    'Neues Fahrzeug in der Cloud gespeichert.');
+            }catch(error){
+                if(storageRef&&!wrote){
+                    try{
+                        const snapshot=await ref.get({source:'server'});
+                        if(!snapshot.exists)await fleetDocumentRemove(storageRef);
+                    }catch(ignored){}
+                }
+                showToast('Fahrzeug nicht gespeichert: '+(error.code||error.message||'Cloud-Fehler'));
+            }finally{saveBtn.disabled=false;}
         }
-        
+
         async function deleteFleetVehicle(docId) {
             if (!(window.ECB_KFZ_ADMIN && window.ECB_KFZ_ADMIN.unlocked)) { showToast('KFZ-Adminpasswort erforderlich.'); return; }
             if (!db) { showToast('Keine Cloud-Verbindung verfügbar.'); return; }
@@ -3411,6 +3474,7 @@
         function openNewRegistrationModal(vehicleId) {
             if (!cloudFleetVehicles.length) { showToast('Bitte zuerst ein Fahrzeug anlegen.'); return; }
             document.getElementById('form-fleet-registration').reset();
+            if(window.ECBRegistrationOCR)window.ECBRegistrationOCR.reset('registration');
             selectedFleetRegistrationFile = null;
             document.getElementById('registration-selected-file').textContent =
                 'Noch keine Datei ausgewählt. Maximal 15 MB pro Datei.';
@@ -3431,77 +3495,100 @@
             const other = document.getElementById(input.id === 'registration-camera-input' ?
                 'registration-file-input' : 'registration-camera-input');
             other.value = '';
+            if(window.ECBRegistrationOCR)window.ECBRegistrationOCR.onFile(input,'registration');
         }
         async function submitFleetRegistration(event) {
             event.preventDefault();
-            const saveBtn = document.getElementById('registration-save-btn');
-            if (saveBtn.disabled) return;
-            const vehicleId = document.getElementById('registration-vehicle').value;
-            const vehicle = cloudFleetVehicles.find(v => v.id === vehicleId);
-            if (!vehicle) { registrationStatus('Bitte ein vorhandenes Fahrzeug auswählen.', true); return; }
-            const file = selectedFleetRegistrationFile;
-            if (!file) { registrationStatus('Bitte ein Foto oder PDF des Fahrzeugscheins auswählen.', true); return; }
-            if (!file.size || file.size > 15 * 1024 * 1024) {
-                registrationStatus('Maximale Dateigröße: 15 MB.', true); return;
+            const saveBtn=document.getElementById('registration-save-btn');
+            if(saveBtn.disabled)return;
+            if(!db){registrationStatus('Keine Cloud-Verbindung verfügbar.',true);return;}
+            const vehicleId=document.getElementById('registration-vehicle').value;
+            const vehicle=cloudFleetVehicles.find(v=>v.id===vehicleId);
+            if(!vehicle){registrationStatus('Bitte ein vorhandenes Fahrzeug auswählen.',true);return;}
+            const file=selectedFleetRegistrationFile;
+            if(!file){registrationStatus('Bitte ein Foto oder PDF des Fahrzeugscheins auswählen.',true);return;}
+            if(!file.size||file.size>15*1024*1024){
+                registrationStatus('Die Datei darf maximal 15 MB groß sein.',true);return;
             }
-            const mime = receiptMimeType(file);
-            if (!mime) { registrationStatus('Erlaubt sind JPG, PNG, WEBP, HEIC/HEIF oder PDF.', true); return; }
-            const side = document.getElementById('registration-side').value;
-            if (!['Vorderseite','Rückseite','Kompletter Fahrzeugschein'].includes(side)) {
-                registrationStatus('Bitte die Dokumentseite wählen.', true); return;
+            const mime=receiptMimeType(file);
+            if(!mime){registrationStatus('Bitte JPG, PNG, WEBP, HEIC/HEIF oder PDF verwenden.',true);return;}
+            const ocr=window.ECBRegistrationOCR;
+            if(ocr&&!ocr.canSave('registration')){
+                registrationStatus('Texterkennung abschließen und erkannte Daten bestätigen, bevor die Cloud-Speicherung beginnt.',true);return;
             }
-            const hsn = document.getElementById('registration-hsn').value.trim().toUpperCase();
-            const tsn = document.getElementById('registration-tsn').value.trim().toUpperCase();
-            const vin = document.getElementById('registration-vin').value.trim().toUpperCase();
-            if (vin && !/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) {
-                registrationStatus('Die Fahrgestellnummer (FIN) muss aus 17 gültigen Zeichen bestehen oder leer bleiben.', true);
-                return;
+            const side=document.getElementById('registration-side').value;
+            if(!['Vorderseite','Rückseite','Kompletter Fahrzeugschein'].includes(side)){
+                registrationStatus('Ungültige Dokumentseite.',true);return;
             }
-            saveBtn.disabled = true;
-            try {
-                receiptStorageReady();
-                const id = 'fz-' + Date.now().toString(36) + '-' +
-                    Math.random().toString(36).slice(2,10);
-                const ext = {
-                    'application/pdf':'pdf','image/jpeg':'jpg','image/png':'png',
-                    'image/webp':'webp','image/heic':'heic','image/heif':'heif'
-                }[mime];
-                const path = 'fahrzeugscheine/' + vehicleId + '/' + id + '.' + ext;
-                const record = {
-                    id:id, side:side, hsn:hsn, tsn:tsn, vin:vin,
-                    fileName:file.name.slice(0,200), mime:mime, bytes:file.size,
-                    storagePath:path, storageProvider:'supabase', createdAt:Date.now()
-                };
-                registrationStatus('Fahrzeugschein wird zu Supabase Free hochgeladen …', false);
-                const storageRef = {storagePath:path, storageProvider:'supabase'};
-                await window.ECBFileStorage.upload(path, file, mime, percentage => {
-                    registrationStatus('Hochladen: ' + percentage + ' %', false);
-                });
-                registrationStatus('Datei hochgeladen. Fahrzeugzuordnung wird gespeichert …', false);
-                try {
-                    await db.collection('fahrzeuge_park').doc(vehicleId).update({
-                        fahrzeugscheine: firebase.firestore.FieldValue.arrayUnion(record)
-                    });
-                } catch (dbError) {
-                    // Bei bestätigtem Fehlen der Metadaten die hochgeladene
-                    // Datei aufräumen; bei Netzfehlern nichts vorschnell löschen.
-                    let absent = false;
-                    try {
-                        const snap = await db.collection('fahrzeuge_park').doc(vehicleId).get({source:'server'});
-                        absent = !snap.exists || !(snap.data().fahrzeugscheine || []).some(x => x.id === id);
-                    } catch (ignored) {}
-                    if (absent) await fleetDocumentRemove(storageRef).catch(() => {});
-                    throw dbError;
+            const info=ocr?ocr.collect('registration'):{};
+            const vin=String(info.vin||'').toUpperCase();
+            const hsn=String(info.hsn||'').toUpperCase();
+            const tsn=String(info.tsn||'').toUpperCase();
+            if(vin&&!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)){
+                registrationStatus('FIN muss 17 gültige Zeichen enthalten oder leer bleiben.',true);return;
+            }
+            if(hsn&&!/^\d{4}$/.test(hsn)){
+                registrationStatus('HSN bitte vierstellig eintragen.',true);return;
+            }
+            if(info.plate){
+                const normalized=p=>String(p||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+                if(normalized(info.plate)!==normalized(vehicle.plate)){
+                    registrationStatus('Kennzeichen im Fahrzeugschein ('+info.plate+
+                        ') stimmt nicht mit dem ausgewählten Fahrzeug ('+(vehicle.plate||'?')+
+                        ') überein. Bitte Auswahl oder erkannte Daten überprüfen.',true);return;
                 }
-                selectedFleetRegistrationFile = null;
-                closeModal('modal-fleet-registration');
-                showToast('Fahrzeugschein dem Fahrzeug zugeordnet und in der Cloud gespeichert.');
-            } catch (err) {
-                registrationStatus('Cloud-Speicherung fehlgeschlagen: ' + fleetStorageErrorMessage(err), true);
-                showToast('Fahrzeugschein konnte nicht gespeichert werden.');
-            } finally {
-                saveBtn.disabled = false;
             }
+            const id='fz-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);
+            const ext={
+                'application/pdf':'pdf','image/jpeg':'jpg','image/png':'png',
+                'image/webp':'webp','image/heic':'heic','image/heif':'heif'
+            }[mime];
+            const path='fahrzeugscheine/'+vehicleId+'/'+id+'.'+ext;
+            const record={
+                id,side,hsn,tsn,vin,vehicleInfo:info,
+                fileName:file.name.slice(0,200),mime,bytes:file.size,
+                storagePath:path,storageProvider:'supabase',createdAt:Date.now()
+            };
+            saveBtn.disabled=true;
+            let uploaded=false,saved=false;
+            try{
+                receiptStorageReady();
+                registrationStatus('Bestätigt. Fahrzeugschein wird erst jetzt hochgeladen …',false);
+                await window.ECBFileStorage.upload(path,file,mime,percentage=>
+                    registrationStatus('Hochladen: '+percentage+' %',false));
+                uploaded=true;
+                const ref=db.collection('fahrzeuge_park').doc(vehicleId);
+                const snapshot=await ref.get({source:'server'});
+                if(!snapshot.exists)throw Error('Das ausgewählte Fahrzeug existiert nicht mehr.');
+                const original=snapshot.data()||{};
+                const patch={fahrzeugscheine:firebase.firestore.FieldValue.arrayUnion(record)};
+                if(document.getElementById('registration-update-vehicle').checked){
+                    const allowed=['manufacturer','model','type','vin','hsn','tsn',
+                        'firstRegistration','fuel','powerKw','displacement','color',
+                        'seats','totalMass','tyresFront','tyresRear','vehicleClass'];
+                    for(const key of allowed){
+                        const value=info[key];
+                        if(!value)continue;
+                        if(!original[key]||(key==='model'&&original[key]==='Standard'))
+                            patch[key]=value;
+                    }
+                }
+                await ref.update(patch);
+                saved=true;
+                selectedFleetRegistrationFile=null;
+                if(ocr)ocr.reset('registration');
+                closeModal('modal-fleet-registration');
+                showToast('Fahrzeugschein und geprüfte Fahrzeugdaten gespeichert.');
+            }catch(error){
+                if(uploaded&&!saved){
+                    try{
+                        const snap=await db.collection('fahrzeuge_park').doc(vehicleId).get({source:'server'});
+                        const inCloud=snap.exists&&(snap.data().fahrzeugscheine||[]).some(d=>d.id===id);
+                        if(!inCloud)await fleetDocumentRemove({storagePath:path,storageProvider:'supabase'});
+                    }catch(ignored){}
+                }
+                registrationStatus('Cloud-Speicherung fehlgeschlagen: '+fleetStorageErrorMessage(error),true);
+            }finally{saveBtn.disabled=false;}
         }
         function renderFleetRegistrationsList() {
             const container = document.getElementById('fleet-registrations-container');
