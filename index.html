@@ -3172,19 +3172,21 @@
             try {
                 if (!db) throw new Error('Firestore ist nicht verbunden.');
                 const ref = db.collection('fahrzeuge_park').doc(vehicleId);
-                let deleted = null;
+                // Never remove the Firestore link before storage authentication and
+                // the actual file deletion succeed (login may be cancelled or denied).
+                const existing = await ref.get({source:'server'});
+                if (!existing.exists) throw new Error('Fahrzeug nicht gefunden');
+                const candidate = (Array.isArray(existing.data().belege) ? existing.data().belege : [])
+                    .find(b => b.id === receiptId);
+                if (!candidate) throw new Error('Beleg nicht gefunden');
+                if (candidate.storagePath) await fleetDocumentRemove(candidate);
                 await db.runTransaction(async function(tx) {
                     const doc = await tx.get(ref);
                     if (!doc.exists) throw new Error('Fahrzeug nicht gefunden');
                     const receipts = Array.isArray(doc.data().belege) ? doc.data().belege : [];
-                    deleted = receipts.find(b => b.id === receiptId);
-                    if (!deleted) throw new Error('Beleg nicht gefunden');
+                    if (!receipts.some(b => b.id === receiptId)) return;
                     tx.update(ref, {belege:receipts.filter(b => b.id !== receiptId)});
                 });
-                if (deleted && deleted.storagePath) {
-                    try { await fleetDocumentRemove(deleted); }
-                    catch (error) { showToast('Zuordnung gelöscht, Datei konnte in Storage nicht entfernt werden: ' + (error.code || error.message)); return; }
-                }
                 showToast('Fahrzeugbeleg und Datei aus der Cloud gelöscht.');
             } catch (error) {
                 showToast('Löschen fehlgeschlagen: ' + (error.code || error.message || 'Cloud-Fehler'));
@@ -3382,20 +3384,19 @@
             try {
                 if (!db) throw new Error('Firestore ist nicht verbunden.');
                 const ref = db.collection('fahrzeuge_park').doc(vehicleId);
-                let deleted = null;
+                const existing = await ref.get({source:'server'});
+                if (!existing.exists) throw new Error('Fahrzeug nicht gefunden');
+                const candidate = (Array.isArray(existing.data().fahrzeugscheine) ? existing.data().fahrzeugscheine : [])
+                    .find(x => x.id === registrationId);
+                if (!candidate) throw new Error('Fahrzeugschein nicht gefunden');
+                if (candidate.storagePath) await fleetDocumentRemove(candidate);
                 await db.runTransaction(async tx => {
                     const snap = await tx.get(ref);
                     if (!snap.exists) throw new Error('Fahrzeug nicht gefunden');
                     const docs = Array.isArray(snap.data().fahrzeugscheine) ? snap.data().fahrzeugscheine : [];
-                    deleted = docs.find(x => x.id === registrationId);
-                    if (!deleted) throw new Error('Fahrzeugschein nicht gefunden');
-                    tx.update(ref,{fahrzeugscheine:docs.filter(x => x.id !== registrationId)});
+                    if (!docs.some(x => x.id === registrationId)) return;
+                    tx.update(ref, {fahrzeugscheine:docs.filter(x => x.id !== registrationId)});
                 });
-                if (deleted && deleted.storagePath) {
-                    try { await fleetDocumentRemove(deleted); }
-                    catch (err) { showToast('Zuordnung entfernt, aber die Storage-Datei konnte nicht gelöscht werden: ' +
-                        (err.code || err.message)); return; }
-                }
                 showToast('Fahrzeugschein gelöscht.');
             } catch (err) {
                 showToast('Fahrzeugschein konnte nicht gelöscht werden: ' + (err.code || err.message || 'Fehler'));
