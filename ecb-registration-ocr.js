@@ -92,10 +92,10 @@
       const nearby=lines.filter((line,i)=>/^\s*(?:E|FIN|Fahrzeug.ident)/i.test(line)||/Fahrgestell/i.test(line)).join(' ').toUpperCase();
       vin=(nearby.match(vinPattern)||[])[0]||'';
     }
-    const platePattern=/\b([A-ZÄÖÜ]{1,3})\s*[-\s]\s*([A-ZÄÖÜ]{1,2})\s*[-\s]?\s*(\d{1,4})(?:\s*[EH])?\b/i;
+    const platePattern=/\b([A-ZÄÖÜ]{1,3})\s*[-\s]\s*([A-ZÄÖÜ]{1,2})\s*[-\s]?\s*(\d{1,4})(?:\s*([EH]))?\b/i;
     function plateFrom(value){
       const m=String(value||'').match(platePattern);
-      return m?(m[1]+'-'+m[2]+' '+m[3]).toUpperCase():'';
+      return m?(m[1]+'-'+m[2]+' '+m[3]+(m[4]||'')).toUpperCase():'';
     }
     let plate=plateFrom(first('A'));
     if(!plate){
