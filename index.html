@@ -1916,7 +1916,7 @@
                     renderShiftList();
                 }
             }, () => {});
-            db.collection('kontrollen').orderBy('createdAt', 'desc').limit(100).onSnapshot((snapshot) => {
+            db.collection('kontrollen').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
                 const items = [];
                 snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
                 cloudHistory = items;
@@ -2123,8 +2123,7 @@
                 fd.append('Bericht', ctx.body);
                 fd.append('_captcha', 'false');
                 fd.append('attachment', blob, `ECB-Gesamtbericht-${state.todayKey}.pdf`);
-                const res = await fetch(`https://formsubmit.co/ajax/${RECIPIENT_EMAIL}`, { method: 'POST', body: fd });
-                if (!res.ok) throw new Error('send failed');
+                await sendPdfForm(fd);
                 showToast('Alle Wartungspunkte abgeschlossen – Gesamtprotokoll gesendet!');
             } catch (e) {
                 localStorage.removeItem(flagKey);
@@ -3221,22 +3220,47 @@
             return blob;
         }
         
+        async function sendPdfForm(fd) {
+            const response = await fetch(`https://formsubmit.co/ajax/${RECIPIENT_EMAIL}`, { method: 'POST', body: fd });
+            if (!response.ok) throw new Error(`Versanddienst antwortet mit HTTP ${response.status}`);
+            const result = await response.json().catch(() => null);
+            if (result && (result.success === false || result.success === 'false')) {
+                throw new Error(result.message || 'Der Versanddienst hat die Anfrage abgelehnt.');
+            }
+            return result;
+        }
+
         async function executeWebServiceSend() {
             const ctx = state.currentDispatchContext;
-            const pdfBlob = await getPreparedPdfBlob(ctx);
-            const fileName = `ECB-${ctx.type}-${state.todayKey}.pdf`;
-        
+            if (!ctx) { showToast('Kein Protokoll zum Versenden ausgewählt.'); return; }
+            const button = document.getElementById('btn-send-pdf-direct');
+            const status = document.getElementById('dispatch-status-msg');
+            if (button && button.disabled) return;
+            if (button) button.disabled = true;
+            if (status) {
+                status.className = 'p-3 rounded-xl text-xs w-full max-w-full bg-sky-50 text-sky-800';
+                status.textContent = 'PDF wird erstellt und an den Versanddienst übermittelt …';
+            }
             try {
+                const pdfBlob = await getPreparedPdfBlob(ctx);
+                const fileName = `ECB-${ctx.type}-${state.todayKey}.pdf`;
                 const fd = new FormData();
-                fd.append("_subject", ctx.subject);
-                fd.append("Bericht", ctx.body);
-                fd.append("_captcha", "false");
-                fd.append("attachment", pdfBlob, fileName);
-                await fetch(`https://formsubmit.co/ajax/${RECIPIENT_EMAIL}`, { method: "POST", body: fd });
-            } catch(e) {}
-        
-            showToast(t('toast_sent'));
-            closeModal('modal-dispatch');
+                fd.append('_subject', ctx.subject);
+                fd.append('Bericht', ctx.body);
+                fd.append('_captcha', 'false');
+                fd.append('attachment', pdfBlob, fileName);
+                await sendPdfForm(fd);
+                showToast('Protokoll vom Versanddienst angenommen.');
+                closeModal('modal-dispatch');
+            } catch (e) {
+                if (status) {
+                    status.className = 'p-3 rounded-xl text-xs w-full max-w-full bg-rose-50 text-rose-800';
+                    status.textContent = 'Versand fehlgeschlagen: ' + (e.message || 'Bitte erneut versuchen.');
+                }
+                showToast('Protokoll konnte nicht versendet werden.');
+            } finally {
+                if (button) button.disabled = false;
+            }
         }
         
         async function previewActivePdf() {
