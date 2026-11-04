@@ -97,6 +97,36 @@ if(!result.model || !/[A-Za-zÄÖÜäöüß]{4,}/.test(result.model) || /^(?:HAN
     }finally{wider.width=0;wider.height=0;}
   }finally{await worker.setParameters({tessedit_pageseg_mode:'7'});}
 }
+// Targeted second pass for fields which are frequently too small on iPhone
+// photos. Only accept a retry if its result passes the field parser.
+const retryBoxes={
+  model:[[.310,.353,.607,.450],[.320,.345,.565,.432]],
+  vehicleClass:[[.315,.087,.478,.154]],
+  seats:[[.835,.355,.944,.446]],
+  tyresFront:[[.655,.405,.907,.472]],
+  tyresRear:[[.655,.446,.907,.525]]
+};
+for(const [key,boxes] of Object.entries(retryBoxes)){
+  if(interpret(result,'')[key])continue;
+  let found=false;
+  for(const bounds of boxes){
+    const patch=crop(img,bounds);
+    try{
+      for(const mode of ['6','11']){
+        await worker.setParameters({tessedit_pageseg_mode:mode});
+        const again=await worker.recognize(patch);
+        const raw=again.data&&again.data.text||'';
+        if(interpret({...result,[key]:raw},'')[key]){
+          result[key]=raw;
+          found=true;
+          break;
+        }
+      }
+    }finally{patch.width=0;patch.height=0;}
+    if(found)break;
+  }
+}
+await worker.setParameters({tessedit_pageseg_mode:'7'});
 return result;
 }
 function cleaned(v){return String(v||'').replace(/[|¦]/g,'1').replace(/[\r\n]/g,' ').replace(/\s+/g,' ').trim();}
