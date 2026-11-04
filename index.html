@@ -1107,10 +1107,8 @@
 
                 <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 w-full max-w-full box-border">
                     <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider"><i class="fa-solid fa-database text-rose-600 mr-1.5"></i> Daten- & Archivpflege</h3>
-                    <p class="text-xs text-slate-500">Hier können Sie die gesamte Cloud-Historie aller Protokolle und Urlaube bereinigen.</p>
-                    <button onclick="confirmResetAll()" class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-xs box-border">
-                        <i class="fa-solid fa-trash-can"></i> Gesamte Historie & Archive unwiderruflich leeren
-                    </button>
+                    <p class="text-xs text-slate-500">Zum Schutz der Cloud-Daten ist das vollständige Löschen deaktiviert.</p>
+                    <button type="button" disabled class="w-full py-3 bg-slate-100 text-slate-500 rounded-xl text-xs font-bold"><i class="fa-solid fa-lock"></i> Gesamtes Archiv löschen – gesperrt</button>
                 </div>
             </div>
         </section>
@@ -1127,6 +1125,8 @@
                 </button>
             </div>
 
+            <div id="history-cloud-status" class="p-3 bg-sky-50 border border-sky-200 rounded-xl text-xs text-sky-900" role="status">Firebase wird abgefragt …</div>
+            <button type="button" onclick="retryHistoryCloudLoad()" class="px-3.5 py-2.5 bg-white border border-sky-200 rounded-xl text-xs font-bold text-sky-800"><i class="fa-solid fa-rotate"></i> Cloud-Protokolle erneut laden</button>
             <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 pt-0.5 w-full max-w-full">
                 <button onclick="setHistoryFilter('all')" id="hist-filter-all" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white shadow-xs">📁 <span data-i18n="filter_all">Alle</span> (<span id="count-all">0</span>)</button>
                 <button onclick="setHistoryFilter('Entmineralisierung')" id="hist-filter-demin" class="hist-filter-btn shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-600">💧 <span data-i18n="filter_demin">Entmin.</span> (<span id="count-demin">0</span>)</button>
@@ -1143,7 +1143,7 @@
 
             <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-200">
                 <button onclick="exportHistoryCsv()" class="text-slate-600 hover:text-slate-900 font-semibold flex items-center gap-1"><i class="fa-solid fa-file-csv"></i> <span data-i18n="btn_csv">CSV Export</span></button>
-                <button onclick="confirmResetAll()" class="text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1"><i class="fa-solid fa-trash"></i> <span data-i18n="btn_clear_history">Verlauf leeren (Admin)</span></button>
+                <span class="text-slate-500 font-bold"><i class="fa-solid fa-lock"></i> Archiv geschützt</span>
             </div>
         </section>
 
@@ -2010,6 +2010,9 @@
         let activePdfBlob = null;
         let activePdfUrl = null;
         let cloudHistory = [];
+        let cloudHistoryStatus = 'loading';
+        let cloudHistoryError = '';
+        let cloudHistorySource = 'cache';
         let cloudVacations = [];
         let cloudShifts = [];
         let cloudFleetVehicles = [];
@@ -2179,7 +2182,12 @@
         });
         
         function setupFirebaseRealtimeListener() {
-            if (!db) return;
+            if (!db) {
+                cloudHistoryStatus = 'error';
+                cloudHistoryError = firebaseStatus.error || 'Firebase nicht initialisiert';
+                renderHistoryView();
+                return;
+            }
 
             db.collection('einstellungen').doc('mitarbeiter').onSnapshot((doc) => {
                 if (doc.exists && Array.isArray(doc.data().list)) {
@@ -2191,14 +2199,30 @@
                     renderShiftList();
                 }
             }, () => {});
-            db.collection('kontrollen').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
+            db.collection('kontrollen').onSnapshot({includeMetadataChanges:true}, (snapshot) => {
                 const items = [];
-                snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
-                cloudHistory = items;
-                firebaseStatus.connected = true; firebaseStatus.count = items.length;
+                snapshot.forEach(doc => items.push({ id:doc.id, ...doc.data() }));
+                const getTime = item => typeof item.createdAt === 'number' ? item.createdAt :
+                    (item.createdAt && typeof item.createdAt.toMillis === 'function' ? item.createdAt.toMillis() :
+                    (item.date && Number.isFinite(Date.parse(item.date)) ? Date.parse(item.date) : 0));
+                items.sort((a,b) => getTime(b)-getTime(a));
+                const fromCache = !!(snapshot.metadata && snapshot.metadata.fromCache);
+                if (!fromCache || items.length || !cloudHistory.length) cloudHistory = items;
+                cloudHistoryStatus = fromCache ? 'cache' : 'server';
+                cloudHistorySource = fromCache ? 'cache' : 'server';
+                cloudHistoryError = '';
+                firebaseStatus.connected = !fromCache;
+                firebaseStatus.count = cloudHistory.length;
                 renderHistoryView();
-                syncTodayControlsFromCloud(items);
-            }, () => {});
+                if (!fromCache) syncTodayControlsFromCloud(items);
+            }, (error) => {
+                cloudHistoryStatus = 'error';
+                cloudHistoryError = (error && (error.code || error.message)) || 'Unbekannter Firebase-Fehler';
+                firebaseStatus.connected = false;
+                firebaseStatus.error = cloudHistoryError;
+                console.error('ECB Cloud-Protokolle:',error);
+                renderHistoryView();
+            });
         
             db.collection('urlaube').orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
                 const items = [];
@@ -2226,39 +2250,38 @@
             }, () => {});
         }
         
-        function forceCloudSync() {
-            if (!db) { showToast('Keine Cloud-Verbindung verfügbar.'); return; }
-            let count = 0;
-            if (state.data.entmineralisierung) {
-                db.collection('kontrollen').add({ date: state.todayKey, timestamp: state.data.entmineralisierung.timestamp, createdAt: Date.now(), type: 'Entmineralisierung', inspector: state.data.entmineralisierung.inspector, data: state.data.entmineralisierung }).catch(()=>{});
-                count++;
+        function forceCloudSync() { return retryHistoryCloudLoad(); }
+        async function retryHistoryCloudLoad() {
+            if (!db) { cloudHistoryStatus = 'error'; cloudHistoryError = 'Firebase nicht verbunden.'; renderHistoryView(); return; }
+            cloudHistoryStatus = 'loading';
+            renderHistoryView();
+            try {
+                const snap = await db.collection('kontrollen').get({source:'server'});
+                const items = [];
+                snap.forEach(doc => items.push({id:doc.id, ...doc.data()}));
+                items.sort((a,b) => (typeof b.createdAt === 'number' ? b.createdAt : 0) -
+                    (typeof a.createdAt === 'number' ? a.createdAt : 0));
+                cloudHistory = items;
+                cloudHistoryStatus = 'server';
+                cloudHistorySource = 'server';
+                cloudHistoryError = '';
+                firebaseStatus.connected = true;
+                firebaseStatus.count = items.length;
+                renderHistoryView();
+            } catch (error) {
+                cloudHistoryStatus = 'error';
+                cloudHistoryError = error.code || error.message || 'Firebase Fehler';
+                firebaseStatus.connected = false;
+                renderHistoryView();
             }
-            if (state.data.heizungskontrolle) {
-                db.collection('kontrollen').add({ date: state.todayKey, timestamp: state.data.heizungskontrolle.timestamp, createdAt: Date.now(), type: 'Heizungskontrolle', inspector: state.data.heizungskontrolle.inspector, data: state.data.heizungskontrolle }).catch(()=>{});
-                count++;
-            }
-            if (state.data.aussenbereich) {
-                db.collection('kontrollen').add({ date: state.todayKey, timestamp: state.data.aussenbereich.timestamp, createdAt: Date.now(), type: 'Außenbereich', inspector: state.data.aussenbereich.inspector, data: state.data.aussenbereich }).catch(()=>{});
-                count++;
-            }
-            if (state.data.pausenraum) {
-                db.collection('kontrollen').add({ date: state.todayKey, timestamp: state.data.pausenraum.timestamp, createdAt: Date.now(), type: 'Pausenraum', inspector: state.data.pausenraum.inspector, data: state.data.pausenraum }).catch(()=>{});
-                count++;
-            }
-            if (state.data.fahrzeuge) {
-                db.collection('kontrollen').add({ date: state.todayKey, timestamp: state.data.fahrzeuge.timestamp, createdAt: Date.now(), type: 'Fahrzeuge', inspector: state.data.fahrzeuge.inspector, data: state.data.fahrzeuge }).catch(()=>{});
-                count++;
-            }
-            showToast(`Cloud-Sync erfolgreich ausgeführt! (${count} Elemente synchronisiert)`);
         }
-        
         function syncTodayControlsFromCloud(items) {
             const todayStr = new Date().toISOString().slice(0, 10);
             let updated = false;
             Object.entries(CONTROL_KEYS).forEach(([type, key]) => {
                 const hit = items.find(i => i.type === type && i.date === todayStr);
-                if (hit && !state.data[key]) { state.data[key] = hit.data; updated = true; }
-                else if (!hit && state.data[key]) { state.data[key] = null; updated = true; }
+                if (hit && hit.data && !state.data[key]) { state.data[key] = hit.data; updated = true; }
+                // Do not erase existing data on a missing cloud match.
             });
             if (updated) { persist(); updateDashboard(); }
         }
@@ -4278,6 +4301,21 @@
         function renderHistoryView() {
             const container = document.getElementById('history-items-container');
             if (!container) return;
+            const statusEl = document.getElementById('history-cloud-status');
+            if (statusEl) {
+                const words = cloudHistoryStatus === 'error'
+                  ? 'Cloud konnte nicht geladen werden: ' + cloudHistoryError + '. Das bedeutet NICHT, dass die Protokolle gelöscht sind.'
+                  : cloudHistoryStatus === 'server'
+                  ? 'Firebase-Serverabfrage: ' + cloudHistory.length + ' Protokoll(e) in „kontrollen“ gefunden.'
+                  : cloudHistoryStatus === 'cache'
+                  ? 'Nur zwischengespeicherte Einträge (' + cloudHistory.length + '). Server noch nicht bestätigt.'
+                  : 'Cloud-Daten werden geladen …';
+                statusEl.className = 'p-3 border rounded-xl text-xs font-semibold ' +
+                  (cloudHistoryStatus === 'error' ? 'bg-rose-50 border-rose-200 text-rose-800'
+                   : cloudHistoryStatus === 'server' ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                   : 'bg-amber-50 border-amber-200 text-amber-900');
+                statusEl.textContent = words;
+            }
             const list = currentHistoryFilter === 'all' ? cloudHistory : cloudHistory.filter(i => i.type === currentHistoryFilter);
             
             document.getElementById('count-all').innerText = cloudHistory.length;
@@ -4288,7 +4326,7 @@
             document.getElementById('count-vehicle').innerText = cloudHistory.filter(i => i.type === 'Fahrzeuge').length;
             document.getElementById('count-vacation').innerText = cloudHistory.filter(i => i.type === 'Urlaub').length;
         
-            container.innerHTML = list.length === 0 ? `<div class="p-6 text-center text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">${t('no_history')}</div>` :
+            container.innerHTML = list.length === 0 ? `<div class="p-6 text-center text-xs text-slate-500 border-2 border-dashed border-slate-200 rounded-2xl">${cloudHistoryStatus === 'server' ? 'In dieser Auswahl wurden auf dem Server keine Protokolle gefunden.' : 'Cloud-Protokolle noch nicht geladen. Bitte Status oben beachten.'}</div>` :
                 list.map((item, index) => {
                     const originalIdx = cloudHistory.indexOf(item);
                     return `
@@ -4323,24 +4361,8 @@
         }
         
         function confirmResetAll() {
-            if (!isAdminLoggedIn) { showToast('Bitte zuerst im Admin-Bereich mit Passwort anmelden!'); return; }
-            cloudHistory = [];
-            cloudVacations = [];
-            cloudShifts = [];
-            state.data = { entmineralisierung: null, heizungskontrolle: null, aussenbereich: null, pausenraum: null, fahrzeuge: null };
-            persist(); resetDailyCompletion();
-            if (db) {
-                db.collection('kontrollen').get().then(snap => snap.forEach(d => d.ref.delete())).catch(()=>{});
-                db.collection('urlaube').get().then(snap => snap.forEach(d => d.ref.delete())).catch(()=>{});
-                db.collection('schichten').get().then(snap => snap.forEach(d => d.ref.delete())).catch(()=>{});
-            }
-            renderHistoryView();
-            renderVacationList();
-            renderShiftList();
-            updateDashboard();
-            showToast('Gesamte Historie & Archive erfolgreich geleert!');
+            showToast('Sicherheitssperre: Gesamtes Cloud-Archiv kann hier nicht gelöscht werden.');
         }
-        
         function exportHistoryCsv() { showToast('CSV Export bereit'); }
         
         function openAttendanceModal() {
