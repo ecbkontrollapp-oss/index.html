@@ -253,8 +253,12 @@
     const worker=await workerFor(status);
     try{
       status('Fahrzeugschein wird lokal gelesen …');
+      await worker.setParameters({tessedit_pageseg_mode:'11'});
       const result=await worker.recognize(canvas);
-      return result.data&&result.data.text||'';
+      const text=result.data&&result.data.text||'';
+      const cells=window.ECBRegistrationLayout?
+        await window.ECBRegistrationLayout.scan(image,worker,status):{};
+      return {text,cells};
     }finally{canvas.width=0;canvas.height=0;await worker.terminate();}
   }
   function pdfText(items){
@@ -311,9 +315,18 @@
     const status=message=>{if(serial===st.serial)setStatus(mode,message,false);};
     try{
       const isPdf=file.type==='application/pdf'||/\.pdf$/i.test(file.name);
-      const text=isPdf?await readPDF(file,status):await readImage(file,status);
+      const outcome=isPdf?await readPDF(file,status):await readImage(file,status);
       if(serial!==st.serial||file!==st.file)return;
-      copyParsed(mode,parse(text));
+      const text=typeof outcome==='string'?outcome:(outcome.text||'');
+      const fields=typeof outcome==='string'?{}:(outcome.cells||{});
+      const parsed=parse(text);
+      const extracted=window.ECBRegistrationLayout?
+        window.ECBRegistrationLayout.interpret(fields,text):{};
+      Object.entries(extracted).forEach(([key,value])=>{
+        if(value)parsed.data[key]=value;
+      });
+      parsed.keys=Object.keys(parsed.data).filter(k=>parsed.data[k]);
+      copyParsed(mode,parsed);
     }catch(err){
       if(serial===st.serial)setStatus(mode,'Auslesen fehlgeschlagen: '+(err.message||err)+'. Die Datei wurde nicht hochgeladen. Felder lassen sich manuell ausfüllen.',true);
     }finally{
