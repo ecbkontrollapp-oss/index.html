@@ -82,7 +82,7 @@ if(!plate(result.plate)){
     }
   }finally{await worker.setParameters({tessedit_pageseg_mode:'7'});}
 }
-if(!result.model || !/[A-Za-zÄÖÜäöüß]{4,}/.test(result.model)){
+if(!result.model || !/[A-Za-zÄÖÜäöüß]{4,}/.test(result.model) || /^(?:HANDELSBEZEICHNUNG|FAHRZEUG|HERSTELLER)$/i.test(String(result.model).trim())){
   await worker.setParameters({tessedit_pageseg_mode:'11'});
   try{
     const wider=crop(img,[.324,.354,.590,.443]);
@@ -114,10 +114,10 @@ return y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0');
 }
 function plate(raw){
 const value=cleaned(raw).toUpperCase().replace(/[*•]/g,' ');
-const m=value.match(/\b([A-ZÄÖÜ]{1,3})[\s-]+([A-ZÄÖÜ]{1,2})[\s-]*([0-9ILOSBZ]{1,4})\b/);
+const m=value.match(/\b([A-ZÄÖÜ]{1,3})[\s-]+([A-ZÄÖÜ]{1,2})[\s-]*([0-9ILOSBZ]{1,4})\s*([EH])?\b/);
 if(!m)return '';
 const digits=m[3].replace(/[IL]/g,'1').replace(/O/g,'0').replace(/S/g,'5').replace(/B/g,'8').replace(/Z/g,'2');
-return m[1]+'-'+m[2]+' '+digits;
+return m[1]+'-'+m[2]+' '+digits+(m[4]||'');
 }
 function vin(raw,full){
 const source=String(full||'').toUpperCase();
@@ -144,7 +144,7 @@ const tsn=cleaned(r.tsn).toUpperCase().replace(/^[^A-Z]*(?:2[., ]*2)?\s*/,'').re
 d.tsn=/^[A-Z0-9]{3,12}$/.test(tsn)&&/[A-Z]/.test(tsn)?tsn:'';
 d.manufacturer=letters(r.manufacturer);
 d.model=String(r.model||'').split(/\r?\n/).map(letters)
-  .find(x=>/^[A-Za-zÄÖÜäöüß]{4,}(?:[ -][A-Za-zÄÖÜäöüß0-9]{2,})?$/.test(x))||'';
+  .find(x=>/^[A-Za-zÄÖÜäöüß]{4,}(?:[ -][A-Za-zÄÖÜäöüß0-9]{2,})?$/.test(x)&&! /^(?:HANDELSBEZEICHNUNG|FAHRZEUG|FAHRZEUGSCHEIN|VORDERSEITE|KRAFTSTOFF|HERSTELLER|VARIANTE|DIESEL|BENZIN|MARKE)$/i.test(x))||'';
 const variants=String(r.type||'').toUpperCase().match(/\b[A-Z0-9]{3,16}\b/g)||[];
 d.type=variants.length?variants[variants.length-1]:'';
 const fuel=letters(r.fuel).toUpperCase();
