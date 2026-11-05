@@ -54,16 +54,28 @@ async function checkTurnstile(token, secret, ip) {
   return json.success===true && json.hostname==='ecbkontrollapp-oss.github.io' &&
     json.action==='ecb_pdf_send';
 }
+function serverSupabaseKey(){
+  // Existing projects may expose the legacy service-role JWT; newer ones use sb_secret_ keys.
+  const legacy=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if(legacy)return legacy;
+  try {
+    const keys=JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}');
+    return typeof keys.default==='string'?keys.default:'';
+  } catch { return ''; }
+}
 async function reserveQuota(ipHash){
   const endpoint=Deno.env.get('SUPABASE_URL');
-  const secret=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const secret=serverSupabaseKey();
   if(!endpoint||!secret)throw Error('Supabase Server-Schlüssel fehlen.');
+  const headers={
+    apikey:secret,
+    'Content-Type':'application/json'
+  };
+  // Modern sb_secret_ keys are API keys, not JWTs: never send them as Bearer tokens.
+  if(!secret.startsWith('sb_secret_'))headers.Authorization='Bearer '+secret;
   const response=await fetch(endpoint.replace(/\/$/,'')+'/rest/v1/rpc/ecb_mail_consume_quota',{
     method:'POST',
-    headers:{
-      apikey:secret,Authorization:'Bearer '+secret,
-      'Content-Type':'application/json'
-    },
+    headers,
     body:JSON.stringify({p_ip_hash:ipHash})
   });
   if(!response.ok){
@@ -80,7 +92,8 @@ async function handle(request){
     const apiKey = Deno.env.get('RESEND_API_KEY');
     const from = Deno.env.get('ECB_MAIL_FROM');
     const challengeSecret = Deno.env.get('ECB_TURNSTILE_SECRET');
-    const salt = Deno.env.get('ECB_MAIL_RATE_SALT');
+    // Reuse the private server key as a fallback IP-hash salt: no additional setup for admins.
+    const salt = Deno.env.get('ECB_MAIL_RATE_SALT') || serverSupabaseKey();
     if (!apiKey || !from || !challengeSecret || !salt) {
       return jsonError('E-Mail-Schutz noch nicht eingerichtet. Resend- und Turnstile-Secrets in Supabase prüfen.', 503);
     }
