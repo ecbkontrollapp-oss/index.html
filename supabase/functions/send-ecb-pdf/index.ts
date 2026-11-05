@@ -92,35 +92,49 @@ async function reserveQuota(ipHash){
 }
 async function handle(request){
     console.info('ECB PDF send: incoming request', request.method);
-    if (request.method !== 'POST') return jsonError('Nur POST ist erlaubt.',405);
-    // Origin alone is not authentication. Turnstile and the DB quota are enforced below.
-    if(request.headers.get('origin')!==APP_ORIGIN)
-      return jsonError('Diese Website ist für den Versand nicht zugelassen.',403);
-    const apiKey = Deno.env.get('RESEND_API_KEY');
-    const from = Deno.env.get('ECB_MAIL_FROM');
-    const challengeSecret = Deno.env.get('ECB_TURNSTILE_SECRET');
-    // Reuse the private server key as a fallback IP-hash salt: no additional setup for admins.
-    const salt = Deno.env.get('ECB_MAIL_RATE_SALT') || serverSupabaseKey();
-    if (!apiKey || !from || !challengeSecret || !salt) {
-      return jsonError('E-Mail-Schutz noch nicht eingerichtet. Resend- und Turnstile-Secrets in Supabase prüfen.', 503);
+    if(request.method!=='POST')return jsonError('Nur POST ist erlaubt.',405);
+
+    // Supabase can stall on multipart uploads when the handler returns early
+    // without first consuming the body. Read it before checking secrets/Origin
+    // so the client gets a real error instead of waiting for its timeout.
+    const contentType=String(request.headers.get('content-type')||'');
+    if(!contentType.includes('multipart/form-data')){
+      console.warn('ECB PDF send: unsupported content type');
+      return jsonError('Es wird ein PDF als FormData erwartet.',415);
     }
-    if (!/^[^<>\r\n]+<[^<>\s@]+@[^<>\s@]+>$/.test(from) &&
-        !/^[^\s<>@]+@[^\s<>@]+$/.test(from)) {
-      return jsonError('Die konfigurierte Absenderadresse ist ungültig.', 503);
+    const length=Number(request.headers.get('content-length')||'0');
+    if(length>MAX_PDF_BYTES+16000){
+      console.warn('ECB PDF send: file exceeds request limit',length);
+      return jsonError('PDF ist größer als 8 MB.',413);
     }
-    const contentType = String(request.headers.get('content-type') || '');
-    if (!contentType.includes('multipart/form-data')) {
-      return jsonError('Es wird ein PDF als FormData erwartet.', 415);
-    }
-    const length = Number(request.headers.get('content-length') || '0');
-    if (length > MAX_PDF_BYTES + 16000) {
-      return jsonError('PDF ist größer als 8 MB.', 413);
-    }
+    console.info('ECB PDF send: receiving multipart PDF',length||'unknown');
     let form;
-    try {
-      form = await request.formData();
-    } catch {
+    try{
+      form=await request.formData();
+    }catch(error){
+      console.error('ECB PDF send: multipart decode failed',error?.name||'unknown');
       return jsonError('Der PDF-Anhang konnte nicht eingelesen werden.');
+    }
+    console.info('ECB PDF send: multipart PDF received');
+
+    if(request.headers.get('origin')!==APP_ORIGIN){
+      console.warn('ECB PDF send: blocked request origin');
+      return jsonError('Diese Website ist für den Versand nicht zugelassen.',403);
+    }
+    const apiKey=Deno.env.get('RESEND_API_KEY');
+    const from=Deno.env.get('ECB_MAIL_FROM');
+    const challengeSecret=Deno.env.get('ECB_TURNSTILE_SECRET');
+    const salt=Deno.env.get('ECB_MAIL_RATE_SALT')||serverSupabaseKey();
+    if(!apiKey||!from||!challengeSecret||!salt){
+      console.error('ECB PDF send: configuration missing',{
+        resend:!!apiKey,sender:!!from,turnstile:!!challengeSecret,rateLimitKey:!!salt
+      });
+      return jsonError('E-Mail-Einstellungen fehlen in Supabase: Resend, Absender, Turnstile oder interner Schlüssel. In Edge Function Secrets kontrollieren.',503);
+    }
+    if(!/^[^<>\\r\\n]+<[^<>\\s@]+@[^<>\\s@]+>$/.test(from)&&
+       !/^[^\\s<>@]+@[^\\s<>@]+$/.test(from)){
+      console.error('ECB PDF send: invalid sender format');
+      return jsonError('Die konfigurierte Absenderadresse ist ungültig.',503);
     }
     const attachment = form.get('attachment');
     if (!(attachment instanceof File) || !attachment.size ||
