@@ -46,6 +46,7 @@
     <script defer src="./ecb-registration-ocr.js?v=20261105-d2-fragment-filter-v11"></script>
     <script defer src="./ecb-logo-data.js?v=20261104-vector-original-1"></script>
     <script defer src="./ecb-fleet-costs.js?v=20261104-logo-everywhere-5"></script>
+    <script defer src="./ecb-protocol-mail.js?v=20261105-ecb-protocols-v1"></script>
     <script defer src="./kfz-admin.js?v=20261104-fahrzeugschein-tech-v5"></script>
 
     <style>
@@ -1662,32 +1663,65 @@
         </div>
     </div>
 
-    <!-- DISPATCH MODAL -->
-    <div id="modal-dispatch" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto box-border">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-xl bg-ecb text-white flex items-center justify-center text-xs shadow-xs"><i class="fa-solid fa-paper-plane"></i></div>
-                    <div>
-                        <h3 class="font-bold text-slate-900 text-xs" id="dispatch-title">Protokoll versenden</h3>
-                        <p class="text-[10px] text-slate-400 font-mono">pb@ecb-system.de</p>
+    <!-- DISPATCH MODAL: rendered from in-memory protocol context (no email archive) -->
+    <div id="modal-dispatch" class="fixed inset-0 bg-black/65 z-50 hidden flex items-center justify-center p-3">
+        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl max-h-[92vh] overflow-y-auto box-border overflow-hidden">
+            <div class="bg-gradient-to-br from-slate-900 via-emerald-950 to-emerald-900 px-5 pt-5 pb-5 text-white">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div id="dispatch-ecb-logo" class="w-20 h-12 shrink-0 rounded-xl bg-white/95 p-1.5 flex items-center justify-center text-emerald-700 font-black text-xl"></div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-semibold uppercase tracking-widest text-emerald-200">E.C.B. Reinigungssysteme GmbH</p>
+                            <h3 id="dispatch-title" class="text-base leading-snug font-extrabold text-white mt-1">Kontrollprotokoll</h3>
+                        </div>
+                    </div>
+                    <button onclick="closeModal('modal-dispatch')" class="shrink-0 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white" aria-label="Versandfenster schließen"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="mt-4 flex gap-2 items-center rounded-xl bg-white/10 px-3 py-2.5 border border-white/10">
+                    <i class="fa-solid fa-envelope-open-text text-emerald-300"></i>
+                    <span class="text-[11px] text-emerald-100">Empfänger</span>
+                    <strong id="dispatch-recipient" class="text-xs ml-auto truncate">pb@ecb-system.de</strong>
+                </div>
+            </div>
+            <div class="px-4 py-4 sm:px-5 space-y-3">
+                <div class="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3.5">
+                    <div class="flex gap-3 items-start">
+                        <div class="w-10 h-10 shrink-0 bg-white rounded-xl border border-emerald-200 flex items-center justify-center text-emerald-700"><i class="fa-solid fa-clipboard-check text-lg"></i></div>
+                        <div class="min-w-0">
+                            <div class="uppercase text-[10px] tracking-wider font-bold text-emerald-700">PROTOKOLLART</div>
+                            <div id="dispatch-protocol-type" class="font-extrabold text-slate-900 text-sm mt-0.5">Kontrollprotokoll</div>
+                            <div id="dispatch-protocol-description" class="text-[11px] text-slate-600 mt-1 leading-relaxed"></div>
+                        </div>
                     </div>
                 </div>
-                <button onclick="closeModal('modal-dispatch')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
-            </div>
-            <div id="dispatch-status-msg" class="hidden p-3 rounded-xl text-xs w-full max-w-full"></div>
-            <div class="p-3 bg-emerald-50/80 border-2 border-ecb/40 rounded-2xl space-y-2.5 shadow-xs w-full max-w-full box-border">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-black text-emerald-950 flex items-center gap-1.5"><i class="fa-solid fa-cloud-arrow-up text-ecb"></i> Sofort an pb@ecb-system.de</span>
-                    <span class="text-[9px] bg-ecb text-white px-2 py-0.5 rounded-full font-bold">Empfohlen</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-slate-50 rounded-xl border border-slate-200 p-3 min-w-0">
+                        <div class="text-[10px] uppercase font-bold tracking-wide text-slate-400"><i class="fa-regular fa-calendar mr-1"></i> Erfasst</div>
+                        <div id="dispatch-protocol-date" class="text-xs font-bold text-slate-800 mt-1 break-words">–</div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl border border-slate-200 p-3 min-w-0">
+                        <div class="text-[10px] uppercase font-bold tracking-wide text-slate-400"><i class="fa-regular fa-user mr-1"></i> Prüfer</div>
+                        <div id="dispatch-protocol-inspector" class="text-xs font-bold text-slate-800 mt-1 break-words">–</div>
+                    </div>
                 </div>
-                <button id="btn-send-pdf-direct" onclick="executeWebServiceSend()" class="w-full py-3 bg-ecb hover:bg-ecb-dark text-white rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 box-border">
-                    <i class="fa-solid fa-file-pdf text-sm"></i> Protokoll jetzt versenden
+                <div class="rounded-2xl border border-slate-200 p-3 bg-white flex items-center gap-3">
+                    <div class="h-11 w-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-file-pdf text-lg"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-bold text-slate-900 text-xs">PDF als Dateianhang</p>
+                        <p id="dispatch-protocol-filename" class="font-mono text-[10px] text-slate-600 break-all mt-0.5">ECB-Protokoll.pdf</p>
+                    </div>
+                    <i class="fa-solid fa-paperclip text-slate-400"></i>
+                </div>
+                <p id="dispatch-protocol-summary" class="text-[11px] text-slate-600 leading-relaxed px-1"></p>
+                <div id="dispatch-status-msg" class="hidden p-3 rounded-xl text-xs w-full max-w-full" aria-live="polite"></div>
+                <button id="btn-send-pdf-direct" onclick="executeWebServiceSend()" class="w-full py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-extrabold shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> PDF an pb@ecb-system.de senden
                 </button>
-            </div>
-            <div class="flex gap-2 pt-1 w-full max-w-full box-border">
-                <button onclick="previewActivePdf(false)" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-eye"></i> PDF ansehen</button>
-                <button onclick="savePdfDownload()" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-download"></i> Speichern</button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="previewActivePdf()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-eye"></i> PDF ansehen</button>
+                    <button onclick="savePdfDownload()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-download"></i> PDF laden</button>
+                </div>
+                <p class="text-[10px] text-slate-500 leading-relaxed text-center px-2"><i class="fa-solid fa-lock mr-1 text-emerald-600"></i> Die Kontrolldaten bleiben in der Cloud-History. Die App legt keine zusätzliche E-Mail-Kopie ab. Der externe Versanddienst kann Übermittlungsdaten temporär speichern.</p>
             </div>
         </div>
     </div>
