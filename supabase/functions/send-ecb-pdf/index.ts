@@ -121,7 +121,8 @@ async function handle(request){
       return jsonError('Diese Website ist für den Versand nicht zugelassen.',403);
     }
     const apiKey=Deno.env.get('RESEND_API_KEY');
-    const from=Deno.env.get('ECB_MAIL_FROM');
+    // Public sender identity, not a credential: use the already verified domain if no optional sender setting exists.
+    const from=Deno.env.get('ECB_MAIL_FROM')?.trim() || 'ECB Protokolle <protokolle@bgf-elektro.com>';
     const challengeSecret=Deno.env.get('ECB_TURNSTILE_SECRET');
     const salt=Deno.env.get('ECB_MAIL_RATE_SALT')||serverSupabaseKey();
     if(!apiKey||!from||!challengeSecret||!salt){
