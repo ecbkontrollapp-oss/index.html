@@ -46,7 +46,7 @@
     <script defer src="./ecb-registration-ocr.js?v=20261105-d2-fragment-filter-v11"></script>
     <script defer src="./ecb-logo-data.js?v=20261104-vector-original-1"></script>
     <script defer src="./ecb-fleet-costs.js?v=20261104-logo-everywhere-5"></script>
-    <script defer src="./ecb-protocol-mail.js?v=20261105-mail-no-login-v2"></script>
+    <script defer src="./ecb-protocol-mail.js?v=20261105-mail-no-login-v3"></script>
     <script defer src="./ecb-fleet-maintenance.js?v=20261105-maintenance-report-v2"></script>
     <script defer src="./kfz-admin.js?v=20261104-fahrzeugschein-tech-v5"></script>
 
@@ -1751,7 +1751,7 @@
                 <button id="btn-share-pdf-mail" onclick="shareActivePdfForEmail()" class="w-full py-3.5 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-extrabold shadow-md flex items-center justify-center gap-2">
                     <i class="fa-solid fa-share-from-square"></i> PDF über Mail-App teilen (Ersatzversand)
                 </button>
-                <p class="text-[10px] text-slate-600 leading-relaxed text-center px-2">Falls FormSubmit ausfällt: Teilen wählen, Mail oder Outlook öffnen, Empfänger <b>pb@ecb-system.de</b> eintragen und die E-Mail selbst absenden. Das Original-PDF wird direkt angehängt.</p>
+                <p class="text-[10px] text-slate-600 leading-relaxed text-center px-2">Falls der direkte E-Mail-Versand nicht klappt: Hier tippen, Mail oder Outlook auswählen und die Nachricht mit dem Original-PDF selbst an <b>pb@ecb-system.de</b> senden.</p>
                 <div class="grid grid-cols-2 gap-2">
                     <button onclick="previewActivePdf()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-eye"></i> PDF ansehen</button>
                     <button onclick="savePdfDownload()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-download"></i> PDF laden</button>
@@ -4804,11 +4804,12 @@
             if(button)button.disabled=true;
             if(status){
                 status.className='p-3 rounded-xl text-xs w-full bg-sky-50 text-sky-800 border border-sky-200';
-                status.textContent='Original-PDF wird lokal erstellt und per E-Mail versendet …';
+                status.textContent='PDF wird erstellt …';
             }
             try{
                 if(!window.ECBProtocolMail)throw new Error('E-Mail-Modul fehlt. Bitte App neu laden.');
                 const blob=await getPreparedPdfBlob(ctx);
+                if(status)status.textContent='PDF ist bereit. Sicherheitsprüfung und E-Mail-Versand laufen …';
                 const result=await window.ECBProtocolMail.sendSecure(ctx,blob);
                 if(status){
                     status.className='p-3 rounded-xl text-xs w-full bg-emerald-50 text-emerald-900 border border-emerald-200';
@@ -4828,9 +4829,8 @@
             }
         }
 
-        // Unabhängiger Ersatzweg bei Ausfall des externen Formular-Anbieters.
-        // Der PDF-Anhang wird lokal erzeugt und ausschließlich an die vom
-        // Benutzer selbst ausgewählte App übergeben, nie an FormSubmit.
+        // Unabhängiger manueller Ersatzversand. Das Original-PDF wird lokal erzeugt
+        // und ausschließlich an die vom Benutzer selbst ausgewählte Mail-App übergeben.
         async function shareActivePdfForEmail() {
             const ctx=state.currentDispatchContext;
             if(!ctx||!ctx.data){showToast('Kein Protokoll ausgewählt.');return;}
