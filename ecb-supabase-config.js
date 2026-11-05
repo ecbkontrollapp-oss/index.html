@@ -7,5 +7,5 @@ window.ECB_DOCUMENTS_CONFIG = {
   bucket: "ecb-fahrzeugdokumente",
   // Public Cloudflare Turnstile key, configured ONCE by ECB admin.
   // Staff never need accounts, passwords or codes to send PDF e-mails.
-  turnstileSiteKey: ""
+  turnstileSiteKey: "0x4AAAAAAF0d9cTSh0Q0M_ks"
 };
