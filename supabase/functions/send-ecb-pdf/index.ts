@@ -131,8 +131,8 @@ async function handle(request){
       });
       return jsonError('E-Mail-Einstellungen fehlen in Supabase: Resend, Absender, Turnstile oder interner Schlüssel. In Edge Function Secrets kontrollieren.',503);
     }
-    if(!/^[^<>\\r\\n]+<[^<>\\s@]+@[^<>\\s@]+>$/.test(from)&&
-       !/^[^\\s<>@]+@[^\\s<>@]+$/.test(from)){
+    if(!/^[^<>\r\n]+<[^<>\s@]+@[^<>\s@]+>$/.test(from)&&
+       !/^[^\s<>@]+@[^\s<>@]+$/.test(from)){
       console.error('ECB PDF send: invalid sender format');
       return jsonError('Die konfigurierte Absenderadresse ist ungültig.',503);
     }
