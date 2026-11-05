@@ -73,8 +73,8 @@ function summary(ctx){
 function emailFields(ctx,blob){
   if(!(blob instanceof Blob)||blob.type&&blob.type!=='application/pdf')throw new Error('PDF-Anhang konnte nicht erstellt werden.');
   if(blob.size<1)throw new Error('PDF ist leer. Bitte erneut erstellen.');
-  // The current FormSubmit backend documents a TOTAL attachment limit of 10 MB.
-  if(blob.size>10*1024*1024)throw new Error('PDF ist größer als 10 MB. Bitte Fotos verkleinern und erneut senden.');
+  // Limit PDFs to 8 MB for reliable Edge Function + Resend processing.
+  if(blob.size>8*1024*1024)throw new Error('PDF ist größer als 8 MB. Bitte Fotos verkleinern und erneut senden.');
   const d=meta(ctx);
   const fd=new FormData();
   fd.append('_subject','[ECB] '+d.title+' | '+d.date+(d.plate?' | '+d.plate:''));
@@ -128,64 +128,45 @@ function render(ctx){
   if(sendStatus){sendStatus.textContent='';sendStatus.classList.add('hidden');}
 }
 
-/* FormSubmit documents multipart file uploads via a native HTML form POST
- * (not its JSON/AJAX endpoint). Open a visible page from the user gesture,
- * so activation, captcha and service errors are never hidden.
+/* Direct PDF mail via authenticated Supabase Edge Function.
+ * No FormSubmit redirect. Neither PDF nor mail text is saved in Supabase.
+ * A provider acceptance ID does not prove delivery to the final mailbox.
  */
-function openSendWindow(){
-  const name='ecb_pdf_send_'+Date.now();
-  const tab=window.open('about:blank',name);
-  if(!tab)throw Error('Das Versandfenster wurde vom Browser blockiert. Bitte Pop-ups für die ECB-App erlauben und erneut versuchen.');
-  try{
-    tab.document.title='ECB Protokollversand';
-    tab.document.body.style.cssText='margin:0;padding:30px;font:16px system-ui;background:#f5faf5;color:#173e2b;';
-    const title=tab.document.createElement('h2');
-    title.textContent='ECB Protokollversand';
-    const p=tab.document.createElement('p');
-    p.textContent='PDF wird vorbereitet. Danach öffnet sich die Bestätigung des Versanddienstes.';
-    tab.document.body.replaceChildren(title,p);
-  }catch(e){}
-  return tab;
-}
-function closeSendWindow(tab,message){
-  if(!tab||tab.closed)return;
-  try{
-    const p=tab.document.createElement('p');
-    p.style.color='#b91c1c';p.textContent=message;
-    tab.document.body.appendChild(p);
-  }catch(e){}
-}
-function sendMultipart(fd,tab){
-  if(!tab||tab.closed)throw Error('Versandfenster wurde geschlossen. Bitte erneut auf „Versenden“ tippen.');
-  if(!(fd instanceof FormData))throw Error('Keine Formulardaten zum Versenden vorhanden.');
-  const attachment=fd.get('attachment');
-  if(!(attachment instanceof Blob)||!attachment.size)throw Error('PDF-Dateianhang fehlt.');
-  const filename=clean(attachment.name||'ECB-Protokoll.pdf',130).replace(/[\/\\]/g,'-')||'ECB-Protokoll.pdf';
-  if(attachment.size>10*1024*1024)throw Error('PDF-Anhang ist zu groß (maximal 10 MB).');
-  if(typeof DataTransfer!=='function'||typeof File!=='function')
-    throw Error('Dein Browser unterstützt die direkte PDF-Anlage nicht. Bitte die PDF herunterladen und über die Mail-App senden.');
-  const transfer=new DataTransfer();
-  transfer.items.add(new File([attachment],filename,{type:'application/pdf'}));
-  const input=document.createElement('input');
-  input.type='file';input.name='attachment';input.accept='application/pdf';input.files=transfer.files;
-  if(!input.files||input.files.length!==1||input.files[0].size!==attachment.size)
-    throw Error('Der PDF-Anhang konnte nicht zuverlässig an das Versandformular übergeben werden.');
-  const form=document.createElement('form');
-  form.method='POST';
-  form.action='https://formsubmit.co/'+encodeURIComponent(RECIPIENT);
-  form.enctype='multipart/form-data';
-  form.target=tab.name;
-  form.style.display='none';
-  for(const [name,value] of fd.entries()){
-    if(name==='attachment'||value instanceof Blob)continue;
-    const el=document.createElement('input');
-    el.type='hidden';el.name=String(name);el.value=String(value);form.appendChild(el);
+async function sendSecureFields(fd) {
+  if (!(fd instanceof FormData)) throw new Error('PDF-Versanddaten fehlen.');
+  const file=fd.get('attachment');
+  if (!(file instanceof Blob) || !file.size) throw new Error('PDF-Anhang fehlt.');
+  if (file.size > 8*1024*1024) throw new Error('PDF ist größer als 8 MB. Bitte die Fotos verkleinern.');
+  if (!window.ECBFileStorage || !window.ECBFileStorage.authorized) {
+    throw new Error('Supabase-Anmeldung ist nicht verfügbar. Bitte die ECB-App neu laden.');
   }
-  form.appendChild(input);
-  document.body.appendChild(form);
-  try{form.submit();}
-  finally{setTimeout(()=>form.remove(),30000);}
-  return {submitted:true,recipient:RECIPIENT,filename};
+  const auth=await window.ECBFileStorage.authorized();
+  let response;
+  try {
+    response=await auth.client.functions.invoke('send-ecb-pdf',{body:fd});
+  } catch (error) {
+    throw new Error('Supabase nicht erreichbar. Versandstatus unklar – bitte Postfach prüfen, bevor du erneut sendest.');
+  }
+  const {data,error}=response||{};
+  if(error) {
+    let serverMessage='';
+    let status=0;
+    const ctx=error.context;
+    if(ctx&&typeof ctx.status==='number')status=ctx.status;
+    if(ctx&&typeof ctx.clone==='function'&&typeof ctx.json==='function') {
+      try {const body=await ctx.clone().json();serverMessage=String(body.error||body.message||'');}catch(ignored){}
+    }
+    if(status===404) throw new Error('PDF-Versandfunktion noch nicht in Supabase veröffentlicht. Bitte die Einrichtung abschließen.');
+    if(status===401||status===403) throw new Error(serverMessage||'Dein Supabase-Mitarbeiterkonto darf noch keine PDF-Protokolle versenden.');
+    throw new Error(serverMessage||'PDF-Versand fehlgeschlagen ('+(status||'Netzwerk')+'). Bitte Postfach kontrollieren, bevor du erneut sendest.');
+  }
+  if(!data||data.ok!==true||!data.id) {
+    throw new Error(String(data&&data.error||'Keine gültige Versandbestätigung vom Server erhalten. Versandstatus unklar.'));
+  }
+  return {ok:true,id:data.id,recipient:RECIPIENT,accepted:true};
 }
-window.ECBProtocolMail={recipient:RECIPIENT,meta,summary,emailFields,render,openSendWindow,closeSendWindow,sendMultipart};
+async function sendSecure(ctx,blob) {
+  return sendSecureFields(emailFields(ctx,blob));
+}
+window.ECBProtocolMail={recipient:RECIPIENT,meta,summary,emailFields,render,sendSecure,sendSecureFields};
 })();
