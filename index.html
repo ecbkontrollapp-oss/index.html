@@ -4195,6 +4195,87 @@
             openModal('modal-dispatch');
         }
 
+        function renderFleetMaintenanceReport(){
+            const select=document.getElementById('maintenance-report-vehicle');
+            const output=document.getElementById('maintenance-report-summary');
+            if(!select||!output)return;
+            const saved=select.value;
+            const valid=(cloudFleetVehicles||[]).filter(v=>v&&v.id&&/^[A-Za-z0-9_-]+$/.test(v.id));
+            select.replaceChildren(new Option('Gesamter Fuhrpark',''),
+                ...valid.map(v=>new Option(String(v.plate||v.model||v.id),v.id)));
+            if(saved&&valid.some(v=>v.id===saved))select.value=saved;
+            try{
+                if(!window.ECBFleetMaintenance){
+                    output.textContent='Das Wartungsmodul wird geladen. Bitte die App neu öffnen, falls diese Meldung bleibt.';
+                    return;
+                }
+                const report=window.ECBFleetMaintenance.buildReport(cloudFleetVehicles,{
+                    vehicleId:select.value,
+                    from:document.getElementById('maintenance-report-from')?.value||'',
+                    to:document.getElementById('maintenance-report-to')?.value||''
+                });
+                const range=(report.from||report.to)?
+                    ((report.from?window.ECBFleetMaintenance.dateDE(report.from):'Beginn')+' bis '+
+                    (report.to?window.ECBFleetMaintenance.dateDE(report.to):'heute')):'Gesamter Zeitraum';
+                output.textContent=report.vehicleCount+' Fahrzeug(e) · '+report.total+
+                    ' gespeicherte Wartungs-/Reparaturvorgänge · '+report.completed+
+                    ' erledigt · '+report.open+' offen/in Bearbeitung · '+range;
+                output.className='text-xs text-emerald-900 bg-emerald-50/60 border border-emerald-100 rounded-xl p-3';
+            }catch(error){
+                output.textContent=error.message||'Wartungsauswertung nicht verfügbar.';
+                output.className='text-xs text-rose-800 bg-rose-50 border border-rose-200 rounded-xl p-3';
+            }
+        }
+        function prepareFleetMaintenanceReportContext(){
+            if(!window.ECBFleetMaintenance){showToast('Wartungsmodul noch nicht geladen.');return false;}
+            try{
+                const report=window.ECBFleetMaintenance.buildReport(cloudFleetVehicles,{
+                    vehicleId:document.getElementById('maintenance-report-vehicle')?.value||'',
+                    from:document.getElementById('maintenance-report-from')?.value||'',
+                    to:document.getElementById('maintenance-report-to')?.value||''
+                });
+                state.currentDispatchContext={
+                    type:'FleetMaintenanceReport',data:report,categoryFolder:'Fahrzeugwartungen',
+                    subject:'[ECB] Fuhrpark-Wartungsauswertung',
+                    body:'Wartungsauswertung mit Zeitraum und Fahrzeugen als PDF.'
+                };
+                return true;
+            }catch(error){showToast(error.message||'Wartungsbericht nicht verfügbar.');return false;}
+        }
+        async function previewFleetMaintenanceReport(){
+            if(!prepareFleetMaintenanceReportContext())return;
+            await previewActivePdf();
+        }
+        function sendFleetMaintenanceReport(){
+            if(!prepareFleetMaintenanceReportContext())return;
+            openModal('modal-dispatch');
+        }
+        function sendFleetVehicleMaintenance(vehicleId){
+            const vehicle=cloudFleetVehicles.find(v=>v&&v.id===vehicleId);
+            if(!vehicle){showToast('Fahrzeug nicht mehr in der Cloud gefunden.');return;}
+            state.currentDispatchContext={
+                type:'FleetMaintenanceVehicle',data:{vehicle},categoryFolder:'Fahrzeugwartungen',
+                subject:'[ECB] Wartungsübersicht '+(vehicle.plate||vehicle.model||'Fahrzeug'),
+                body:'Fahrzeugwartungsstatus und gespeicherte Reparatur-/Wartungsprotokolle als PDF.'
+            };
+            openModal('modal-dispatch');
+        }
+        function sendFleetRepairMaintenance(vehicleId,repairId){
+            const vehicle=cloudFleetVehicles.find(v=>v&&v.id===vehicleId);
+            const repair=vehicle&&Array.isArray(vehicle.reparaturen)?
+                vehicle.reparaturen.find(row=>row&&row.id===repairId):null;
+            if(!vehicle||!repair){showToast('Gespeichertes Wartungsprotokoll nicht gefunden.');return;}
+            state.currentDispatchContext={
+                type:'FleetMaintenanceRepair',data:{
+                    vehicle,repair,timestamp:repair.date||'',employee:repair.employee||'',plate:vehicle.plate||''
+                },
+                archiveDate:repair.date||'',categoryFolder:'Fahrzeugwartungen',
+                subject:'[ECB] Wartung / Reparatur '+(vehicle.plate||'')+' - '+(repair.date||''),
+                body:'Gespeichertes Wartungs- und Reparaturprotokoll als PDF.'
+            };
+            openModal('modal-dispatch');
+        }
+
         function persist() {
             try { localStorage.setItem('ecb_app_data_v4_' + state.todayKey, JSON.stringify(state.data)); } catch(e){}
         }
