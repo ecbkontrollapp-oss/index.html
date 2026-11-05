@@ -1,7 +1,6 @@
-// ECB PDF-Versand: nur für angemeldete Supabase-Mitarbeiter.
-// PDF und Mailtext werden NICHT in Supabase Storage/Database gespeichert.
-// Der RESEND_API_KEY und die Absenderadresse gehören ausschließlich in Edge Function Secrets.
-import { withSupabase } from 'npm:@supabase/server@^1';
+// ECB PDF-Versand ohne Mitarbeiter-Login: Turnstile + serverseitiges Kontingent.
+// Nur PDF/Resend-Übermittlung; keine Mail-Inhalte in Supabase Storage/Database.
+// Alle Geheimnisse ausschließlich in Supabase Edge Function Secrets.
 
 const RECIPIENT = 'pb@ecb-system.de';
 const MAX_PDF_BYTES = 8 * 1024 * 1024;
@@ -27,31 +26,63 @@ function asBase64(bytes) {
   return btoa(binary);
 }
 
-export default {
-  fetch: withSupabase({ auth: 'user' }, async (request, ctx) => {
-    if (request.method !== 'POST') {
-      return jsonError('Nur POST ist erlaubt.', 405);
-    }
-    // The actual security control is the verified Supabase user JWT above.
-    // Additionally reject unrelated websites, while permitting direct internal calls.
-    const origin = request.headers.get('origin');
-    if (origin && origin !== 'https://ecbkontrollapp-oss.github.io' &&
-        origin !== 'http://localhost:3000' && origin !== 'http://localhost:5173') {
-      return jsonError('Diese Website ist für den Versand nicht zugelassen.', 403);
-    }
-    const email = String(ctx.userClaims?.email ?? '').toLowerCase().trim();
-    if (!email || !ctx.userClaims?.id) {
-      return jsonError('Bitte mit einem gültigen ECB-Mitarbeiterkonto anmelden.', 403);
-    }
-    const allowed = String(Deno.env.get('ECB_MAIL_ALLOWED_EMAILS') || '')
-      .split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
-    if (allowed.length && !allowed.includes(email)) {
-      return jsonError('Dein Mitarbeiterkonto ist nicht für den PDF-Versand freigegeben.', 403);
-    }
+const APP_ORIGIN='https://ecbkontrollapp-oss.github.io';
+function jsonOkCors(response, origin) {
+  const headers=new Headers(response.headers);
+  if(origin===APP_ORIGIN) headers.set('Access-Control-Allow-Origin',APP_ORIGIN);
+  headers.set('Vary','Origin');
+  headers.set('Access-Control-Allow-Headers','apikey, content-type, x-client-info');
+  headers.set('Access-Control-Allow-Methods','POST, OPTIONS');
+  headers.set('Cache-Control','no-store');
+  return new Response(response.body,{status:response.status,headers});
+}
+async function digestIp(value,salt){
+  const bytes=new TextEncoder().encode(salt+':'+value);
+  const hash=new Uint8Array(await crypto.subtle.digest('SHA-256',bytes));
+  return Array.from(hash,x=>x.toString(16).padStart(2,'0')).join('');
+}
+async function checkTurnstile(token, secret, ip) {
+  const form=new URLSearchParams({secret,response:token});
+  if(ip)form.set('remoteip',ip);
+  const result=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:form
+  });
+  if(!result.ok)return false;
+  const json=await result.json();
+  return json.success===true && json.hostname==='ecbkontrollapp-oss.github.io' &&
+    json.action==='ecb_pdf_send';
+}
+async function reserveQuota(ipHash){
+  const endpoint=Deno.env.get('SUPABASE_URL');
+  const secret=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if(!endpoint||!secret)throw Error('Supabase Server-Schlüssel fehlen.');
+  const response=await fetch(endpoint.replace(/\/$/,'')+'/rest/v1/rpc/ecb_mail_consume_quota',{
+    method:'POST',
+    headers:{
+      apikey:secret,Authorization:'Bearer '+secret,
+      'Content-Type':'application/json'
+    },
+    body:JSON.stringify({p_ip_hash:ipHash})
+  });
+  if(!response.ok){
+    console.error('ECB rate limit RPC unavailable:',response.status);
+    throw Error('Sende-Limit noch nicht eingerichtet. SQL-Funktion im Supabase-Projekt ausführen.');
+  }
+  return (await response.json())===true;
+}
+async function handle(request){
+    if (request.method !== 'POST') return jsonError('Nur POST ist erlaubt.',405);
+    // Origin alone is not authentication. Turnstile and the DB quota are enforced below.
+    if(request.headers.get('origin')!==APP_ORIGIN)
+      return jsonError('Diese Website ist für den Versand nicht zugelassen.',403);
     const apiKey = Deno.env.get('RESEND_API_KEY');
     const from = Deno.env.get('ECB_MAIL_FROM');
-    if (!apiKey || !from) {
-      return jsonError('E-Mail-Dienst noch nicht eingerichtet: RESEND_API_KEY und ECB_MAIL_FROM in Supabase Secrets hinterlegen.', 503);
+    const challengeSecret = Deno.env.get('ECB_TURNSTILE_SECRET');
+    const salt = Deno.env.get('ECB_MAIL_RATE_SALT');
+    if (!apiKey || !from || !challengeSecret || !salt) {
+      return jsonError('E-Mail-Schutz noch nicht eingerichtet. Resend- und Turnstile-Secrets in Supabase prüfen.', 503);
     }
     if (!/^[^<>\r\n]+<[^<>\s@]+@[^<>\s@]+>$/.test(from) &&
         !/^[^\s<>@]+@[^\s<>@]+$/.test(from)) {
@@ -79,6 +110,24 @@ export default {
     const header = new Uint8Array(await attachment.slice(0, 5).arrayBuffer());
     if (String.fromCharCode(...header) !== '%PDF-') {
       return jsonError('Der Anhang ist keine gültige PDF-Datei.');
+    }
+    const token=String(form.get('turnstile_token')||'');
+    if(!token || token.length>4096) return jsonError('Unsichtbare Sicherheitsprüfung fehlt. App neu laden.',403);
+    const ip=(request.headers.get('cf-connecting-ip') ||
+      (request.headers.get('x-forwarded-for')||'').split(',')[0] || 'unknown').trim();
+    try{
+      const passed=await checkTurnstile(token,challengeSecret,ip);
+      if(!passed)return jsonError('Sicherheitsprüfung fehlgeschlagen. Bitte erneut versuchen.',403);
+    }catch{
+      return jsonError('Sicherheitsprüfung nicht erreichbar. Bitte später versuchen.',503);
+    }
+    // Global and per-IP DB quotas prevent repeated/parallel abuse.
+    try{
+      const ipHash=await digestIp(ip,salt);
+      const allowed=await reserveQuota(ipHash);
+      if(!allowed)return jsonError('Versandlimit erreicht. Bitte später erneut versuchen oder PDF über die Mail-App teilen.',429);
+    }catch(error){
+      return jsonError(error.message||'Schutzfunktion nicht verfügbar.',503);
     }
 
     const title = clean(form.get('Protokollart'), 100) || 'Kontrollprotokoll';
@@ -144,5 +193,17 @@ export default {
     }
     // "accepted" is not the same as "delivered" (bounces can still occur).
     return Response.json({ ok: true, accepted: true, id: provider.id, recipient: RECIPIENT });
-  })
-};
+}
+Deno.serve(async request=>{
+  const origin=request.headers.get('origin');
+  if(request.method==='OPTIONS'){
+    if(origin!==APP_ORIGIN)return new Response(null,{status:403});
+    return jsonOkCors(new Response(null,{status:204}),origin);
+  }
+  try{
+    return jsonOkCors(await handle(request),origin);
+  }catch(error){
+    console.error('ECB PDF mail internal error',error?.message||'unknown');
+    return jsonOkCors(jsonError('Versand vorübergehend nicht verfügbar. Bitte später erneut versuchen.',503),origin);
+  }
+});
