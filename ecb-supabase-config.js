@@ -4,5 +4,8 @@
 window.ECB_DOCUMENTS_CONFIG = {
   projectUrl: "https://tbagsmopgfvjpcjhekrw.supabase.co",
   publishableKey: "sb_publishable_Jr0loD4hyU69OjqbMIR2GQ_Ahw1pkBp",
-  bucket: "ecb-fahrzeugdokumente"
+  bucket: "ecb-fahrzeugdokumente",
+  // Public Cloudflare Turnstile key, configured ONCE by ECB admin.
+  // Staff never need accounts, passwords or codes to send PDF e-mails.
+  turnstileSiteKey: ""
 };
