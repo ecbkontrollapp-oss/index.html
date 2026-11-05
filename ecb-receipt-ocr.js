@@ -235,7 +235,7 @@
           /(?:Hinweis|Empfänger|Bemerkung|Fahrzeug|Zahlung|Kilometer|Kennzeichen|Rechnung|Beleg|Summe|Netto|Steuer)/i.test(line))return '';
       return line.slice(0,-1).trim();
     }
-    for(let i=1;i<Math.min(stop,lines.length);i++){
+    for(let i=0;i<Math.min(stop,lines.length);i++){
       const line=lines[i];
       if(isNotItem(line) || /\b(?:IBAN|BIC|www\.)\b/i.test(line))continue;
       const head=heading(i>0?lines[i-1]:'');
@@ -399,6 +399,11 @@
         // Existing conflicts need human verification even if one later pass
         // has matching digits; never silently resolve disagreements.
       }
+    }
+    // Separate OCR crops need independent parsing. They may contain rows
+    // that the main receipt parser skips after an early totals heading.
+    for(const sample of parsed.filter(x=>x.kind==='items' && x.fields.items.length)){
+      result.items=mergeReceiptItems(result.items,sample.fields.items,true);
     }
     return result;
   }
@@ -655,6 +660,7 @@
       Math.max(1,Math.min(5,Math.ceil(length*model.scale/1750))):
       Math.max(1,Math.ceil(length*model.scale/1750));
     const parts=[];
+    const itemSupplements=[];
     try {
       for(let i=0;i<sectionCount;i++){
         const y0=model.top+length*i/sectionCount;
@@ -676,8 +682,8 @@
       // An extra unwarped header read also cross-checks the odometer,
       // where tiny 8/6 digits are frequently confused.
       const needsHeader=!data.date||!data.plate||!data.vendor||data.km===null;
-      const needsItems=!data.items.length ||
-        (data.items.length===1 && /(?:ölwechsel|olwechsel)/i.test(data.items[0].name));
+      // A single position can hide further items; verify the article zone.
+      const needsItems=data.items.length<=1;
       if(model.detected && (needsHeader || needsItems || data.amount===null)){
         await worker.setParameters({tessedit_pageseg_mode:'6'});
         const sections=[];
@@ -696,9 +702,9 @@
             if(section.kind==='Kopfbereich'){
               combined=extra+'\n'+combined;
             } else if(section.kind==='Artikel'){
-              // Keep the separate OCR in the original text for debugging;
-              // extractItemLines() can read article lines independently of
-              // accidental summary text in an earlier OCR section.
+              // Parse this crop independently: summary rows in the main OCR
+              // can otherwise hide the article rows appended after them.
+              itemSupplements.push({kind:'items',text:extra});
               combined+='\n' + extra;
             } else {
               combined+='\n'+extra;
@@ -708,7 +714,8 @@
         // For tiny article text, sparse-line recognition sometimes works
         // better than block recognition. Only retry if the previous pass
         // still did not produce any real article rows.
-        if(needsItems && !parse(combined).items.length){
+        if(needsItems && !parse(combined).items.length &&
+          !itemSupplements.some(s=>parse(s.text).items.length)){
           await worker.setParameters({tessedit_pageseg_mode:'11'});
           const canvas=drawUnwarpedPhotoPart(model,
             model.top+length*.52,model.top+length*.77,1.35);
@@ -716,14 +723,17 @@
           try {
             const result=await worker.recognize(canvas);
             const extra=result.data && result.data.text || '';
-            if(extra.trim())combined+='\n'+extra;
+            if(extra.trim()){
+              itemSupplements.push({kind:'items',text:extra});
+              combined+='\n'+extra;
+            }
           } finally {canvas.width=0;canvas.height=0;}
         }
       }
       // Read tax summary and odometer from their own zones instead of
       // replacing already-correct amounts with new whole-document OCR text.
       const base=parse(combined);
-      const supplements=[];
+      const supplements=itemSupplements.slice();
       const windows=[];
       if(model.detected && (base.netAmount===null || base.taxAmount===null)) {
         windows.push({kind:'finance',from:.56,to:.75,contrast:1.55});
@@ -822,7 +832,7 @@
       const rawNode=el('receipt-ocr-raw');
       if(debug)debug.classList.remove('hidden');
       if(rawNode)rawNode.value=(String(raw||'')+
-        supplements.map(s=>'\n\n--- '+(s.kind==='finance'?'Netto/MwSt.':'KM')+
+        supplements.map(s=>'\n\n--- '+(s.kind==='finance'?'Netto/MwSt.':s.kind==='items'?'Artikel':'KM')+
           ' Zusatzlesung ---\n'+s.text).join('')).slice(0,12000);
       const extracted=mergeReceiptEvidence(parse(raw),supplements);
       let detected=0;
@@ -893,6 +903,7 @@
           extracted.items.length?extracted.items.length+' Artikel':''
         ].filter(Boolean).join(', ')+'. '+
         (missing.length ? 'Nicht zuverlässig erkannt: '+missing.join(', ')+'. Bitte selbst ergänzen. ' : '')+
+        (extracted.items.length===1?'Nur eine Artikelposition erkannt; bitte prüfen, ob weitere vorhanden sind. ':'')+
         'Alle Daten und Preise mit dem Originalbeleg vergleichen und bestätigen.',missing.length>0);
       } else {
         show('Aus diesem Beleg konnten keine sicheren Daten erkannt werden. Bitte Felder manuell eintragen und im Bereich „Erkannten Text“ prüfen, was lesbar war.',true);
