@@ -78,8 +78,6 @@ function emailFields(ctx,blob){
   const d=meta(ctx);
   const fd=new FormData();
   fd.append('_subject','[ECB] '+d.title+' | '+d.date+(d.plate?' | '+d.plate:''));
-  fd.append('_template','table');
-  fd.append('_captcha','false');
   fd.append('Unternehmen','E.C.B. Reinigungssysteme GmbH');
   fd.append('Protokollart',d.title);
   fd.append('Kontrolldatum',d.date);
