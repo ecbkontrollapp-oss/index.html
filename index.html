@@ -4724,11 +4724,25 @@
             }
         }
         
+        function prepareHistoryPdfContext(idx) {
+            const item=cloudHistory[idx];
+            if(!item){showToast('Protokoll nicht gefunden.');return false;}
+            state.currentDispatchContext={
+                type:item.type,data:item.data||item,
+                subject:'[ECB] '+item.type+' - '+(item.date||'Archiv'),
+                body:'Archiviertes Kontrollprotokoll als PDF-Anhang',
+                categoryFolder:item.type,archiveDate:item.date||'',
+                archiveTimestamp:item.timestamp||'',inspector:item.inspector||''
+            };
+            return true;
+        }
         async function openHistoryItemPdf(idx) {
-            const item = cloudHistory[idx];
-            if (!item) return;
-            state.currentDispatchContext = { type: item.type, data: item.data || item, subject: `[ECB] ${item.type} - ${item.date}`, body: 'Archivierter Bericht', categoryFolder: item.type };
+            if(!prepareHistoryPdfContext(idx))return;
             await previewActivePdf();
+        }
+        function resendHistoryItemPdf(idx) {
+            if(!prepareHistoryPdfContext(idx))return;
+            openModal('modal-dispatch');
         }
         
         async function previewSpecificVacationPdf(docId) {
@@ -4750,9 +4764,26 @@
         }
         
         function openPdfInNewTab() { if (activePdfUrl) window.open(activePdfUrl, '_blank'); }
-        function savePdfDownload() {
-            if (!activePdfUrl) return;
-            const a = document.createElement('a'); a.href = activePdfUrl; a.download = `ECB-Dokument-${state.todayKey}.pdf`; a.click();
+        async function savePdfDownload() {
+            const ctx=state.currentDispatchContext;
+            if(!ctx||!ctx.data){showToast('Kein PDF ausgewählt.');return;}
+            try{
+                // Rebuild from the current selected record so a stale URL can
+                // never download a different user's previous document.
+                await getPreparedPdfBlob(ctx);
+                const name=window.ECBProtocolMail?
+                    window.ECBProtocolMail.meta(ctx).filename:
+                    'ECB-Dokument-'+state.todayKey+'.pdf';
+                const a=document.createElement('a');
+                a.href=activePdfUrl;
+                a.download=name;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }catch(error){
+                console.error('ECB PDF download failed',error);
+                showToast('PDF konnte nicht erstellt werden: '+(error.message||'Unbekannter Fehler'));
+            }
         }
         
         function addHistory(type, rec) {
@@ -4804,8 +4835,9 @@
                                 <div class="font-bold text-slate-900">${item.type} • ${item.inspector || item.data?.employee || '-'}</div>
                                 <div class="text-[10px] text-slate-400 font-mono">${item.timestamp}</div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <button onclick="openHistoryItemPdf(${originalIdx})" class="text-sky-600 font-bold hover:underline bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-200"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                            <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                                <button onclick="openHistoryItemPdf(${originalIdx})" class="text-sky-700 font-bold hover:underline bg-sky-50 px-2.5 py-1.5 rounded-xl border border-sky-200"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                                <button onclick="resendHistoryItemPdf(${originalIdx})" class="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1.5 rounded-xl border border-emerald-200" title="Gespeichertes Protokoll erneut als PDF senden"><i class="fa-solid fa-paper-plane"></i> Senden</button>
                                 ${isAdminLoggedIn ? `<button onclick="deleteHistoryItem('${item.id || originalIdx}')" class="text-rose-600 hover:text-rose-800 p-1.5" title="Löschen"><i class="fa-solid fa-trash-can"></i></button>` : ''}
                             </div>
                         </div>
