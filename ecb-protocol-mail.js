@@ -124,6 +124,8 @@ function render(ctx){
   text('dispatch-protocol-summary',summary(ctx));
   const sendStatus=document.getElementById('dispatch-status-msg');
   if(sendStatus){sendStatus.textContent='';sendStatus.classList.add('hidden');}
+  // Start loading Cloudflare as soon as the mail dialog opens so a later tap is faster.
+  if(window.ECB_DOCUMENTS_CONFIG?.turnstileSiteKey)loadTurnstile().catch(()=>{});
 }
 
 /* No-login direct PDF mail:
