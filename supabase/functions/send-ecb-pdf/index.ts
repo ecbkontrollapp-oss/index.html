@@ -54,7 +54,7 @@ async function checkTurnstile(token, secret, ip) {
   if(!result.ok)return false;
   const json=await result.json();
   console.info('ECB PDF send: Turnstile verification answered');
-  return json.success===true && json.hostname='ecbkontrollapp-oss.github.io' &&
+  return json.success===true && json.hostname==='ecbkontrollapp-oss.github.io' &&
     json.action==='ecb_pdf_send';
 }
 function serverSupabaseKey(){
