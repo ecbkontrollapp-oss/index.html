@@ -47,6 +47,7 @@
     <script defer src="./ecb-logo-data.js?v=20261104-vector-original-1"></script>
     <script defer src="./ecb-fleet-costs.js?v=20261104-logo-everywhere-5"></script>
     <script defer src="./ecb-protocol-mail.js?v=20261105-ecb-protocols-v2"></script>
+    <script defer src="./ecb-fleet-maintenance.js?v=20261105-maintenance-report-v1"></script>
     <script defer src="./kfz-admin.js?v=20261104-fahrzeugschein-tech-v5"></script>
 
     <style>
@@ -834,6 +835,36 @@
                         Keine Fahrzeuge angelegt.
                     </div>
                 </div>
+            </div>
+
+            <!-- Manual fleet maintenance reports: existing Firestore fleet, no new storage -->
+            <div id="fleet-maintenance-reports" class="bg-white rounded-2xl p-4 md:p-6 border border-emerald-200 shadow-xs space-y-4 w-full max-w-full box-border">
+                <div class="flex flex-wrap justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div>
+                        <h2 class="text-base font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-emerald-700"></i> Wartungsauswertung &amp; Protokolle</h2>
+                        <p class="text-[11px] text-slate-500 mt-1">Gespeicherte Reparaturen und Wartungen nach Fahrzeug und Zeitraum auswerten und manuell als PDF senden.</p>
+                    </div>
+                    <span class="self-start text-[10px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg px-2 py-1.5"><i class="fa-solid fa-cloud mr-1"></i> Cloud-Daten</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <label class="text-[11px] font-bold text-slate-700">Fahrzeug / Gesamtübersicht
+                        <select id="maintenance-report-vehicle" onchange="renderFleetMaintenanceReport()" class="block w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs">
+                            <option value="">Gesamter Fuhrpark</option>
+                        </select>
+                    </label>
+                    <label class="text-[11px] font-bold text-slate-700">Von
+                        <input id="maintenance-report-from" type="date" onchange="renderFleetMaintenanceReport()" class="block w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs">
+                    </label>
+                    <label class="text-[11px] font-bold text-slate-700">Bis
+                        <input id="maintenance-report-to" type="date" onchange="renderFleetMaintenanceReport()" class="block w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs">
+                    </label>
+                </div>
+                <div id="maintenance-report-summary" class="text-xs text-slate-600 bg-emerald-50/60 border border-emerald-100 rounded-xl p-3" aria-live="polite">Wartungsdaten aus der Cloud werden geladen.</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button type="button" onclick="previewFleetMaintenanceReport()" class="px-3 py-2.5 border border-slate-200 bg-slate-50 rounded-xl text-xs font-extrabold text-slate-700"><i class="fa-solid fa-file-pdf text-rose-600 mr-1"></i> Wartungsauswertung als PDF</button>
+                    <button type="button" onclick="sendFleetMaintenanceReport()" class="px-3 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-extrabold"><i class="fa-solid fa-paper-plane mr-1"></i> Auswertung per E-Mail versenden</button>
+                </div>
+                <p class="text-[10px] text-slate-500">Nur manuell auf Knopfdruck. Der Zeitraum filtert datierte Reparatur-/Wartungseinträge; TÜV, Kilometerstand und Ölwechsel werden als aktueller Stammdatenstand dargestellt. PDF und E-Mail-Text werden nicht zusätzlich in der Cloud gespeichert.</p>
             </div>
 
             <!-- Cloud fleet cost accounting / reporting -->
@@ -2414,6 +2445,7 @@
                 renderFleetRepairsList();
                 renderFleetReceiptsList();
                 renderFleetRegistrationsList();
+                renderFleetMaintenanceReport();
                 if (window.ECBFleetCosts) window.ECBFleetCosts.setVehicles(items);
             }, () => {});
         }
@@ -2978,6 +3010,7 @@
                         </div>
                     </div>
                     ${fleetSpecificationDetails(item)}
+                    ${/^[A-Za-z0-9_-]+$/.test(item.id || '') ? `<div class="flex flex-wrap gap-2 pt-2"><button type="button" onclick="sendFleetVehicleMaintenance('${item.id}')" class="px-3 py-2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[11px] font-bold"><i class="fa-solid fa-paper-plane mr-1"></i> Wartungsübersicht per E-Mail</button></div>` : ''}
                 </div>`;
             }).join('');
         }
@@ -3114,7 +3147,9 @@
                     (repair.costSeparate===true && Number.isFinite(Number(repair.cost)) ?
                         '<p class="text-[11px] font-bold text-indigo-800">Zusätzliche Kosten ohne Beleg: ' +
                         escapeRepairHtml(new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(Number(repair.cost))) + '</p>' : '') +
-                    ((finish || remove) ? '<div class="flex flex-wrap gap-2 pt-1">' + finish + remove + '</div>' : '') +
+                    '<div class="flex flex-wrap gap-2 pt-1">' +
+                    (vehicleId && repairId ? '<button type="button" onclick="sendFleetRepairMaintenance(\'' + vehicleId + '\',\'' + repairId + '\')" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold"><i class="fa-solid fa-paper-plane mr-1"></i> Protokoll per E-Mail</button>' : '') +
+                    finish + remove + '</div>' +
                     '</div>';
             }).join('');
         }
@@ -4222,6 +4257,10 @@
         
             if (ctx.type === 'ShiftSummary') buildShiftSummaryPdf(doc, ctx.data, ctx.vacations, dateStr, timeStr);
             else if (ctx.type === 'FleetSummary') buildFleetSummaryPdf(doc, cloudFleetVehicles, dateStr, timeStr);
+            else if (['FleetMaintenanceRepair','FleetMaintenanceVehicle','FleetMaintenanceReport'].includes(ctx.type)) {
+                if(!window.ECBFleetMaintenance)throw new Error('Wartungs-PDF-Bibliothek nicht verfügbar.');
+                window.ECBFleetMaintenance.pdf(doc,ctx,renderPdfHeader,renderPdfFooter);
+            }
             else if (ctx.type === 'TeamVacationSummary') buildTeamVacationSummaryPdf(doc, cloudVacations, dateStr, timeStr);
             else if (ctx.type === 'Gesamtbericht') buildCompleteSummaryPdf(doc, ctx.data, cloudFleetVehicles, dateStr, timeStr);
             else if (ctx.type === 'Urlaub') buildVacationPdf(doc, ctx.data, dateStr, timeStr);
@@ -4234,7 +4273,8 @@
             const totalPages = doc.internal.getNumberOfPages();
             for (let pageNumber = 2; pageNumber <= totalPages; pageNumber++) {
                 doc.setPage(pageNumber);
-                drawOriginalEcbLogo(doc, 15, 3, 27, 13);
+                if(!String(ctx.type).startsWith('FleetMaintenance'))
+                    drawOriginalEcbLogo(doc, 15, 3, 27, 13);
             }
             doc.setPage(1);
             return doc;
