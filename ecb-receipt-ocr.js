@@ -123,6 +123,19 @@
       .filter(Boolean).slice(0,450);
     const date = identifyDate(lines);
     let vendor = identifyVendor(lines);
+    // Extract only an explicitly labelled short workshop note.
+    let remark='';
+    const remarkAt=lines.findIndex(line=>/^(?:bemerkung|beanstandung|hinweis\s+werkstatt)\s*[:\-]/i.test(line));
+    if(remarkAt>=0){
+      const first=lines[remarkAt].replace(/^[^:]*:\s*/,'').trim();
+      const parts=first?[first]:[];
+      for(let n=remarkAt+1;n<Math.min(lines.length,remarkAt+3);n++){
+        const line=lines[n];
+        if(/^(?:sie wurden|bedient|gesamt|netto|mwst|ec\b|datum|ölwechsel|ölfilter)/i.test(line))break;
+        if(line.length<110&&/\p{L}/u.test(line))parts.push(line);
+      }
+      remark=parts.join(' ').replace(/\s+/g,' ').slice(0,360);
+    }
     // Known merchant name that thermal OCR regularly confuses (I/T, O/0).
     if (/^mac[O0][ITL]{2}$/i.test(vendor)) vendor='macOIL';
     const totalRx = /(?:\b(?:gesamtbetrag|gesamtsumme|endbetrag|endsumme|rechnungsbetrag|gesamtpreis|gesamt\s*betrag|summe|brutto|zu\s*zahlen|zahlbetrag|total)\b)/i;
@@ -283,7 +296,12 @@
       if(!Number.isFinite(quantity)||quantity<=0||quantity>1000)continue;
       let remainder=match[2];
       const p=lastPrice(remainder);
-      const amountOnLine=p?p.amount:null;
+      // Some thermal printers put a line-item price on a separate OCR line.
+      // Accept it only when that next line is an isolated currency amount.
+      const nextPrice=(!p&&i+1<lines.length&&
+        /^\s*(?:€\s*)?\d{1,7}(?:[.\s]\d{3})*[,.]\d{2}\s*(?:€|EUR)?\s*$/i.test(lines[i+1]))?
+          lastPrice(lines[i+1]):null;
+      const amountOnLine=(p||nextPrice)?(p||nextPrice).amount:null;
       if(p) remainder=p.prefix;
       const name=remainder.replace(/\s+(?:EUR|€)\s*$/i,'').trim();
       if(!/[A-Za-zÄÖÜäöüß]{1,}|[A-Z]?\s?\d{3,}/.test(name) ||
@@ -317,7 +335,7 @@
       netAmount=(Math.round(amount*100)-Math.round(taxAmount*100))/100;
       netCalculated=true;
     }
-    return {vendor,date,amount,totalDerived,items,netAmount,netCalculated,taxAmount,km,kmUncertain,plate};
+    return {vendor,date,amount,totalDerived,items,netAmount,netCalculated,taxAmount,km,kmUncertain,plate,remark};
   }
 
 
@@ -499,11 +517,41 @@
       }
       const widths=bounds.map(b=>b.width).sort((a,b)=>a-b);
       const median=widths[Math.floor(widths.length/2)];
+      // Dark thermal print made some sampled "paper edges" jump into the
+      // text. This cropped/stretched the bottom of long receipts.
+      // Estimate paper edges from consistent scan rows, ignore outliers.
+      const reliable=bounds.filter(b=>b.width>=median*.87&&b.width<=median*1.17);
+      if(reliable.length<8){
+        return {image,bounds:null,top:0,bottom:image.naturalHeight,
+          width:Math.max(550,Math.min(1150,image.naturalWidth)),
+          scale:Math.min(2,1150/image.naturalWidth),ratio:1,detected:false};
+      }
+      function fitEdge(key){
+        function regression(rows){
+          const my=rows.reduce((v,b)=>v+b.y,0)/rows.length;
+          const mx=rows.reduce((v,b)=>v+b[key],0)/rows.length;
+          const cov=rows.reduce((v,b)=>v+(b.y-my)*(b[key]-mx),0);
+          const variance=rows.reduce((v,b)=>v+(b.y-my)*(b.y-my),0);
+          const slope=variance?cov/variance:0;
+          return y=>mx+slope*(y-my);
+        }
+        let predict=regression(reliable);
+        const inliers=reliable.filter(b=>Math.abs(b[key]-predict(b.y))<Math.max(22,median*.075));
+        if(inliers.length>=Math.max(7,Math.floor(reliable.length*.65)))
+          predict=regression(inliers);
+        return predict;
+      }
+      const leftAt=fitEdge('left'),rightAt=fitEdge('right');
+      const stable=bounds.map(b=>{
+        const left=Math.max(0,leftAt(b.y));
+        const right=Math.min(w,rightAt(b.y));
+        return {y:b.y,left,right,width:right-left};
+      });
       const target=1150;
       const scale=target/(median+18);
       const top=Math.max(0,bounds[0].y-h*.025);
       const bottom=Math.min(h,bounds[bounds.length-1].y+h*.035);
-      return {image,bounds,top,bottom,width:target,scale,ratio:ratio,detected:true};
+      return {image,bounds:stable,top,bottom,width:target,scale,ratio:ratio,detected:true};
     } finally {
       URL.revokeObjectURL(blobUrl);
     }
@@ -611,7 +659,10 @@
       for(let i=0;i<sectionCount;i++){
         const y0=model.top+length*i/sectionCount;
         const y1=model.top+length*(i+1)/sectionCount;
-        const canvas=drawPhotoPart(model,y0,y1);
+        // A continuous crop preserves tiny characters. Previously row-by-row
+        // resampling inserted horizontal seams through thermal-print digits.
+        const canvas=model.detected?
+          drawUnwarpedPhotoPart(model,y0,y1,1.45):drawPhotoPart(model,y0,y1);
         setStatus('Kassenbeleg: Abschnitt '+(i+1)+' von '+sectionCount+' wird gelesen …');
         try {
           const result=await worker.recognize(canvas);
@@ -624,7 +675,7 @@
       const data=parse(combined);
       // An extra unwarped header read also cross-checks the odometer,
       // where tiny 8/6 digits are frequently confused.
-      const needsHeader=!data.date||!data.plate||!data.vendor||data.km!==null;
+      const needsHeader=!data.date||!data.plate||!data.vendor||data.km===null;
       const needsItems=!data.items.length ||
         (data.items.length===1 && /(?:ölwechsel|olwechsel)/i.test(data.items[0].name));
       if(model.detected && (needsHeader || needsItems || data.amount===null)){
@@ -801,6 +852,10 @@
           plateMatched=true;
           detected++;
         }
+      }
+      if(extracted.remark){
+        const notes=el('receipt-notes');
+        if(notes&&!notes.value.trim())notes.value=extracted.remark;
       }
       if(extracted.items.length){
         clearRows();
