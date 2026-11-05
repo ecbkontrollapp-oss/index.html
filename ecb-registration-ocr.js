@@ -541,6 +541,11 @@
       Object.entries(extracted).forEach(([key,value])=>{
         if(value&&!parsed.fieldConflicts.includes(key))parsed.data[key]=value;
       });
+      // Isolated OCR words like "FITS" in D.2 are unreliable. Require
+      // a type subcode or structured layout reading; otherwise review.
+      const typeText=String(parsed.data.type||'').trim();
+      if(typeText&&!extracted.type&&/^[A-Z]{3,}$/i.test(typeText))
+        parsed.data.type='';
       // Never auto-select one of two conflicting readings.
       for(const key of parsed.fieldConflicts)parsed.data[key]='';
       validateParsed(parsed);
