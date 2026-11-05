@@ -2586,13 +2586,9 @@
                 categoryFolder: 'Tagesberichte'
             };
             try {
-                const blob = await getPreparedPdfBlob(ctx);
-                const fd = new FormData();
-                fd.append('_subject', ctx.subject);
-                fd.append('Bericht', ctx.body);
-                fd.append('_captcha', 'false');
-                fd.append('attachment', blob, `ECB-Gesamtbericht-${state.todayKey}.pdf`);
-                await sendPdfForm(fd);
+                const blob=await getPreparedPdfBlob(ctx);
+                if(!window.ECBProtocolMail)throw new Error('E-Mail-Vorlage fehlt.');
+                await sendPdfForm(window.ECBProtocolMail.emailFields(ctx,blob));
                 showToast('Alle Wartungspunkte abgeschlossen – Gesamtprotokoll gesendet!');
             } catch (e) {
                 localStorage.removeItem(flagKey);
@@ -4620,11 +4616,29 @@
         }
 
         function renderPdfHeader(doc, subtitle, dateStr, timeStr) {
-            drawOriginalEcbLogo(doc, 15, 10, 28, 14);
-            doc.setTextColor(94, 166, 59); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.text('ECB REINIGUNGSSYSTEME', 46, 16.5);
-            doc.setTextColor(28, 25, 23); doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(subtitle, 46, 22.5);
-            const pageWidth = doc.internal.pageSize.getWidth();
-            doc.setFillColor(94, 166, 59); doc.rect(15, 31, pageWidth - 30, 1, 'F');
+            const pageWidth=doc.internal.pageSize.getWidth();
+            doc.setFillColor(247, 251, 246);
+            doc.rect(0, 0, pageWidth, 31, 'F');
+            doc.setFillColor(132, 181, 89);
+            doc.rect(0, 0, 3, 31, 'F');
+            drawOriginalEcbLogo(doc, 14, 7, 31, 17);
+            doc.setFont('helvetica','bold');
+            doc.setFontSize(8.5);
+            doc.setTextColor(69, 122, 48);
+            doc.text('E.C.B. REINIGUNGSSYSTEME GMBH', 49, 12);
+            doc.setFont('helvetica','normal');
+            doc.setFontSize(7);
+            doc.setTextColor(106, 119, 110);
+            doc.text(dateStr+' | '+timeStr, pageWidth-15, 12, {align:'right'});
+            doc.setFont('helvetica','bold');
+            doc.setFontSize(String(subtitle).length>47?9:11);
+            doc.setTextColor(24, 48, 37);
+            const titleLines=doc.splitTextToSize(String(subtitle||'PROTOKOLL'),pageWidth-65).slice(0,2);
+            doc.text(titleLines,49,21);
+            doc.setDrawColor(132, 181, 89);
+            doc.setLineWidth(.9);
+            doc.line(15,31.5,pageWidth-15,31.5);
+            doc.setLineWidth(.2);
         }
         
         function renderLandscapePdfFooter(doc, pageNum, totalPages) {
@@ -4651,12 +4665,14 @@
         }
         
         async function sendPdfForm(fd) {
-            const response = await fetch(`https://formsubmit.co/ajax/${RECIPIENT_EMAIL}`, { method: 'POST', body: fd });
-            if (!response.ok) throw new Error(`Versanddienst antwortet mit HTTP ${response.status}`);
-            const result = await response.json().catch(() => null);
-            if (result && (result.success === false || result.success === 'false')) {
-                throw new Error(result.message || 'Der Versanddienst hat die Anfrage abgelehnt.');
-            }
+            const response = await fetch(`https://formsubmit.co/ajax/${RECIPIENT_EMAIL}`, {
+                method:'POST',headers:{'Accept':'application/json'},body:fd
+            });
+            if(!response.ok)throw new Error('Versanddienst HTTP '+response.status);
+            const result=await response.json().catch(()=>null);
+            if(!result||!(result.success===true||String(result.success).toLowerCase()==='true'))
+                throw new Error(result&&result.message||'Versand konnte vom Dienst nicht bestätigt werden.');
+            // Acceptance by the form provider does not prove final inbox delivery.
             return result;
         }
 
@@ -4673,15 +4689,14 @@
             }
             try {
                 const pdfBlob = await getPreparedPdfBlob(ctx);
-                const fileName = `ECB-${ctx.type}-${state.todayKey}.pdf`;
-                const fd = new FormData();
-                fd.append('_subject', ctx.subject);
-                fd.append('Bericht', ctx.body);
-                fd.append('_captcha', 'false');
-                fd.append('attachment', pdfBlob, fileName);
+                if(!window.ECBProtocolMail)throw new Error('E-Mail-Vorlage konnte nicht geladen werden. Bitte App neu laden.');
+                const fd=window.ECBProtocolMail.emailFields(ctx,pdfBlob);
                 await sendPdfForm(fd);
-                showToast('Protokoll vom Versanddienst angenommen.');
-                closeModal('modal-dispatch');
+                showToast('PDF vom Versanddienst angenommen – Postfach prüfen.');
+                if(status){
+                    status.className='p-3 rounded-xl text-xs w-full max-w-full bg-emerald-50 text-emerald-900 border border-emerald-200';
+                    status.textContent='Versanddienst hat das PDF angenommen. Bitte Eingang unter '+RECIPIENT_EMAIL+' prüfen.';
+                }
             } catch (e) {
                 if (status) {
                     status.className = 'p-3 rounded-xl text-xs w-full max-w-full bg-rose-50 text-rose-800';
@@ -4831,7 +4846,14 @@
             openModal('modal-attendance');
         }
         
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); setTimeout(() => { Object.values(pads).forEach(p => { if (p) p.resize(); }); }, 50); }
+        function openModal(id) {
+            const modal=document.getElementById(id);
+            if(!modal)return;
+            modal.classList.remove('hidden');
+            if(id==='modal-dispatch'&&window.ECBProtocolMail)
+                window.ECBProtocolMail.render(state.currentDispatchContext);
+            setTimeout(()=>{Object.values(pads).forEach(p=>{if(p)p.resize();});},50);
+        }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function openSettingsModal() { openModal('modal-settings'); }
         function showToast(text) {
