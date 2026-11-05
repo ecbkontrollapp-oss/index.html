@@ -40,13 +40,13 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./ecb-supabase-config.js"></script>
-    <script src="./ecb-documents.js?v=20261104-invite-login-v2"></script>
+    <script src="./ecb-documents.js?v=20261105-mail-auth-v1"></script>
     <script defer src="./ecb-receipt-ocr.js?v=20261104-vendor-dedupe-13"></script>
     <script defer src="./ecb-registration-layout.js?v=20261105-d2-three-line-v10"></script>
     <script defer src="./ecb-registration-ocr.js?v=20261105-d2-fragment-filter-v11"></script>
     <script defer src="./ecb-logo-data.js?v=20261104-vector-original-1"></script>
     <script defer src="./ecb-fleet-costs.js?v=20261104-logo-everywhere-5"></script>
-    <script defer src="./ecb-protocol-mail.js?v=20261105-fleet-multipart-v4"></script>
+    <script defer src="./ecb-protocol-mail.js?v=20261105-supabase-resend-v1"></script>
     <script defer src="./ecb-fleet-maintenance.js?v=20261105-maintenance-report-v2"></script>
     <script defer src="./kfz-admin.js?v=20261104-fahrzeugschein-tech-v5"></script>
 
@@ -1746,7 +1746,7 @@
                 <p id="dispatch-protocol-summary" class="text-[11px] text-slate-600 leading-relaxed px-1"></p>
                 <div id="dispatch-status-msg" class="hidden p-3 rounded-xl text-xs w-full max-w-full" aria-live="polite"></div>
                 <button id="btn-send-pdf-direct" onclick="executeWebServiceSend()" class="w-full py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-extrabold shadow-md flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-paper-plane"></i> PDF an pb@ecb-system.de senden
+                    <i class="fa-solid fa-paper-plane"></i> PDF direkt an pb@ecb-system.de senden
                 </button>
                 <button id="btn-share-pdf-mail" onclick="shareActivePdfForEmail()" class="w-full py-3.5 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-extrabold shadow-md flex items-center justify-center gap-2">
                     <i class="fa-solid fa-share-from-square"></i> PDF über Mail-App teilen (Ersatzversand)
@@ -1756,7 +1756,7 @@
                     <button onclick="previewActivePdf()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-eye"></i> PDF ansehen</button>
                     <button onclick="savePdfDownload()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-download"></i> PDF laden</button>
                 </div>
-                <p class="text-[10px] text-slate-500 leading-relaxed text-center px-2"><i class="fa-solid fa-lock mr-1 text-emerald-600"></i> Die Kontrolldaten bleiben in der Cloud-History. Die App legt keine zusätzliche E-Mail-Kopie ab. Der externe Versanddienst kann Übermittlungsdaten temporär speichern.</p>
+                <p class="text-[10px] text-slate-500 leading-relaxed text-center px-2"><i class="fa-solid fa-lock mr-1 text-emerald-600"></i> Die Kontrolldaten bleiben in der bisherigen Cloud-History. Die App legt keine zusätzliche E-Mail-Kopie in Supabase ab. Der externe Dienst Resend verarbeitet und speichert Versanddaten gemäß seinen Aufbewahrungsregeln.</p>
             </div>
         </div>
     </div>
@@ -2625,7 +2625,7 @@
                 const blob=await getPreparedPdfBlob(ctx);
                 if(!window.ECBProtocolMail)throw new Error('E-Mail-Vorlage fehlt.');
                 await sendPdfForm(window.ECBProtocolMail.emailFields(ctx,blob));
-                showToast('Alle Wartungspunkte abgeschlossen – Gesamtprotokoll gesendet!');
+                showToast('Alle Wartungspunkte abgeschlossen – Gesamtprotokoll vom E-Mail-Dienst angenommen!');
             } catch (e) {
                 localStorage.removeItem(flagKey);
                 if (ref) ref.delete().catch(() => {});
@@ -4789,62 +4789,45 @@
             return blob;
         }
         
+        // Historic daily reports call this helper; now the same secure path is used.
         async function sendPdfForm(fd) {
-            const response = await fetch(`https://formsubmit.co/ajax/${RECIPIENT_EMAIL}`, {
-                method:'POST',headers:{'Accept':'application/json'},body:fd
-            });
-            if(!response.ok)throw new Error('Versanddienst HTTP '+response.status);
-            const result=await response.json().catch(()=>null);
-            if(!result||!(result.success===true||String(result.success).toLowerCase()==='true'))
-                throw new Error(result&&result.message||'Versand konnte vom Dienst nicht bestätigt werden.');
-            // Acceptance by the form provider does not prove final inbox delivery.
-            return result;
+            if(!window.ECBProtocolMail)throw new Error('E-Mail-Modul nicht geladen.');
+            return await window.ECBProtocolMail.sendSecureFields(fd);
         }
 
         async function executeWebServiceSend() {
-            const ctx = state.currentDispatchContext;
-            if (!ctx) { showToast('Kein Protokoll zum Versenden ausgewählt.'); return; }
-            const button = document.getElementById('btn-send-pdf-direct');
-            const status = document.getElementById('dispatch-status-msg');
-            if (button && button.disabled) return;
-            // The tab MUST be opened synchronously while the user is tapping.
-            // Otherwise iPhone Safari may block it after PDF generation.
-            let tab=null;
-            try {
-                if(!window.ECBProtocolMail)throw new Error('E-Mail-Vorlage nicht geladen. App neu laden.');
-                tab=window.ECBProtocolMail.openSendWindow();
-            }catch(error){
-                if(status){
-                    status.className='p-3 rounded-xl text-xs bg-rose-50 text-rose-800 border border-rose-200';
-                    status.textContent=error.message;
-                }
-                showToast('E-Mail-Versandfenster konnte nicht geöffnet werden.');
-                return;
+            const ctx=state.currentDispatchContext;
+            if(!ctx||!ctx.data){showToast('Kein Protokoll zum Versenden ausgewählt.');return;}
+            const button=document.getElementById('btn-send-pdf-direct');
+            const status=document.getElementById('dispatch-status-msg');
+            if(button&&button.disabled)return;
+            if(button)button.disabled=true;
+            if(status){
+                status.className='p-3 rounded-xl text-xs w-full bg-sky-50 text-sky-800 border border-sky-200';
+                status.textContent='Original-PDF wird lokal erstellt und sicher über Supabase versendet …';
             }
-            if (button) button.disabled = true;
-            if (status) {
-                status.className='p-3 rounded-xl text-xs w-full bg-sky-50 text-sky-800';
-                status.textContent='PDF wird lokal erstellt und für den Dateianhang vorbereitet …';
-            }
-            try {
-                const pdfBlob=await getPreparedPdfBlob(ctx);
-                const fd=window.ECBProtocolMail.emailFields(ctx,pdfBlob);
-                window.ECBProtocolMail.sendMultipart(fd,tab);
-                showToast('PDF-Versandseite geöffnet. Bitte Bestätigung prüfen.');
+            try{
+                if(!window.ECBProtocolMail)throw new Error('E-Mail-Modul fehlt. Bitte App neu laden.');
+                const blob=await getPreparedPdfBlob(ctx);
+                const result=await window.ECBProtocolMail.sendSecure(ctx,blob);
                 if(status){
                     status.className='p-3 rounded-xl text-xs w-full bg-emerald-50 text-emerald-900 border border-emerald-200';
-                    status.textContent='PDF mit Dateianhang an den Versanddienst übergeben. Bitte das geöffnete Fenster kontrollieren und ggf. die Adresse '+RECIPIENT_EMAIL+' aktivieren. Erst der Postfacheingang bestätigt die Zustellung.';
+                    status.textContent='Vom E-Mail-Dienst angenommen: PDF an '+RECIPIENT_EMAIL+
+                        '. Versand-ID: '+result.id+'. Die endgültige Zustellung bitte im Postfach prüfen.';
                 }
+                showToast('PDF vom E-Mail-Dienst angenommen.');
             }catch(error){
-                if(window.ECBProtocolMail)window.ECBProtocolMail.closeSendWindow(tab,error.message||'Versand fehlgeschlagen.');
                 if(status){
-                    status.className='p-3 rounded-xl text-xs bg-rose-50 text-rose-800 border border-rose-200';
-                    status.textContent='PDF-Versand fehlgeschlagen: '+(error.message||'Bitte erneut versuchen.');
+                    status.className='p-3 rounded-xl text-xs w-full bg-rose-50 text-rose-800 border border-rose-200';
+                    status.textContent='Versand nicht bestätigt: '+(error.message||'Unbekannter Fehler')+
+                        ' Nutze bei Bedarf den Ersatzversand über Mail/Outlook.';
                 }
-                showToast('PDF konnte nicht versendet werden.');
-            }finally{if(button)button.disabled=false;}
+                showToast('E-Mail-Versand nicht bestätigt.');
+            }finally{
+                if(button)button.disabled=false;
+            }
         }
-        
+
         // Unabhängiger Ersatzweg bei Ausfall des externen Formular-Anbieters.
         // Der PDF-Anhang wird lokal erzeugt und ausschließlich an die vom
         // Benutzer selbst ausgewählte App übergeben, nie an FormSubmit.
