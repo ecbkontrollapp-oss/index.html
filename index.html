@@ -1748,6 +1748,10 @@
                 <button id="btn-send-pdf-direct" onclick="executeWebServiceSend()" class="w-full py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-extrabold shadow-md flex items-center justify-center gap-2">
                     <i class="fa-solid fa-paper-plane"></i> PDF an pb@ecb-system.de senden
                 </button>
+                <button id="btn-share-pdf-mail" onclick="shareActivePdfForEmail()" class="w-full py-3.5 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-extrabold shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-share-from-square"></i> PDF über Mail-App teilen (Ersatzversand)
+                </button>
+                <p class="text-[10px] text-slate-600 leading-relaxed text-center px-2">Falls FormSubmit ausfällt: Teilen wählen, Mail oder Outlook öffnen, Empfänger <b>pb@ecb-system.de</b> eintragen und die E-Mail selbst absenden. Das Original-PDF wird direkt angehängt.</p>
                 <div class="grid grid-cols-2 gap-2">
                     <button onclick="previewActivePdf()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-eye"></i> PDF ansehen</button>
                     <button onclick="savePdfDownload()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-download"></i> PDF laden</button>
@@ -4841,6 +4845,57 @@
             }finally{if(button)button.disabled=false;}
         }
         
+        // Unabhängiger Ersatzweg bei Ausfall des externen Formular-Anbieters.
+        // Der PDF-Anhang wird lokal erzeugt und ausschließlich an die vom
+        // Benutzer selbst ausgewählte App übergeben, nie an FormSubmit.
+        async function shareActivePdfForEmail() {
+            const ctx=state.currentDispatchContext;
+            if(!ctx||!ctx.data){showToast('Kein Protokoll ausgewählt.');return;}
+            const button=document.getElementById('btn-share-pdf-mail');
+            const status=document.getElementById('dispatch-status-msg');
+            if(button&&button.disabled)return;
+            if(button)button.disabled=true;
+            if(status){
+                status.className='p-3 rounded-xl text-xs w-full bg-sky-50 text-sky-800 border border-sky-200';
+                status.textContent='Original-PDF wird für das iPhone-Teilen-Menü vorbereitet …';
+            }
+            try{
+                if(!window.ECBProtocolMail)throw new Error('E-Mail-Modul fehlt. Bitte App neu laden.');
+                const blob=await getPreparedPdfBlob(ctx);
+                if(!blob||!blob.size)throw new Error('PDF konnte nicht erstellt werden.');
+                const info=window.ECBProtocolMail.meta(ctx);
+                const file=new File([blob],info.filename,{type:'application/pdf'});
+                if(!navigator.share||(typeof navigator.canShare==='function'&&!navigator.canShare({files:[file]}))){
+                    await savePdfDownload();
+                    if(status){
+                        status.className='p-3 rounded-xl text-xs w-full bg-amber-50 text-amber-900 border border-amber-200';
+                        status.textContent='Teilen mit PDF-Anhang wird von diesem Browser nicht unterstützt. PDF wurde zum manuellen Anhängen bereitgestellt. Bitte Mail oder Outlook öffnen und an '+RECIPIENT_EMAIL+' senden.';
+                    }
+                    return;
+                }
+                await navigator.share({
+                    files:[file],
+                    title:'[ECB] '+info.title+' | '+info.date,
+                    text:'E.C.B. Reinigungssysteme GmbH\nEmpfänger: '+RECIPIENT_EMAIL+'\n'+info.title+' vom '+info.date+'\nDas vollständige Protokoll befindet sich im PDF-Anhang.'
+                });
+                if(status){
+                    status.className='p-3 rounded-xl text-xs w-full bg-sky-50 text-sky-900 border border-sky-200';
+                    status.textContent='PDF an die gewählte App übergeben. In Mail/Outlook bitte Empfänger '+RECIPIENT_EMAIL+' eintragen und „Senden“ tippen. Erst der Postfacheingang bestätigt die Zustellung.';
+                }
+            }catch(error){
+                if(error&&error.name==='AbortError'){
+                    if(status){status.className='p-3 rounded-xl text-xs w-full bg-slate-100 text-slate-700';status.textContent='Teilen abgebrochen – nichts wurde versendet.';}
+                    return;
+                }
+                console.error('ECB PDF share failed',error);
+                if(status){
+                    status.className='p-3 rounded-xl text-xs w-full bg-rose-50 text-rose-800 border border-rose-200';
+                    status.textContent='PDF teilen fehlgeschlagen: '+(error.message||'Bitte PDF laden und in Mail/Outlook anhängen.');
+                }
+                showToast('PDF konnte nicht geteilt werden.');
+            }finally{if(button)button.disabled=false;}
+        }
+
         async function previewActivePdf() {
             try {
                 const ctx = state.currentDispatchContext;
