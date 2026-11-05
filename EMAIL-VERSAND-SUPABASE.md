@@ -50,8 +50,8 @@ Dashboard: https://supabase.com/dashboard/project/tbagsmopgfvjpcjhekrw/functions
   - `RESEND_API_KEY` – geheimer Resend-API-Schlüssel.
   - `ECB_MAIL_FROM` – `ECB Protokolle <protokolle@bgf-elektro.com>`.
   - `ECB_TURNSTILE_SECRET` – geheimer Cloudflare-Turnstile-Schlüssel.
-  - `ECB_MAIL_RATE_SALT` – ein langer, **zufälliger**, nur für diese Anwendung erzeugter geheimer Wert für das Hashen der IP (mindestens 32 zufällige Bytes, als hex/base64).
-- `SUPABASE_URL` und `SUPABASE_SERVICE_ROLE_KEY` werden von Supabase in gehosteten Edge Functions normalerweise automatisch als Umgebungsvariablen bereitgestellt. Der Service-Role-Key darf **niemals** in öffentliche Dateien.
+  - `ECB_MAIL_RATE_SALT` – **optional**: ein langer privater Zufallswert für IP-Hashes. Ohne eigenen Wert verwendet die Funktion den privaten Supabase-Serverkey als Hash-Salz, ohne ihn zu veröffentlichen.
+- `SUPABASE_URL` sowie der interne Adminschlüssel (`SUPABASE_SERVICE_ROLE_KEY` bei Legacy-Projekten oder `SUPABASE_SECRET_KEYS.default` bei neuen API-Schlüsseln) werden von Supabase gehosteten Funktionen bereitgestellt. Der Adminschlüssel darf **niemals** in öffentliche Dateien.
 - **Nicht** das frühere `ECB_MAIL_ALLOWED_EMAILS` verwenden – es wird beim neuen no-login-Versand nicht benötigt.
 
 ## Schritt 5 – Test mit dem iPhone
