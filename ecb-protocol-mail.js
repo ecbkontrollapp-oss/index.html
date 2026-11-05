@@ -15,7 +15,10 @@ const CATALOG={
   'Urlaub':{label:'Urlaubsantrag',short:'Urlaubsantrag',hint:'Beantragter Urlaub und Bearbeitungsstatus',icon:'calendar'},
   'ShiftSummary':{label:'Schicht- und Auslieferungsübersicht',short:'Schichtkalender',hint:'Schichtplanung und Auslieferung',icon:'calendar'},
   'FleetSummary':{label:'Fahrzeugpark- und Wartungsübersicht',short:'Fahrzeugpark',hint:'Aktuelle Fahrzeug- und Wartungsdaten',icon:'truck'},
-  'TeamVacationSummary':{label:'Team-Urlaubsübersicht',short:'Urlaubsplan',hint:'Teamurlaub und Genehmigungen',icon:'calendar'}
+  'TeamVacationSummary':{label:'Team-Urlaubsübersicht',short:'Urlaubsplan',hint:'Teamurlaub und Genehmigungen',icon:'calendar'},
+  'FleetMaintenanceRepair':{label:'Reparatur- und Wartungsprotokoll',short:'Fahrzeugwartung',hint:'Gespeicherte Arbeiten, Status, Kilometerstand und Bemerkungen',icon:'wrench'},
+  'FleetMaintenanceVehicle':{label:'Wartungsübersicht eines Fahrzeugs',short:'Fahrzeugwartungsuebersicht',hint:'Aktueller TÜV-/Ölwechselstatus und gespeicherte Wartungseinträge',icon:'truck'},
+  'FleetMaintenanceReport':{label:'Fuhrpark-Wartungsauswertung',short:'Fuhrpark-Wartungsauswertung',hint:'Fahrzeugübersicht, Wartungsvorgänge und Zeitraum',icon:'chart'}
 };
 function clean(v,length=180){
   return String(v==null?'':v).replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,length);
@@ -32,7 +35,7 @@ function meta(ctx){
       localDate);
   const time=(stamp.match(/\b\d{2}:\d{2}(?::\d{2})?\b/)||[])[0]||sent.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
   const inspector=clean(rec.inspector||rec.employee||ctx&&ctx.inspector||'Nicht angegeben',80);
-  const plate=clean(rec.plate||'',40);
+  const plate=clean(rec.plate||rec.vehicle&&rec.vehicle.plate||'',40);
   const safeType=spec.short.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]/g,'-').replace(/-+/g,'-');
   const safeDate=date.replace(/\./g,'-');
   const filename=('ECB-'+safeType+'-'+safeDate+(plate?'-'+plate.replace(/[^A-Za-z0-9_-]/g,'-'):'')+'.pdf').slice(0,130);
@@ -40,6 +43,20 @@ function meta(ctx){
 }
 function summary(ctx){
   const data=ctx&&ctx.data||{};
+  if(ctx&&ctx.type==='FleetMaintenanceRepair')
+    return 'Fahrzeug: '+clean(data.vehicle&&data.vehicle.plate||'-',40)+
+      ' | Wartungs-/Reparaturpunkt: '+clean(data.repair&&data.repair.title||'-',80)+
+      ' | Status: '+clean(data.repair&&data.repair.status||'-',40);
+  if(ctx&&ctx.type==='FleetMaintenanceVehicle')
+    return 'Aktueller Wartungsstatus und gespeicherte Reparaturen für '+
+      clean(data.vehicle&&data.vehicle.plate||'das Fahrzeug',70);
+  if(ctx&&ctx.type==='FleetMaintenanceReport'){
+    const from=data.from?String(data.from).split('-').reverse().join('.'):'Beginn';
+    const to=data.to?String(data.to).split('-').reverse().join('.'):'Aktuell';
+    return 'Zeitraum: '+from+' bis '+to+' | Fahrzeuge: '+(data.vehicleCount||0)+
+      ' | Wartungs-/Reparaturvorgänge: '+(data.total||0)+
+      ' | Erledigt: '+(data.completed||0)+' | Offen: '+(data.open||0);
+  }
   if(ctx&&ctx.type==='Gesamtbericht'){
     const names=[
       ['entmineralisierung','Entmineralisierung'],
