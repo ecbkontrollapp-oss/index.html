@@ -24,11 +24,12 @@ function meta(ctx){
   const rec=ctx&&ctx.data||{};
   const spec=CATALOG[ctx&&ctx.type]||{label:clean(ctx&&ctx.type||'Kontrollprotokoll'),short:'Dokument',hint:'Geprüfte Angaben im PDF'};
   const sent=new Date();
+  const localDate=[String(sent.getDate()).padStart(2,'0'),String(sent.getMonth()+1).padStart(2,'0'),String(sent.getFullYear())].join('.');
   const stamp=clean(rec.timestamp||ctx&&ctx.archiveTimestamp||'',80);
   const date=(stamp.match(/\b\d{2}\.\d{2}\.\d{4}\b/)||[])[0]||
     (String(ctx&&ctx.archiveDate||'').match(/^\d{4}-\d{2}-\d{2}$/)?
       String(ctx.archiveDate).split('-').reverse().join('.'):
-      sent.toLocaleDateString('de-DE'));
+      localDate);
   const time=(stamp.match(/\b\d{2}:\d{2}(?::\d{2})?\b/)||[])[0]||sent.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
   const inspector=clean(rec.inspector||rec.employee||ctx&&ctx.inspector||'Nicht angegeben',80);
   const plate=clean(rec.plate||'',40);
