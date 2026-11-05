@@ -238,7 +238,7 @@ return m?m[1].replace(/\s/g,'')+(m[2]?' '+m[2]+(m[3]||''):''):'';
 function typeValue(raw){
   // D.2 has up to three rows: type / variant / version. Retain all
   // legible entries in their original order instead of only the last.
-  const source=String(raw||'').toUpperCase().replace(/[^A-Z0-9\r\n /-]/g,' ');
+  const source=String(raw||'').toUpperCase().replace(/^\s*\(?D\s*[.,]\s*2\)?\s*/,'').replace(/[^A-Z0-9\r\n /-]/g,' ');
   const tokens=source.split(/[\s/|-]+/).filter(Boolean).filter(token=>
     /^[A-Z0-9]{1,16}$/.test(token)&&
     !/^(?:D2|TYP|TYPEN|VARIANTE|VERSION|D|HANDELSBEZEICHNUNG|HERSTELLER|FAHRZEUG|SCHEIN)$/.test(token));
