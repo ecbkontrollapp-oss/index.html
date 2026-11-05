@@ -39,14 +39,14 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./ecb-supabase-config.js"></script>
+    <script src="./ecb-supabase-config.js?v=20261105-mail-turnstile-v1"></script>
     <script src="./ecb-documents.js?v=20261105-mail-auth-v1"></script>
     <script defer src="./ecb-receipt-ocr.js?v=20261104-vendor-dedupe-13"></script>
     <script defer src="./ecb-registration-layout.js?v=20261105-d2-three-line-v10"></script>
     <script defer src="./ecb-registration-ocr.js?v=20261105-d2-fragment-filter-v11"></script>
     <script defer src="./ecb-logo-data.js?v=20261104-vector-original-1"></script>
     <script defer src="./ecb-fleet-costs.js?v=20261104-logo-everywhere-5"></script>
-    <script defer src="./ecb-protocol-mail.js?v=20261105-supabase-resend-v1"></script>
+    <script defer src="./ecb-protocol-mail.js?v=20261105-mail-no-login-v2"></script>
     <script defer src="./ecb-fleet-maintenance.js?v=20261105-maintenance-report-v2"></script>
     <script defer src="./kfz-admin.js?v=20261104-fahrzeugschein-tech-v5"></script>
 
@@ -4804,7 +4804,7 @@
             if(button)button.disabled=true;
             if(status){
                 status.className='p-3 rounded-xl text-xs w-full bg-sky-50 text-sky-800 border border-sky-200';
-                status.textContent='Original-PDF wird lokal erstellt und sicher über Supabase versendet …';
+                status.textContent='Original-PDF wird lokal erstellt und per E-Mail versendet …';
             }
             try{
                 if(!window.ECBProtocolMail)throw new Error('E-Mail-Modul fehlt. Bitte App neu laden.');
