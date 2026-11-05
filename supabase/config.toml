@@ -1,3 +1,4 @@
-# ECB send-ecb-pdf requires a signed-in Supabase Auth user JWT.
+# Public ECB PDF endpoint. No Supabase user login required.
+# Security is enforced IN the Edge Function: Turnstile + DB quotas + fixed recipient.
 [functions.send-ecb-pdf]
-verify_jwt = true
+verify_jwt = false
