@@ -1,0 +1,3 @@
+# ECB send-ecb-pdf requires a signed-in Supabase Auth user JWT.
+[functions.send-ecb-pdf]
+verify_jwt = true
