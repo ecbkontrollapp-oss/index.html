@@ -137,13 +137,24 @@ function loadTurnstile(){
   if(turnstileLoad)return turnstileLoad;
   turnstileLoad=new Promise((resolve,reject)=>{
     const script=document.createElement('script');
+    let settled=false;
+    const watchdog=setTimeout(()=>settle(new Error('Cloudflare-Sicherheitsprüfung lädt nicht. Bitte Safari direkt öffnen oder Inhaltsblocker prüfen.')),10000);
+    function settle(error){
+      if(settled)return;
+      settled=true;
+      clearTimeout(watchdog);
+      script.onload=null;
+      script.onerror=null;
+      if(error){script.remove();reject(error);}
+      else resolve(window.turnstile);
+    }
     script.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
     script.async=true;
     script.onload=()=>{
-      if(window.turnstile&&typeof window.turnstile.render==='function')resolve(window.turnstile);
-      else reject(new Error('Sicherheitsprüfung konnte nicht gestartet werden.'));
+      if(window.turnstile&&typeof window.turnstile.render==='function')settle(null);
+      else settle(new Error('Cloudflare-Sicherheitsprüfung konnte nicht gestartet werden.'));
     };
-    script.onerror=()=>reject(new Error('Die unsichtbare Sicherheitsprüfung wurde blockiert. Bitte Internet oder Inhaltsblocker prüfen.'));
+    script.onerror=()=>settle(new Error('Cloudflare-Sicherheitsprüfung wurde vom Browser blockiert. Bitte Safari direkt öffnen oder Inhaltsblocker prüfen.'));
     document.head.appendChild(script);
   }).catch(err=>{turnstileLoad=null;throw err;});
   return turnstileLoad;
@@ -160,7 +171,7 @@ async function getTurnstileToken(){
     document.body.appendChild(host);
     let widgetId=null;
     let finished=false;
-    const timeout=setTimeout(()=>done(new Error('Sicherheitsprüfung dauert zu lange. Bitte erneut versuchen.')),20000);
+    const timeout=setTimeout(()=>done(new Error('Cloudflare-Sicherheitsprüfung antwortet nicht. Bitte Safari direkt öffnen oder Inhaltsblocker prüfen.')),15000);
     function done(error,token){
       if(finished)return;
       finished=true;
@@ -170,19 +181,23 @@ async function getTurnstileToken(){
       if(error)reject(error);else resolve(token);
     }
     try{
+      // Run the invisible challenge immediately on render. No separate execute()
+      // call; this avoids mobile WebView execution races.
       widgetId=sdk.render(host,{
         sitekey,action:'ecb_pdf_send',language:'de',
-        execution:'execute',appearance:'interaction-only',
+        execution:'render',
         'response-field':false,
         callback:token=>done(null,token),
-        'error-callback':()=>done(new Error('Sicherheitsprüfung fehlgeschlagen. Bitte Internet prüfen und erneut versuchen.')),
+        'error-callback':code=>done(new Error('Cloudflare-Sicherheitsprüfung fehlgeschlagen'+(code?' (Code '+String(code).slice(0,16)+')':'')+'. Bitte Safari direkt öffnen oder Inhaltsblocker prüfen.')),
+        'timeout-callback':()=>done(new Error('Cloudflare-Sicherheitsprüfung hat zu lange gedauert.')),
+        'unsupported-callback':()=>done(new Error('Dieser Browser unterstützt die Sicherheitsprüfung nicht. Bitte Safari öffnen.')),
         'expired-callback':()=>done(new Error('Sicherheitsprüfung abgelaufen. Bitte erneut versuchen.'))
       });
-      sdk.execute(widgetId);
+      if(widgetId===undefined||widgetId===null)done(new Error('Cloudflare-Sicherheitsprüfung konnte nicht gestartet werden.'));
     }catch(error){done(new Error('Unsichtbare Sicherheitsprüfung konnte nicht ausgeführt werden: '+(error.message||'Unbekannter Fehler')));}
   });
 }
-async function sendSecureFields(fd){
+async function sendSecureFields(fd,onProgress){
   if(!(fd instanceof FormData))throw new Error('PDF-Versanddaten fehlen.');
   const file=fd.get('attachment');
   if(!(file instanceof Blob)||!file.size)throw new Error('PDF-Anhang fehlt.');
@@ -192,11 +207,13 @@ async function sendSecureFields(fd){
      !String(cfg.publishableKey||'').startsWith('sb_publishable_'))
     throw new Error('Supabase-Projekt ist noch nicht korrekt eingerichtet.');
   // Runs invisibly: no employee login, no passwords, no code entry.
+  if(typeof onProgress==='function')onProgress('Cloudflare-Sicherheitsprüfung läuft …');
   const token=await getTurnstileToken();
   fd.set('turnstile_token',token);
+  if(typeof onProgress==='function')onProgress('Sicherheitsprüfung erfolgreich. PDF wird per E-Mail übertragen …');
   let response;
   const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),45000);
+  const timeout=setTimeout(()=>controller.abort(),25000);
   try{
     response=await fetch(String(cfg.projectUrl).replace(/\/$/,'')+'/functions/v1/send-ecb-pdf',{
       method:'POST',
@@ -207,7 +224,7 @@ async function sendSecureFields(fd){
     });
   }catch(error){
     if(error&&error.name==='AbortError'){
-      throw new Error('Der Versanddienst antwortet seit 45 Sekunden nicht. Versandstatus unklar: bitte zuerst das E-Mail-Postfach prüfen, bevor du erneut sendest.');
+      throw new Error('Der Versanddienst antwortet seit 25 Sekunden nicht. Versandstatus unklar: bitte zuerst das E-Mail-Postfach prüfen, bevor du erneut sendest.');
     }
     throw new Error('Versanddienst nicht erreichbar. Versandstatus unklar: bitte Postfach prüfen, bevor du erneut sendest.');
   }finally{
@@ -224,8 +241,8 @@ async function sendSecureFields(fd){
     throw new Error('Keine gültige Bestätigung vom E-Mail-Dienst. Bitte Postfach prüfen.');
   return {ok:true,id:body.id,recipient:RECIPIENT,accepted:true};
 }
-async function sendSecure(ctx,blob){
-  return sendSecureFields(emailFields(ctx,blob));
+async function sendSecure(ctx,blob,onProgress){
+  return sendSecureFields(emailFields(ctx,blob),onProgress);
 }
 window.ECBProtocolMail={recipient:RECIPIENT,meta,summary,emailFields,render,sendSecure,sendSecureFields};
 })();
