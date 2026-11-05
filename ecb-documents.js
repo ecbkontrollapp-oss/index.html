@@ -321,6 +321,8 @@
 
   window.ECBFileStorage = {
     check: configuration,
+    // Reuse the existing authenticated staff session for secure Edge Functions.
+    authorized: authorized,
     upload: upload,
     signedUrl: signedUrl,
     remove: remove,
