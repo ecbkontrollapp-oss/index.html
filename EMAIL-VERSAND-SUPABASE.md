@@ -16,17 +16,17 @@
 ## Einmalig für den Administrator: Schritt 1 – Resend
 
 1. Kostenlose Registrierung: https://resend.com
-2. Unter https://resend.com/domains die Absenderdomain `ecb-system.de` hinzufügen.
+2. Unter https://resend.com/domains die Absenderdomain `bgf-elektro.com` hinzufügen.
 3. Die geforderten DNS-Einträge bei eurem Domainanbieter setzen, bis bei Resend **Verified** erscheint.
 4. Unter https://resend.com/api-keys einen Versand-API-Schlüssel erzeugen. **Nur in Supabase Secrets speichern, niemals in GitHub, Chat oder dem Browsercode.**
 
-Empfohlener Absender: `E.C.B. Protokolle <pb@ecb-system.de>`
+Absender: `ECB Protokolle <protokolle@bgf-elektro.com>`; Empfänger bleibt `pb@ecb-system.de`. Erst versenden, wenn die Absenderdomain bei Resend **Verified** ist.
 
 ## Schritt 2 – Cloudflare Turnstile kostenlos (unsichtbar)
 
 1. Dashboard https://dash.cloudflare.com öffnen und **Turnstile** auswählen; kostenlose Variante genügt.
 2. Ein Widget für den Hostnamen **ecbkontrollapp-oss.github.io** anlegen, Widget-Modus **Invisible** auswählen. Ein Invisible-Widget verlangt keine Eingabe durch Mitarbeiter.
-3. Der **Sitekey ist öffentlich**. Nur diesen in `ecb-supabase-config.js` im Feld `turnstileSiteKey` eintragen. Der initiale Wert `""` ist bewusst leer.
+3. Der **Sitekey ist öffentlich**. Nur diesen in `ecb-supabase-config.js` im Feld `turnstileSiteKey` eintragen. Der öffentliche Sitekey ist bereits im App-Code eingetragen.
 4. Den geheimen **Secret key** ausschließlich unter Supabase → Edge Functions → Secrets als `ECB_TURNSTILE_SECRET` hinterlegen.
 5. Aufgrund der Cloudflare-Bedingungen für Invisible Turnstile den Hinweis auf das Turnstile Privacy Addendum in die Datenschutzhinweise der App aufnehmen.
 
@@ -48,7 +48,7 @@ Dashboard: https://supabase.com/dashboard/project/tbagsmopgfvjpcjhekrw/functions
 - In Supabase die **JWT-Verifikation für genau diese Funktion abschalten** (`supabase/config.toml`: `verify_jwt = false`). Das ist hier gewollt, weil **statt Mitarbeiter-Login** die serverseitige Turnstile-Verifikation und das Quotenlimit greifen. Alle anderen Supabase-Zugriffsregeln bleiben erhalten.
 - Diese Secrets in Supabase hinterlegen:
   - `RESEND_API_KEY` – geheimer Resend-API-Schlüssel.
-  - `ECB_MAIL_FROM` – `E.C.B. Protokolle <pb@ecb-system.de>`.
+  - `ECB_MAIL_FROM` – `ECB Protokolle <protokolle@bgf-elektro.com>`.
   - `ECB_TURNSTILE_SECRET` – geheimer Cloudflare-Turnstile-Schlüssel.
   - `ECB_MAIL_RATE_SALT` – ein langer, **zufälliger**, nur für diese Anwendung erzeugter geheimer Wert für das Hashen der IP (mindestens 32 zufällige Bytes, als hex/base64).
 - `SUPABASE_URL` und `SUPABASE_SERVICE_ROLE_KEY` werden von Supabase in gehosteten Edge Functions normalerweise automatisch als Umgebungsvariablen bereitgestellt. Der Service-Role-Key darf **niemals** in öffentliche Dateien.
