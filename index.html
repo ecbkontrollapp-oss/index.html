@@ -46,7 +46,7 @@
     <script defer src="./ecb-registration-ocr.js?v=20261105-d2-fragment-filter-v11"></script>
     <script defer src="./ecb-logo-data.js?v=20261104-vector-original-1"></script>
     <script defer src="./ecb-fleet-costs.js?v=20261104-logo-everywhere-5"></script>
-    <script defer src="./ecb-protocol-mail.js?v=20261105-ecb-protocols-v2"></script>
+    <script defer src="./ecb-protocol-mail.js?v=20261105-multipart-send-v3"></script>
     <script defer src="./ecb-fleet-maintenance.js?v=20261105-maintenance-report-v1"></script>
     <script defer src="./kfz-admin.js?v=20261104-fahrzeugschein-tech-v5"></script>
 
@@ -4722,30 +4722,42 @@
             const button = document.getElementById('btn-send-pdf-direct');
             const status = document.getElementById('dispatch-status-msg');
             if (button && button.disabled) return;
+            // The tab MUST be opened synchronously while the user is tapping.
+            // Otherwise iPhone Safari may block it after PDF generation.
+            let tab=null;
+            try {
+                if(!window.ECBProtocolMail)throw new Error('E-Mail-Vorlage nicht geladen. App neu laden.');
+                tab=window.ECBProtocolMail.openSendWindow();
+            }catch(error){
+                if(status){
+                    status.className='p-3 rounded-xl text-xs bg-rose-50 text-rose-800 border border-rose-200';
+                    status.textContent=error.message;
+                }
+                showToast('E-Mail-Versandfenster konnte nicht geöffnet werden.');
+                return;
+            }
             if (button) button.disabled = true;
             if (status) {
-                status.className = 'p-3 rounded-xl text-xs w-full max-w-full bg-sky-50 text-sky-800';
-                status.textContent = 'PDF wird erstellt und an den Versanddienst übermittelt …';
+                status.className='p-3 rounded-xl text-xs w-full bg-sky-50 text-sky-800';
+                status.textContent='PDF wird lokal erstellt und für den Dateianhang vorbereitet …';
             }
             try {
-                const pdfBlob = await getPreparedPdfBlob(ctx);
-                if(!window.ECBProtocolMail)throw new Error('E-Mail-Vorlage konnte nicht geladen werden. Bitte App neu laden.');
+                const pdfBlob=await getPreparedPdfBlob(ctx);
                 const fd=window.ECBProtocolMail.emailFields(ctx,pdfBlob);
-                await sendPdfForm(fd);
-                showToast('PDF vom Versanddienst angenommen – Postfach prüfen.');
+                window.ECBProtocolMail.sendMultipart(fd,tab);
+                showToast('PDF-Versandseite geöffnet. Bitte Bestätigung prüfen.');
                 if(status){
-                    status.className='p-3 rounded-xl text-xs w-full max-w-full bg-emerald-50 text-emerald-900 border border-emerald-200';
-                    status.textContent='Versanddienst hat das PDF angenommen. Bitte Eingang unter '+RECIPIENT_EMAIL+' prüfen.';
+                    status.className='p-3 rounded-xl text-xs w-full bg-emerald-50 text-emerald-900 border border-emerald-200';
+                    status.textContent='PDF mit Dateianhang an den Versanddienst übergeben. Bitte das geöffnete Fenster kontrollieren und ggf. die Adresse '+RECIPIENT_EMAIL+' aktivieren. Erst der Postfacheingang bestätigt die Zustellung.';
                 }
-            } catch (e) {
-                if (status) {
-                    status.className = 'p-3 rounded-xl text-xs w-full max-w-full bg-rose-50 text-rose-800';
-                    status.textContent = 'Versand fehlgeschlagen: ' + (e.message || 'Bitte erneut versuchen.');
+            }catch(error){
+                if(window.ECBProtocolMail)window.ECBProtocolMail.closeSendWindow(tab,error.message||'Versand fehlgeschlagen.');
+                if(status){
+                    status.className='p-3 rounded-xl text-xs bg-rose-50 text-rose-800 border border-rose-200';
+                    status.textContent='PDF-Versand fehlgeschlagen: '+(error.message||'Bitte erneut versuchen.');
                 }
-                showToast('Protokoll konnte nicht versendet werden.');
-            } finally {
-                if (button) button.disabled = false;
-            }
+                showToast('PDF konnte nicht versendet werden.');
+            }finally{if(button)button.disabled=false;}
         }
         
         async function previewActivePdf() {
