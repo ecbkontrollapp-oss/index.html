@@ -42,16 +42,19 @@ async function digestIp(value,salt){
   return Array.from(hash,x=>x.toString(16).padStart(2,'0')).join('');
 }
 async function checkTurnstile(token, secret, ip) {
+  console.info('ECB PDF send: Turnstile verification started');
   const form=new URLSearchParams({secret,response:token});
   if(ip)form.set('remoteip',ip);
   const result=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{
     method:'POST',
     headers:{'Content-Type':'application/x-www-form-urlencoded'},
-    body:form
+    body:form,
+    signal:AbortSignal.timeout(7000)
   });
   if(!result.ok)return false;
   const json=await result.json();
-  return json.success===true && json.hostname==='ecbkontrollapp-oss.github.io' &&
+  console.info('ECB PDF send: Turnstile verification answered');
+  return json.success===true && json.hostname='ecbkontrollapp-oss.github.io' &&
     json.action==='ecb_pdf_send';
 }
 function serverSupabaseKey(){
@@ -64,6 +67,7 @@ function serverSupabaseKey(){
   } catch { return ''; }
 }
 async function reserveQuota(ipHash){
+  console.info('ECB PDF send: quota check started');
   const endpoint=Deno.env.get('SUPABASE_URL');
   const secret=serverSupabaseKey();
   if(!endpoint||!secret)throw Error('Supabase Server-Schlüssel fehlen.');
@@ -76,15 +80,18 @@ async function reserveQuota(ipHash){
   const response=await fetch(endpoint.replace(/\/$/,'')+'/rest/v1/rpc/ecb_mail_consume_quota',{
     method:'POST',
     headers,
-    body:JSON.stringify({p_ip_hash:ipHash})
+    body:JSON.stringify({p_ip_hash:ipHash}),
+    signal:AbortSignal.timeout(7000)
   });
   if(!response.ok){
     console.error('ECB rate limit RPC unavailable:',response.status);
     throw Error('Sende-Limit noch nicht eingerichtet. SQL-Funktion im Supabase-Projekt ausführen.');
   }
+  console.info('ECB PDF send: quota check answered');
   return (await response.json())===true;
 }
 async function handle(request){
+    console.info('ECB PDF send: incoming request', request.method);
     if (request.method !== 'POST') return jsonError('Nur POST ist erlaubt.',405);
     // Origin alone is not authentication. Turnstile and the DB quota are enforced below.
     if(request.headers.get('origin')!==APP_ORIGIN)
@@ -171,9 +178,11 @@ async function handle(request){
       '<p style="padding-top:12px"><strong>PDF-Anhang:</strong> ' +
       escapeHtml(safeName) + '</p></div></div>';
 
+    console.info('ECB PDF send: PDF accepted, preparing Resend request');
     const pdf = new Uint8Array(await attachment.arrayBuffer());
     let provider;
     try {
+      console.info('ECB PDF send: Resend request started');
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -187,8 +196,10 @@ async function handle(request){
           text: lines.join('\n') + '\nPDF: ' + safeName,
           html,
           attachments: [{ filename: safeName, content: asBase64(pdf), content_type: 'application/pdf' }]
-        })
+        }),
+        signal:AbortSignal.timeout(12000)
       });
+      console.info('ECB PDF send: Resend HTTP status', response.status);
       provider = await response.json().catch(() => ({}));
       if (!response.ok || !provider?.id) {
         console.error('ECB Resend response', response.status, provider?.name || 'unknown');
@@ -201,8 +212,9 @@ async function handle(request){
           response.status === 429 ? 429 : 502
         );
       }
-    } catch {
-      return jsonError('Verbindung zum E-Mail-Dienst fehlgeschlagen. Versandstatus unklar: bitte Postfach prüfen, bevor du erneut sendest.', 502);
+    } catch(error) {
+      console.error('ECB PDF send: Resend call failed', error?.name || 'unknown');
+      return jsonError('E-Mail-Dienst antwortet nicht rechtzeitig. Versandstatus unklar: bitte Postfach prüfen, bevor du erneut sendest.', 502);
     }
     // "accepted" is not the same as "delivered" (bounces can still occur).
     return Response.json({ ok: true, accepted: true, id: provider.id, recipient: RECIPIENT });
