@@ -58,13 +58,12 @@ async function checkTurnstile(token, secret, ip) {
     json.action==='ecb_pdf_send';
 }
 function serverSupabaseKey(){
-  // Existing projects may expose the legacy service-role JWT; newer ones use sb_secret_ keys.
-  const legacy=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  if(legacy)return legacy;
+  // Prefer modern sb_secret_ keys, which remain active if legacy JWT keys are disabled.
   try {
     const keys=JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}');
-    return typeof keys.default==='string'?keys.default:'';
-  } catch { return ''; }
+    if(typeof keys.default==='string'&&keys.default)return keys.default;
+  } catch { /* Fall back to legacy server credentials. */ }
+  return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
 }
 async function reserveQuota(ipHash){
   console.info('ECB PDF send: quota check started');
