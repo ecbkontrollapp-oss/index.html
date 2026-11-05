@@ -128,44 +128,97 @@ function render(ctx){
   if(sendStatus){sendStatus.textContent='';sendStatus.classList.add('hidden');}
 }
 
-/* Direct PDF mail via authenticated Supabase Edge Function.
- * No FormSubmit redirect. Neither PDF nor mail text is saved in Supabase.
- * A provider acceptance ID does not prove delivery to the final mailbox.
+/* No-login direct PDF mail:
+ * Cloudflare Turnstile protects the public endpoint without employee accounts.
+ * Server additionally enforces strict global/IP quotas and fixed recipient.
+ * The PDF is not uploaded to Supabase storage or retained in an email archive.
  */
-async function sendSecureFields(fd) {
-  if (!(fd instanceof FormData)) throw new Error('PDF-Versanddaten fehlen.');
-  const file=fd.get('attachment');
-  if (!(file instanceof Blob) || !file.size) throw new Error('PDF-Anhang fehlt.');
-  if (file.size > 8*1024*1024) throw new Error('PDF ist größer als 8 MB. Bitte die Fotos verkleinern.');
-  if (!window.ECBFileStorage || !window.ECBFileStorage.authorized) {
-    throw new Error('Supabase-Anmeldung ist nicht verfügbar. Bitte die ECB-App neu laden.');
-  }
-  const auth=await window.ECBFileStorage.authorized();
-  let response;
-  try {
-    response=await auth.client.functions.invoke('send-ecb-pdf',{body:fd});
-  } catch (error) {
-    throw new Error('Supabase nicht erreichbar. Versandstatus unklar – bitte Postfach prüfen, bevor du erneut sendest.');
-  }
-  const {data,error}=response||{};
-  if(error) {
-    let serverMessage='';
-    let status=0;
-    const ctx=error.context;
-    if(ctx&&typeof ctx.status==='number')status=ctx.status;
-    if(ctx&&typeof ctx.clone==='function'&&typeof ctx.json==='function') {
-      try {const body=await ctx.clone().json();serverMessage=String(body.error||body.message||'');}catch(ignored){}
-    }
-    if(status===404) throw new Error('PDF-Versandfunktion noch nicht in Supabase veröffentlicht. Bitte die Einrichtung abschließen.');
-    if(status===401||status===403) throw new Error(serverMessage||'Dein Supabase-Mitarbeiterkonto darf noch keine PDF-Protokolle versenden.');
-    throw new Error(serverMessage||'PDF-Versand fehlgeschlagen ('+(status||'Netzwerk')+'). Bitte Postfach kontrollieren, bevor du erneut sendest.');
-  }
-  if(!data||data.ok!==true||!data.id) {
-    throw new Error(String(data&&data.error||'Keine gültige Versandbestätigung vom Server erhalten. Versandstatus unklar.'));
-  }
-  return {ok:true,id:data.id,recipient:RECIPIENT,accepted:true};
+let turnstileLoad=null;
+function loadTurnstile(){
+  if(window.turnstile&&typeof window.turnstile.render==='function')return Promise.resolve(window.turnstile);
+  if(turnstileLoad)return turnstileLoad;
+  turnstileLoad=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.async=true;
+    script.onload=()=>{
+      if(window.turnstile&&typeof window.turnstile.render==='function')resolve(window.turnstile);
+      else reject(new Error('Sicherheitsprüfung konnte nicht gestartet werden.'));
+    };
+    script.onerror=()=>reject(new Error('Die unsichtbare Sicherheitsprüfung wurde blockiert. Bitte Internet oder Inhaltsblocker prüfen.'));
+    document.head.appendChild(script);
+  }).catch(err=>{turnstileLoad=null;throw err;});
+  return turnstileLoad;
 }
-async function sendSecure(ctx,blob) {
+async function getTurnstileToken(){
+  const cfg=window.ECB_DOCUMENTS_CONFIG||{};
+  const sitekey=String(cfg.turnstileSiteKey||'').trim();
+  if(!sitekey)throw new Error('Automatischer E-Mail-Versand noch nicht aktiviert: öffentlicher Turnstile-Sitekey fehlt.');
+  const sdk=await loadTurnstile();
+  return new Promise((resolve,reject)=>{
+    const host=document.createElement('div');
+    host.style.cssText='position:fixed;bottom:0;left:0;z-index:2147483647';
+    host.setAttribute('aria-hidden','true');
+    document.body.appendChild(host);
+    let widgetId=null;
+    let finished=false;
+    const timeout=setTimeout(()=>done(new Error('Sicherheitsprüfung dauert zu lange. Bitte erneut versuchen.')),20000);
+    function done(error,token){
+      if(finished)return;
+      finished=true;
+      clearTimeout(timeout);
+      try{if(widgetId!==null)sdk.remove(widgetId);}catch(ignored){}
+      host.remove();
+      if(error)reject(error);else resolve(token);
+    }
+    try{
+      widgetId=sdk.render(host,{
+        sitekey,action:'ecb_pdf_send',language:'de',
+        execution:'execute',appearance:'interaction-only',
+        'response-field':false,
+        callback:token=>done(null,token),
+        'error-callback':()=>done(new Error('Sicherheitsprüfung fehlgeschlagen. Bitte Internet prüfen und erneut versuchen.')),
+        'expired-callback':()=>done(new Error('Sicherheitsprüfung abgelaufen. Bitte erneut versuchen.'))
+      });
+      sdk.execute(widgetId);
+    }catch(error){done(new Error('Unsichtbare Sicherheitsprüfung konnte nicht ausgeführt werden: '+(error.message||'Unbekannter Fehler')));}
+  });
+}
+async function sendSecureFields(fd){
+  if(!(fd instanceof FormData))throw new Error('PDF-Versanddaten fehlen.');
+  const file=fd.get('attachment');
+  if(!(file instanceof Blob)||!file.size)throw new Error('PDF-Anhang fehlt.');
+  if(file.size>8*1024*1024)throw new Error('PDF ist größer als 8 MB. Bitte Fotos verkleinern.');
+  const cfg=window.ECB_DOCUMENTS_CONFIG||{};
+  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(String(cfg.projectUrl||''))||
+     !String(cfg.publishableKey||'').startsWith('sb_publishable_'))
+    throw new Error('Supabase-Projekt ist noch nicht korrekt eingerichtet.');
+  // Runs invisibly: no employee login, no passwords, no code entry.
+  const token=await getTurnstileToken();
+  fd.set('turnstile_token',token);
+  let response;
+  try{
+    response=await fetch(String(cfg.projectUrl).replace(/\/$/,'')+'/functions/v1/send-ecb-pdf',{
+      method:'POST',
+      headers:{apikey:String(cfg.publishableKey)},
+      body:fd,
+      cache:'no-store'
+    });
+  }catch(error){
+    throw new Error('Versanddienst nicht erreichbar. Versandstatus unklar: bitte Postfach prüfen, bevor du erneut sendest.');
+  }
+  let body=null;
+  try{body=await response.json();}catch(ignored){}
+  if(!response.ok){
+    if(response.status===404)throw new Error('Supabase-Versandfunktion noch nicht veröffentlicht. Bitte Einrichtung abschließen.');
+    if(response.status===429)throw new Error('E-Mail-Versandlimit erreicht. Bitte später erneut versuchen.');
+    throw new Error(String(body&&body.error||'PDF-Versand fehlgeschlagen (HTTP '+response.status+').'));
+  }
+  if(!body||body.ok!==true||!body.id)
+    throw new Error('Keine gültige Bestätigung vom E-Mail-Dienst. Bitte Postfach prüfen.');
+  return {ok:true,id:body.id,recipient:RECIPIENT,accepted:true};
+}
+async function sendSecure(ctx,blob){
   return sendSecureFields(emailFields(ctx,blob));
 }
 window.ECBProtocolMail={recipient:RECIPIENT,meta,summary,emailFields,render,sendSecure,sendSecureFields};
