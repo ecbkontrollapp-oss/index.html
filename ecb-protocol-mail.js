@@ -195,15 +195,23 @@ async function sendSecureFields(fd){
   const token=await getTurnstileToken();
   fd.set('turnstile_token',token);
   let response;
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),45000);
   try{
     response=await fetch(String(cfg.projectUrl).replace(/\/$/,'')+'/functions/v1/send-ecb-pdf',{
       method:'POST',
       headers:{apikey:String(cfg.publishableKey)},
       body:fd,
-      cache:'no-store'
+      cache:'no-store',
+      signal:controller.signal
     });
   }catch(error){
+    if(error&&error.name==='AbortError'){
+      throw new Error('Der Versanddienst antwortet seit 45 Sekunden nicht. Versandstatus unklar: bitte zuerst das E-Mail-Postfach prüfen, bevor du erneut sendest.');
+    }
     throw new Error('Versanddienst nicht erreichbar. Versandstatus unklar: bitte Postfach prüfen, bevor du erneut sendest.');
+  }finally{
+    clearTimeout(timeout);
   }
   let body=null;
   try{body=await response.json();}catch(ignored){}
