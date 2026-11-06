@@ -4416,7 +4416,8 @@
             const totalPages = doc.internal.getNumberOfPages();
             for (let pageNumber = 2; pageNumber <= totalPages; pageNumber++) {
                 doc.setPage(pageNumber);
-                if(!String(ctx.type).startsWith('FleetMaintenance'))
+                if(!String(ctx.type).startsWith('FleetMaintenance')&&
+                   !['Entmineralisierung','Heizungskontrolle','Außenbereich','Pausenraum','Fahrzeuge'].includes(ctx.type))
                     drawOriginalEcbLogo(doc, 15, 2, 16, 16);
             }
             doc.setPage(1);
@@ -4714,76 +4715,117 @@
         }
         
         function buildSingleSectionPdf(doc, type, rec, dateStr, timeStr) {
-            renderPdfHeader(doc, `PROTOKOLL: ${type.toUpperCase()}`, dateStr, timeStr);
-            doc.setDrawColor(226, 232, 240); doc.roundedRect(15, 36, 180, 234, 3, 3, 'S');
-            doc.setFillColor(248, 250, 252); doc.roundedRect(15, 36, 180, 10, 3, 3, 'F');
-            doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(15, 23, 42);
-            doc.text(`QUALITÄTS- & WARTUNGSPROTOKOLL - ${type.toUpperCase()}`, 19, 42.5);
-            doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-            
-            let y = 56;
-            doc.text(`Prüfer / Mitarbeiter: ${rec.inspector || rec.employee || '-'}`, 23, y); y += 7;
-            doc.text(`Zeitstempel: ${rec.timestamp || '-'}`, 23, y); y += 9;
-            
-            if (type === 'Entmineralisierung') {
-                doc.text(`Leitwert: ${rec.conductivity || '-'} µS/cm`, 23, y); y += 7;
-                doc.text(`Druck: ${rec.pressure || '-'} bar`, 23, y); y += 9;
-                
-                doc.setFont('helvetica', 'bold'); doc.text('Prüfpunkte & Checkliste:', 23, y); y += 6;
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(16, 185, 129); doc.text(`• Dichtheit der Anlage: ${rec.statusLeak === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
-                doc.text(`• Vorfilter & Patronen: ${rec.statusFilter === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
-                doc.text(`• Harzkapazität: ${rec.statusResin === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
-                doc.text(`• Salz aufgefüllt: ${rec.statusSalt === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); doc.setTextColor(51, 65, 85); y += 8;
-            } else if (type === 'Heizungskontrolle') {
-                doc.text(`Heizungsdruck: ${rec.pressure || '-'} bar`, 23, y); y += 7;
-                doc.text(`Speichertemperatur: ${rec.temp || '-'} °C`, 23, y); y += 9;
-                
-                doc.setFont('helvetica', 'bold'); doc.text('Prüfpunkte & Checkliste:', 23, y); y += 6;
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(16, 185, 129); doc.text(`• Keine Undichtigkeiten / Leckagen: ${rec.statusLeaks === 'ok' ? '✓ i.O. (Keine Mängel)' : '✗ Mangel festgestellt'}`, 25, y); y += 6;
-                doc.text(`• Keine Mängel / Störungen am System: ${rec.statusDefects === 'ok' ? '✓ i.O. (Keine Mängel)' : '✗ Mangel festgestellt'}`, 25, y); doc.setTextColor(51, 65, 85); y += 8;
-            } else if (type === 'Außenbereich') {
-                doc.setFont('helvetica', 'bold'); doc.text('Prüfpunkte & Checkliste:', 23, y); y += 6;
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(16, 185, 129); doc.text(`• Mülleimer geleert & Zigarettenstummel: ${rec.statusTrash === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
-                doc.text(`• Kein Essen auf Tischen, leere Dosen: ${rec.statusTables === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
-                doc.text(`• Sauberkeit der Flächen & Abläufe frei: ${rec.statusGrounds === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); doc.setTextColor(51, 65, 85); y += 8;
-            } else if (type === 'Pausenraum') {
-                doc.setFont('helvetica', 'bold'); doc.text('Prüfpunkte & Checkliste:', 23, y); y += 6;
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(16, 185, 129); doc.text(`• Tische, Arbeitsflächen & Spüle: ${rec.statusSurfaces === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
-                doc.text(`• Kühlschrank & Geräte sauber / leer: ${rec.statusAppliances === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
-                doc.text(`• Mülleimer geleert & Mülltrennung: ${rec.statusTrash === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
-                doc.text(`• Fußboden sauber / gewischt: ${rec.statusFloor === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); doc.setTextColor(51, 65, 85); y += 8;
-            } else if (type === 'Fahrzeuge') {
-                doc.text(`Fahrzeug / Kennzeichen: ${rec.plate || '-'}`, 23, y); y += 7;
-                doc.text(`Kilometerstand: ${rec.km || '-'} km`, 23, y); y += 9;
-                
-                doc.setFont('helvetica', 'bold'); doc.text('Prüfpunkte & Checkliste:', 23, y); y += 6;
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(16, 185, 129); doc.text(`• Fahrzeug sauber (Kabine & Außen): ${rec.statusClean === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
-                doc.text(`• Beleuchtung & Blinker in Ordnung: ${rec.statusCondition === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
-                doc.text(`• Reifendruck prüfen & korrigieren: ${rec.statusTirePressure === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); y += 6;
-                doc.text(`• Keine Warnleuchten / Kratzer: ${rec.statusWarnings === 'ok' ? '✓ i.O. (Erfüllt)' : '✗ Nicht i.O.'}`, 25, y); doc.setTextColor(51, 65, 85); y += 8;
+            if(!rec||typeof rec!=='object')throw new Error('Der gespeicherte Kontrolldatensatz fehlt.');
+            const title='KONTROLLPROTOKOLL · '+String(type||'KONTROLLE').toUpperCase();
+            const newPage=()=>{doc.addPage('a4','portrait');renderPdfHeader(doc,title,dateStr,timeStr);y=43;};
+            renderPdfHeader(doc,title,dateStr,timeStr);
+            let y=43;
+            const ensure=h=>{if(y+h>268)newPage();};
+            const safe=value=>String(value??'–').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().replace(/[•✓✗]/g,c=>({'•':'-','✓':'OK','✗':'X'}[c])).replace(/[–—]/g,'-').replace(/€/g,'EUR')||'–';
+            const line=(label,value,{font=9,color=[41,56,47],bold=false,indent=0}={})=>{
+                const text=(label?label+': ':'')+safe(value);
+                const rows=doc.splitTextToSize(text,170-indent);
+                for(const row of rows){
+                    ensure(5.4);
+                    doc.setFont('helvetica',bold?'bold':'normal');
+                    doc.setFontSize(font);
+                    doc.setTextColor(...color);
+                    doc.text(row,19+indent,y);
+                    y+=5.4;
+                }
+                y+=1.4;
+            };
+            const section=label=>{
+                ensure(12);
+                doc.setFillColor(241,248,242);
+                doc.roundedRect(15,y,180,9,2,2,'F');
+                doc.setFont('helvetica','bold');doc.setFontSize(9);
+                doc.setTextColor(44,100,64);
+                doc.text(safe(label),19,y+6.1);y+=13;
+            };
+            const state=(label,value)=>{
+                const ok=value==='ok';
+                line(ok?'OK · '+label:'PRÜFEN · '+label,ok?'In Ordnung':'Nicht in Ordnung / Mangel',{font:8.7,color:ok?[35,93,61]:[150,65,50]});
+            };
+            section('DOKUMENTATION');
+            line('Protokollart',type,{bold:true});
+            line('Prüfer / Mitarbeiter',rec.inspector||rec.employee||'–');
+            line('Kontrollzeitpunkt',rec.timestamp||rec.date||'–');
+            if(type==='Entmineralisierung'){
+                line('Leitwert',safe(rec.conductivity||'–')+' µS/cm');
+                line('Anlagendruck',safe(rec.pressure||'–')+' bar');
+                section('PRÜFPUNKTE');
+                state('Dichtheit der Anlage',rec.statusLeak);
+                state('Vorfilter und Patronen',rec.statusFilter);
+                state('Harzkapazität',rec.statusResin);
+                state('Salz aufgefüllt',rec.statusSalt);
+            }else if(type==='Heizungskontrolle'){
+                line('Heizungsdruck',safe(rec.pressure||'–')+' bar');
+                line('Speichertemperatur',safe(rec.temp||'–')+' °C');
+                section('PRÜFPUNKTE');
+                state('Undichtigkeiten und Leckagen',rec.statusLeaks);
+                state('Mängel und Störungen',rec.statusDefects);
+            }else if(type==='Außenbereich'){
+                section('PRÜFPUNKTE');
+                state('Mülleimer geleert und Zigarettenstummel',rec.statusTrash);
+                state('Tische und Dosen / Speisereste',rec.statusTables);
+                state('Flächen und Abläufe frei',rec.statusGrounds);
+            }else if(type==='Pausenraum'){
+                section('PRÜFPUNKTE');
+                state('Tische, Arbeitsflächen und Spüle',rec.statusSurfaces);
+                state('Kühlschrank und Geräte',rec.statusAppliances);
+                state('Mülleimer und Mülltrennung',rec.statusTrash);
+                state('Fußboden',rec.statusFloor);
+            }else if(type==='Fahrzeuge'){
+                line('Fahrzeug / Kennzeichen',rec.plate||'–');
+                line('Kilometerstand',(rec.km??'–')+' km');
+                section('PRÜFPUNKTE');
+                state('Kabine und Außenflächen sauber',rec.statusClean);
+                state('Beleuchtung und Blinker',rec.statusCondition);
+                state('Reifendruck geprüft',rec.statusTirePressure);
+                state('Warnleuchten und Kratzer',rec.statusWarnings);
             }
-        
-            doc.text(`Bemerkungen: ${rec.notes || '-'}`, 23, y); y += 10;
-        
-            doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(51, 65, 85);
-            y = addPdfPhotos(doc, rec.photos, y, 23, () => { doc.addPage(); return 20; });
-
-            if (rec.signature) {
-                if (y > 235) { doc.addPage(); y = 20; }
-                doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(51, 65, 85);
-                doc.text('Digitale Unterschrift des Prüfers:', 23, y);
-                try { doc.addImage(rec.signature, 'PNG', 23, y + 4, 85, 28); } catch (e) {throw new Error('Unterschrift aus dem gespeicherten Kontrollprotokoll ist nicht lesbar.');}
+            section('BEMERKUNGEN');
+            line('',rec.notes||'Keine Bemerkungen');
+            const photos=Array.isArray(rec.photos)?rec.photos:[];
+            if(photos.length){
+                section('ORIGINALFOTOS · '+photos.length);
+                for(const [i,original] of photos.entries()){
+                    const src=typeof original==='string'?original:original?.dataUrl||original?.data||original?.src||original?.url;
+                    if(!src)throw new Error('Originalfoto '+(i+1)+' fehlt im gespeicherten Datensatz. Kein unvollständiges PDF wird ausgegeben.');
+                    try{
+                        const info=doc.getImageProperties(src);
+                        if(!info?.width||!info?.height)throw new Error('Bildgröße unbekannt');
+                        const scale=Math.min(168/info.width,85/info.height);
+                        const w=info.width*scale,h=info.height*scale;
+                        ensure(h+13);
+                        line('Foto',String(i+1),{font:8,bold:true});
+                        ensure(h+3);
+                        doc.addImage(src,typeof src==='string'&&src.startsWith('data:image/png')?'PNG':'JPEG',19,y,w,h);
+                        y+=h+7;
+                    }catch(err){
+                        throw new Error('Gespeichertes Originalfoto '+(i+1)+' ist nicht lesbar. PDF wird nicht unvollständig erstellt.');
+                    }
+                }
             }
-
-            renderPdfFooter(doc, 1, 1);
+            section('ORIGINAL-UNTERSCHRIFT');
+            const signature=typeof rec.signature==='string'?rec.signature:rec.signature?.dataUrl||rec.signature?.data||rec.signature?.url;
+            if(signature){
+                try{
+                    const p=doc.getImageProperties(signature);
+                    const scale=Math.min(98/p.width,34/p.height);
+                    const w=p.width*scale,h=p.height*scale;
+                    ensure(h+8);
+                    doc.addImage(signature,signature.startsWith('data:image/jpeg')?'JPEG':'PNG',19,y,w,h);
+                    y+=h+7;
+                }catch(err){throw new Error('Gespeicherte Unterschrift ist nicht lesbar. Kein unvollständiges PDF wird ausgegeben.');}
+            }else line('Unterschrift','Nicht im gespeicherten Datensatz vorhanden');
+            const total=doc.internal.getNumberOfPages();
+            for(let n=1;n<=total;n++){doc.setPage(n);renderPdfFooter(doc,n,total);}
+            doc.setPage(1);
             return doc;
         }
-        
+
         function drawOriginalEcbLogo(doc, x, y, width, height) {
             const logo=window.ECB_CONTROL_ORIGINAL_PDF_LOGO;
             if(!logo)throw new Error('Original-Kontrolllogo nicht geladen. PDF wird nicht ohne richtiges Logo ausgegeben.');
@@ -4792,32 +4834,38 @@
         }
 
         function renderPdfHeader(doc, subtitle, dateStr, timeStr) {
-            const pageWidth=doc.internal.pageSize.getWidth();
-            // Branded PDF header for every live and historical Kontroll record.
-            doc.setFillColor(22, 77, 64);
-            doc.rect(0, 0, pageWidth, 31, 'F');
-            doc.setFillColor(119, 193, 71);
-            doc.rect(0, 0, 3, 31, 'F');
-            drawOriginalEcbLogo(doc, 14, 4, 23, 23);
-            doc.setFont('helvetica','bold');
-            doc.setFontSize(8.5);
-            doc.setTextColor(229, 246, 235);
-            doc.text('E.C.B. REINIGUNGSSYSTEME GMBH  |  ECB KONTROLL APP', 49, 12);
-            doc.setFont('helvetica','normal');
-            doc.setFontSize(7);
-            doc.setTextColor(217, 236, 226);
-            doc.text(dateStr+' | '+timeStr, pageWidth-15, 12, {align:'right'});
-            doc.setFont('helvetica','bold');
-            doc.setFontSize(String(subtitle).length>47?9:11);
-            doc.setTextColor(255, 255, 255);
-            const titleLines=doc.splitTextToSize(String(subtitle||'PROTOKOLL'),pageWidth-65).slice(0,2);
-            doc.text(titleLines,49,21);
-            doc.setDrawColor(132, 181, 89);
-            doc.setLineWidth(.9);
-            doc.line(15,31.5,pageWidth-15,31.5);
+            const width=doc.internal.pageSize.getWidth();
+            // A single clean, integrated header. No legacy logo, coloured side panel
+            // or separate image overlay. All coordinates stay inside A4 margins.
+            doc.setFillColor(255,255,255);
+            doc.rect(0,0,width,34,'F');
+            doc.setDrawColor(211,227,215);
             doc.setLineWidth(.2);
+            doc.line(15,33.2,width-15,33.2);
+            drawOriginalEcbLogo(doc,15,4.5,23,23);
+            doc.setFont('helvetica','bold');
+            doc.setFontSize(10);
+            doc.setTextColor(28,88,63);
+            doc.text('ECB KONTROLL APP',45,10);
+            doc.setFont('helvetica','normal');
+            doc.setFontSize(7.1);
+            doc.setTextColor(96,113,103);
+            doc.text(String(dateStr||'')+'  |  '+String(timeStr||''),width-15,10,{align:'right'});
+            doc.setFont('helvetica','bold');
+            doc.setFontSize(8.0);
+            doc.setTextColor(39,53,44);
+            doc.text('E.C.B. REINIGUNGSSYSTEME GmbH',45,16.2);
+            doc.setFontSize(9.4);
+            doc.setTextColor(29,65,49);
+            const wrapped=doc.splitTextToSize(String(subtitle||'PROTOKOLL'),width-62).slice(0,2);
+            doc.text(wrapped,45,24);
+            doc.setDrawColor(103,160,82);
+            doc.setLineWidth(.75);
+            doc.line(15,33.5,width-15,33.5);
+            doc.setLineWidth(.2);
+            doc.setTextColor(39,52,46);
         }
-        
+
         function renderLandscapePdfFooter(doc, pageNum, totalPages) {
             doc.setDrawColor(226, 232, 240); doc.line(15, 195, 282, 195);
             doc.setFontSize(7); doc.setTextColor(148, 163, 184);
