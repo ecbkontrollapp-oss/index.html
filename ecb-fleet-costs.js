@@ -233,21 +233,42 @@
     doc.setTextColor(bold?22:70,bold?37:85,bold?48:105);
     doc.text(String(text==null?'':text).replace(/[\u20ac]/g,'EUR').replace(/[^\u0000-\u00ff]/g,'-'),x,y);
   }
+  async function originalControlPdfLogo(){
+    if(window.ECB_CONTROL_ORIGINAL_PDF_LOGO)return window.ECB_CONTROL_ORIGINAL_PDF_LOGO;
+    const target=new URL('./icons/icon-512.png?v=20261106-approved',document.baseURI);
+    const response=await fetch(target.href,{cache:'force-cache'});
+    if(!response.ok)throw Error('Original-Logo nicht erreichbar (HTTP '+response.status+').');
+    const blob=await response.blob();
+    if(!blob.type.startsWith('image/png')||!blob.size)throw Error('Original-Kontrolllogo ist kein gültiges PNG.');
+    const data=await new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(reader.result);
+      reader.onerror=()=>reject(Error('Original-Kontrolllogo konnte nicht eingelesen werden.'));
+      reader.readAsDataURL(blob);
+    });
+    if(typeof data!=='string'||!data.startsWith('data:image/png;base64,'))throw Error('Original-Kontrolllogo ist kein gültiges PNG.');
+    window.ECB_CONTROL_ORIGINAL_PDF_LOGO=data;
+    return data;
+  }
   function pdfHeader(doc,label,report){
-    doc.setFillColor(250,252,250);doc.rect(0,0,210,40,'F');
-    doc.addImage(companyMark(),'PNG',14,8,37,18);
-    pdfLine(doc,'E.C.B. Reinigungssysteme GmbH',56,16,12,true);
-    pdfLine(doc,label,56,22,9,false);
-    pdfLine(doc,'Erstellt: '+infoDate(),56,28,8);
+    const logo=window.ECB_CONTROL_ORIGINAL_PDF_LOGO;
+    if(!logo)throw Error('Original-Kontrolllogo nicht geladen. PDF wird nicht mit altem Logo ausgegeben.');
+    doc.setFillColor(255,255,255);doc.rect(0,0,210,40,'F');
+    doc.addImage(logo,'PNG',15,6,24,24);
+    pdfLine(doc,'E.C.B. Reinigungssysteme GmbH',47,15,12,true);
+    pdfLine(doc,'ECB Kontroll App | '+label,47,22,9);
+    pdfLine(doc,'Erstellt: '+infoDate(),47,28,8);
+    doc.setDrawColor(103,160,82);doc.setLineWidth(.7);doc.line(15,35,195,35);doc.setLineWidth(.2);
     const range=report.range.from||report.range.to?
       dateDE(report.range.from)+' bis '+dateDE(report.range.to):'Gesamter Zeitraum';
     pdfLine(doc,'Zeitraum: '+range,15,47,9);
   }
-  function pdf(){
+  async function pdf(){
     let report;
     try{report=build();}catch(e){alert(e.message);return;}
     if(!report.groups.length){alert('Keine Fahrzeuge für den Export vorhanden.');return;}
     if(!window.jspdf||!window.jspdf.jsPDF){alert('PDF-Bibliothek nicht geladen.');return;}
+    try{await originalControlPdfLogo();}catch(e){alert('Der PDF-Export konnte das Original-Kontrolllogo nicht laden: '+(e.message||e));return;}
     const doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
     const addPage=()=>{doc.addPage();pdfHeader(doc,mode==='single'?'Einzelfahrzeug – Kostenreport':'Fuhrpark – Kostenreport',report);return 57;};
     let y=57;
