@@ -79,27 +79,35 @@
             scrollbar-width: none;
         }
     </style>
-    <style id="ecb-large-header-20261106">
-      /* ECB Kontroll: größere freigegebene Logos, klare Schrift und erreichbare Bedienknöpfe. */
-      #ecb-kontroll-mobile-app-icon{width:72px;height:72px;border-radius:18px}
-      #ecb-kontroll-desktop-app-icon{width:74px;height:74px;border-radius:18px}
-      .ecb-kontroll-mobile-header{min-height:96px}
-      .ecb-kontroll-header-inner{gap:10px}
-      .ecb-kontroll-header-brand{flex:0 1 auto;min-width:0;gap:10px}
-      .ecb-kontroll-header-title{font-size:18px;line-height:1.12;letter-spacing:-.03em;white-space:nowrap}
-      .ecb-kontroll-desktop-title{font-size:17px;line-height:1.17}
-      .ecb-kontroll-header-actions{flex:0 0 auto;gap:6px}
-      @media(max-width:440px){
-        .ecb-kontroll-header-inner{flex-wrap:wrap;row-gap:8px;justify-content:space-between}
-        .ecb-kontroll-header-brand{width:100%;flex:0 0 100%}
-        .ecb-kontroll-header-actions{width:100%;display:flex;justify-content:flex-end}
-        .ecb-kontroll-mobile-header{min-height:128px}
-      }
-      @media(max-width:355px){
-        .ecb-kontroll-header-title{font-size:17px}
-        #ecb-kontroll-mobile-app-icon{width:68px;height:68px}
-      }
-    </style>
+    
+<style id="ecb-large-header-20261106">
+  /* ECB Kontroll – one-row mobile header, logo dimensions preserved. */
+  #ecb-kontroll-mobile-app-icon{width:72px;height:72px;min-width:72px;min-height:72px;border-radius:18px;flex-shrink:0}
+  #ecb-kontroll-desktop-app-icon{width:74px;height:74px;border-radius:18px}
+  .ecb-kontroll-mobile-header{min-height:90px;padding-top:9px;padding-bottom:9px}
+  .ecb-kontroll-header-inner{width:100%;max-width:none;display:flex;flex-wrap:nowrap;justify-content:space-between;align-items:center;column-gap:8px}
+  .ecb-kontroll-header-brand{display:flex;align-items:center;min-width:0;width:auto;flex:0 1 auto;gap:8px}
+  .ecb-kontroll-header-title{font-size:18px;line-height:1.13;letter-spacing:-.03em;white-space:normal;max-width:124px;min-width:0;overflow-wrap:normal}
+  .ecb-kontroll-desktop-title{font-size:17px;line-height:1.17}
+  .ecb-kontroll-header-actions{width:auto;flex:0 0 auto;display:flex;align-items:center;justify-content:flex-end;gap:4px;flex-wrap:nowrap}
+  .ecb-kontroll-header-actions button{flex-shrink:0;min-width:32px;min-height:36px}
+  @media(min-width:480px){
+    .ecb-kontroll-header-title{max-width:none;white-space:nowrap}
+    .ecb-kontroll-header-actions{gap:6px}
+  }
+  @media(max-width:390px){
+    .ecb-kontroll-header-inner{gap:5px}
+    .ecb-kontroll-header-brand{gap:5px}
+    .ecb-kontroll-header-title{font-size:16px;max-width:106px}
+    .ecb-kontroll-header-actions{gap:3px}
+    .ecb-kontroll-header-actions button{min-width:29px;padding-left:7px;padding-right:7px}
+  }
+  @media(max-width:350px){
+    .ecb-kontroll-header-title{font-size:14px;max-width:88px}
+    .ecb-kontroll-header-actions{gap:2px}
+    .ecb-kontroll-header-actions button{min-width:28px;padding-left:6px;padding-right:6px}
+  }
+</style>
 </head>
 
 <body id="app-body" class="h-full bg-slate-100 text-slate-800 flex flex-col md:flex-row font-sans select-none antialiased overflow-hidden">
