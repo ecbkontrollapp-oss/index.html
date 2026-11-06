@@ -1,0 +1,105 @@
+name: ECB Original-Icons fuer Startbildschirm
+on:
+  push:
+    paths:
+      - ".github/workflows/ecb-home-icons.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  original-home-icons:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pillow bereitstellen
+        run: python -m pip install --quiet pillow
+      - name: Original-App-Icon ohne aeusseren weissen Rand aufbereiten
+        run: |
+          python - <<'PY'
+          from collections import deque
+          from pathlib import Path
+          import json
+          from PIL import Image, ImageFilter
+
+          p = Path("icons/icon-512.png")
+          if not p.is_file():
+              raise RuntimeError("Originales 512er-Icon fehlt; kein Ersatzlogo erzeugen.")
+          image = Image.open(p).convert("RGB")
+          if image.size != (512, 512):
+              raise RuntimeError("Original-Icon hat unerwartete Abmessungen.")
+          w, h = image.size
+          orig = image.load()
+          outside = bytearray(w*h)
+          queue = deque()
+          def whiteish(x, y):
+              r, g, b = orig[x, y]
+              return min(r, g, b) >= 214 and max(r, g, b) - min(r, g, b) <= 20
+          def add(x,y):
+              pos = y*w+x
+              if not outside[pos] and whiteish(x,y):
+                  outside[pos] = 1
+                  queue.append((x,y))
+          for x in range(w):
+              add(x,0)
+              add(x,h-1)
+          for y in range(h):
+              add(0,y)
+              add(w-1,y)
+          while queue:
+              x,y=queue.popleft()
+              if x>0:add(x-1,y)
+              if x+1<w:add(x+1,y)
+              if y>0:add(x,y-1)
+              if y+1<h:add(x,y+1)
+          # Nur weissen AUSSENBEREICH ersetzen, nie das weisse Logo-Paneel.
+          mask = Image.frombytes("L", (w,h), bytes(255 if v else 0 for v in outside))
+          mask = mask.filter(ImageFilter.MaxFilter(3))
+          is_wartung = "WARTUNG" in Path("manifest.webmanifest").read_text(encoding="utf-8").upper()
+          top=(24,124,29)
+          bottom=(5,76,123) if is_wartung else (14,45,46)
+          gradient=Image.new("RGB", (w,h))
+          gp=gradient.load()
+          for y in range(h):
+              t=y/max(h-1,1)
+              rgb=tuple(round(a*(1-t)+b*t) for a,b in zip(top,bottom))
+              for x in range(w):
+                  gp[x,y]=rgb
+          composed=Image.composite(gradient,image,mask)
+          # Die bestehenden ECB-Logos und Motive bleiben pixelgenau erhalten.
+          # Lediglich der aeussere Rand wird abgeschnitten und auf volle Flaeche skaliert.
+          composed=composed.crop((15,15,497,497)).resize((1024,1024),Image.Resampling.LANCZOS)
+          for size, target in [
+              (180, "icons/home-apple-180.png"),
+              (192, "icons/home-192.png"),
+              (512, "icons/home-512.png")
+          ]:
+              composed.resize((size,size),Image.Resampling.LANCZOS).save(target,optimize=True)
+          tag="20261106-original-fullbleed-2"
+          manifest_path=Path("manifest.webmanifest")
+          config=json.loads(manifest_path.read_text(encoding="utf-8"))
+          config["icons"]=[
+             {"src":f"icons/home-192.png?v={tag}","sizes":"192x192","type":"image/png","purpose":"any"},
+             {"src":f"icons/home-512.png?v={tag}","sizes":"512x512","type":"image/png","purpose":"any"}
+          ]
+          manifest_path.write_text(json.dumps(config,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+          html_path=Path("index.html")
+          html=html_path.read_text(encoding="utf-8")
+          import re
+          html,count=re.subn(r'(<link\s+rel="manifest"\s+href=")[^"]+(")',lambda m:m.group(1)+f"./manifest.webmanifest?v={tag}"+m.group(2),html,count=1)
+          if count!=1:raise RuntimeError("Manifest-Link fehlt.")
+          html,count=re.subn(r'(<link\s+rel="icon"[^>]*href=")[^"]+(")',lambda m:m.group(1)+f"./icons/home-512.png?v={tag}"+m.group(2),html,count=1)
+          if count!=1:raise RuntimeError("FavIcon-Link fehlt.")
+          html,count=re.subn(r'(<link\s+rel="apple-touch-icon"[^>]*href=")[^"]+(")',lambda m:m.group(1)+f"./icons/home-apple-180.png?v={tag}"+m.group(2),html,count=1)
+          if count!=1:raise RuntimeError("Apple-Touch-Icon-Link fehlt.")
+          html_path.write_text(html,encoding="utf-8")
+          print("Startbildschirm-Dateien erstellt; Originale fuer PDF/E-Mail bleiben unveraendert.")
+          PY
+      - name: Veraenderungen nur fuer Startbildschirm speichern
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add icons/home-apple-180.png icons/home-192.png icons/home-512.png manifest.webmanifest index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "ECB: Original-App-Icons randlos auf iOS und Android"
+            git push
+          fi
