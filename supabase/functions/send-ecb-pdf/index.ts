@@ -127,7 +127,7 @@ async function handle(request){
     const originalFrom=Deno.env.get('ECB_MAIL_FROM')?.trim() || 'ECB Protokolle <protokolle@bgf-elektro.com>';
     const match=originalFrom.match(/<([^<>]+)>\s*$/);
     const actualSender=(match?match[1]:originalFrom).trim();
-    const from='ECB Kontroll App (protokolle@ecb-system.de) <'+actualSender+'>';
+    const from='ECB Kontroll App <'+actualSender+'>';
     const challengeSecret=Deno.env.get('ECB_TURNSTILE_SECRET');
     const salt=Deno.env.get('ECB_MAIL_RATE_SALT')||serverSupabaseKey();
     if(!apiKey||!from||!challengeSecret||!salt){
