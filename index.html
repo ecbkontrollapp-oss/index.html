@@ -4744,8 +4744,11 @@
                 doc.text(safe(label),19,y+6.1);y+=13;
             };
             const state=(label,value)=>{
+                const status=value==='ok'?'In Ordnung':
+                    value===undefined||value===null||value===''?'Nicht dokumentiert':
+                    'Nicht in Ordnung / Mangel';
                 const ok=value==='ok';
-                line(ok?'OK · '+label:'PRÜFEN · '+label,ok?'In Ordnung':'Nicht in Ordnung / Mangel',{font:8.7,color:ok?[35,93,61]:[150,65,50]});
+                line(label,status,{font:8.7,color:ok?[35,93,61]:value==null||value===''?[95,107,99]:[150,65,50]});
             };
             section('DOKUMENTATION');
             line('Protokollart',type,{bold:true});
