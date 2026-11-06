@@ -108,13 +108,25 @@
     .ecb-kontroll-header-actions button{min-width:28px;padding-left:6px;padding-right:6px}
   }
 </style>
+<style id="ecb-header-borderless-20261106">
+/* Only app header badge: the original PDF/email logo is untouched. */
+#ecb-kontroll-mobile-app-icon,
+#ecb-kontroll-desktop-app-icon {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  object-fit: cover;
+  display: block;
+}
+</style>
 </head>
 
 <body id="app-body" class="h-full bg-slate-100 text-slate-800 flex flex-col md:flex-row font-sans select-none antialiased overflow-hidden">
 
     <aside class="hidden md:flex flex-col w-64 bg-white border-r border-slate-200/80 p-4 shrink-0 shadow-xs z-30">
         <div class="flex items-center gap-3 px-2 py-3 mb-4 cursor-pointer" onclick="switchView('start')">
-            <img id="ecb-kontroll-desktop-app-icon" src="./icons/icon-192.png?v=ecb-approved-header-1" alt="ECB Kontroll App – Original-App-Symbol mit Checkliste" width="74" height="74" class="w-[74px] h-[74px] rounded-[18px] object-cover shrink-0 shadow-sm" decoding="async">
+            <img id="ecb-kontroll-desktop-app-icon" src="./icons/home-192.png?v=20261106-header-borderless-4" alt="ECB Kontroll App – Original-App-Symbol mit Checkliste" width="74" height="74" class="w-[74px] h-[74px] rounded-[18px] object-cover shrink-0 shadow-sm" decoding="async">
             <div>
                 <h1 class="ecb-kontroll-desktop-title text-[17px] font-bold text-slate-900 tracking-tight leading-tight" data-i18n="app_title">ECB Kontroll App</h1>
                 <span class="text-[10px] text-emerald-700 font-mono font-semibold">PC Dashboard</span>
@@ -174,7 +186,7 @@
     <header class="ecb-kontroll-mobile-header md:hidden sticky top-0 z-30 bg-white border-b border-slate-200/80 px-2.5 sm:px-4 py-3 shadow-xs shrink-0">
         <div class="ecb-kontroll-header-inner max-w-md mx-auto flex items-center justify-between gap-2">
             <div class="ecb-kontroll-header-brand flex items-center gap-1.5 sm:gap-2.5 min-w-0">
-                <img id="ecb-kontroll-mobile-app-icon" src="./icons/icon-192.png?v=ecb-approved-header-1" alt="ECB Kontroll App – Original-App-Symbol mit Checkliste" width="72" height="72" onclick="switchView('start')" class="w-[72px] h-[72px] rounded-[18px] object-cover shrink-0 cursor-pointer shadow-sm" decoding="async">
+                <img id="ecb-kontroll-mobile-app-icon" src="./icons/home-192.png?v=20261106-header-borderless-4" alt="ECB Kontroll App – Original-App-Symbol mit Checkliste" width="72" height="72" onclick="switchView('start')" class="w-[72px] h-[72px] rounded-[18px] object-cover shrink-0 cursor-pointer shadow-sm" decoding="async">
                 <h1 class="ecb-kontroll-header-title text-[18px] font-bold text-slate-900 tracking-tight leading-tight whitespace-nowrap" data-i18n="app_title">ECB Kontroll App</h1>
             </div>
 
