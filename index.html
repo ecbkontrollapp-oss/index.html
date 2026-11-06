@@ -4793,22 +4793,23 @@
 
         function renderPdfHeader(doc, subtitle, dateStr, timeStr) {
             const pageWidth=doc.internal.pageSize.getWidth();
-            doc.setFillColor(247, 251, 246);
+            // Branded PDF header for every live and historical Kontroll record.
+            doc.setFillColor(22, 77, 64);
             doc.rect(0, 0, pageWidth, 31, 'F');
-            doc.setFillColor(132, 181, 89);
+            doc.setFillColor(119, 193, 71);
             doc.rect(0, 0, 3, 31, 'F');
             drawOriginalEcbLogo(doc, 14, 4, 23, 23);
             doc.setFont('helvetica','bold');
             doc.setFontSize(8.5);
-            doc.setTextColor(69, 122, 48);
-            doc.text('E.C.B. REINIGUNGSSYSTEME GMBH', 49, 12);
+            doc.setTextColor(229, 246, 235);
+            doc.text('E.C.B. REINIGUNGSSYSTEME GMBH  |  ECB KONTROLL APP', 49, 12);
             doc.setFont('helvetica','normal');
             doc.setFontSize(7);
-            doc.setTextColor(106, 119, 110);
+            doc.setTextColor(217, 236, 226);
             doc.text(dateStr+' | '+timeStr, pageWidth-15, 12, {align:'right'});
             doc.setFont('helvetica','bold');
             doc.setFontSize(String(subtitle).length>47?9:11);
-            doc.setTextColor(24, 48, 37);
+            doc.setTextColor(255, 255, 255);
             const titleLines=doc.splitTextToSize(String(subtitle||'PROTOKOLL'),pageWidth-65).slice(0,2);
             doc.text(titleLines,49,21);
             doc.setDrawColor(132, 181, 89);
