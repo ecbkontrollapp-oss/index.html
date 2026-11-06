@@ -4366,6 +4366,31 @@
             updateBadge('card-badge-vehicle', 'card-sub-vehicle', vDone, state.data.fahrzeuge?.inspector);
         }
         
+
+        // Approved, unmodified app icon, loaded from this app's own GitHub Pages.
+        // Read-only PDF generation; original Firestore history remains untouched.
+        let ecbControlPdfLogoPromise=null;
+        async function ensureEcbControlPdfLogo(){
+            if(window.ECB_CONTROL_ORIGINAL_PDF_LOGO)return window.ECB_CONTROL_ORIGINAL_PDF_LOGO;
+            if(!ecbControlPdfLogoPromise)ecbControlPdfLogoPromise=(async()=>{
+                const url=new URL('./icons/icon-512.png?v=20261106-approved',document.baseURI);
+                const response=await fetch(url.href,{cache:'force-cache'});
+                if(!response.ok)throw new Error('Original-Kontrolllogo ist nicht erreichbar (HTTP '+response.status+').');
+                const blob=await response.blob();
+                if(!blob.type.startsWith('image/png')||!blob.size)throw new Error('Die originale Kontroll-App-Logodatei ist nicht lesbar.');
+                const data=await new Promise((resolve,reject)=>{
+                    const reader=new FileReader();
+                    reader.onload=()=>resolve(reader.result);
+                    reader.onerror=()=>reject(new Error('Original-Logo konnte nicht eingelesen werden.'));
+                    reader.readAsDataURL(blob);
+                });
+                if(typeof data!=='string'||!data.startsWith('data:image/png;base64,'))throw new Error('Original-Logo ist kein gültiges PNG.');
+                window.ECB_CONTROL_ORIGINAL_PDF_LOGO=data;
+                return data;
+            })().catch(err=>{ecbControlPdfLogoPromise=null;throw err});
+            return ecbControlPdfLogoPromise;
+        }
+
         function buildPdfDocumentForContext(ctx) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: ctx.type === 'ShiftSummary' ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
@@ -4392,7 +4417,7 @@
             for (let pageNumber = 2; pageNumber <= totalPages; pageNumber++) {
                 doc.setPage(pageNumber);
                 if(!String(ctx.type).startsWith('FleetMaintenance'))
-                    drawOriginalEcbLogo(doc, 15, 3, 27, 13);
+                    drawOriginalEcbLogo(doc, 15, 2, 16, 16);
             }
             doc.setPage(1);
             return doc;
@@ -4558,7 +4583,7 @@
             doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(71, 85, 105);
             doc.text('Unterschrift Antragsteller:', 23, 140);
             if (rec.signature) {
-                try { doc.addImage(rec.signature, 'PNG', 23, 146, 100, 45); } catch(e){}
+                try { doc.addImage(rec.signature, 'PNG', 23, 146, 100, 45); } catch(e){throw new Error('Unterschrift aus dem gespeicherten Urlaubsantrag ist nicht lesbar.');}
             }
             renderPdfFooter(doc, 1, 1);
             return doc;
@@ -4601,13 +4626,16 @@
             y += 4;
             const cellW = 80, cellH = 60, gap = 6;
             let col = 0;
-            photos.forEach(src => {
+            photos.forEach((src,i) => {
                 if (col === 0 && y + cellH > 268) y = newPageFn();
                 try {
                     const p = doc.getImageProperties(src);
                     const r = Math.min(cellW / p.width, cellH / p.height);
-                    doc.addImage(src, 'JPEG', x0 + col * (cellW + gap), y, p.width * r, p.height * r);
-                } catch (e) {}
+                    const format=typeof src==='string'&&src.startsWith('data:image/png')?'PNG':'JPEG';
+                    doc.addImage(src, format, x0 + col * (cellW + gap), y, p.width * r, p.height * r);
+                } catch (e) {
+                    throw new Error('Gespeichertes Originalfoto '+(i+1)+' konnte nicht ins PDF übernommen werden. Das PDF wird nicht unvollständig ausgegeben.');
+                }
                 col++;
                 if (col === 2) { col = 0; y += cellH + gap; }
             });
@@ -4658,7 +4686,7 @@
                     try {
                         doc.addImage(sec.d.signature, 'PNG', 18, y, 60, 22);
                         y += 25;
-                    } catch(e){}
+                    } catch(e){throw new Error('Gespeicherte Unterschrift konnte nicht ins Tages-PDF übernommen werden.');}
                 }
                 y += 4;
             });
@@ -4749,7 +4777,7 @@
                 if (y > 235) { doc.addPage(); y = 20; }
                 doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(51, 65, 85);
                 doc.text('Digitale Unterschrift des Prüfers:', 23, y);
-                try { doc.addImage(rec.signature, 'PNG', 23, y + 4, 85, 28); } catch (e) {}
+                try { doc.addImage(rec.signature, 'PNG', 23, y + 4, 85, 28); } catch (e) {throw new Error('Unterschrift aus dem gespeicherten Kontrollprotokoll ist nicht lesbar.');}
             }
 
             renderPdfFooter(doc, 1, 1);
@@ -4757,20 +4785,10 @@
         }
         
         function drawOriginalEcbLogo(doc, x, y, width, height) {
-            try {
-                const url = window.ECBFleetCosts && window.ECBFleetCosts.logoDataUrl();
-                if (!url) throw new Error('Logo not ready');
-                doc.addImage(url, 'PNG', x, y, width, height);
-            } catch (error) {
-                // Preserve the report even if a browser does not support
-                // canvas conversion. The full company name remains printed.
-                doc.setFillColor(94, 166, 59);
-                doc.roundedRect(x, y, width, height, 2, 2, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFont('helvetica', 'bolditalic');
-                doc.setFontSize(12);
-                doc.text('ecb', x + width / 2, y + height * 0.67, { align: 'center' });
-            }
+            const logo=window.ECB_CONTROL_ORIGINAL_PDF_LOGO;
+            if(!logo)throw new Error('Original-Kontrolllogo nicht geladen. PDF wird nicht ohne richtiges Logo ausgegeben.');
+            const side=Math.min(width,height);
+            doc.addImage(logo,'PNG',x,y,side,side);
         }
 
         function renderPdfHeader(doc, subtitle, dateStr, timeStr) {
@@ -4779,7 +4797,7 @@
             doc.rect(0, 0, pageWidth, 31, 'F');
             doc.setFillColor(132, 181, 89);
             doc.rect(0, 0, 3, 31, 'F');
-            drawOriginalEcbLogo(doc, 14, 7, 31, 17);
+            drawOriginalEcbLogo(doc, 14, 4, 23, 23);
             doc.setFont('helvetica','bold');
             doc.setFontSize(8.5);
             doc.setTextColor(69, 122, 48);
@@ -4814,6 +4832,7 @@
         }
         
         async function getPreparedPdfBlob(ctx) {
+            await ensureEcbControlPdfLogo();
             const doc = buildPdfDocumentForContext(ctx);
             const blob = doc.output('blob');
             activePdfBlob = blob;
