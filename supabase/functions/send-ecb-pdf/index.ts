@@ -3,6 +3,7 @@
 // Alle Geheimnisse ausschließlich in Supabase Edge Function Secrets.
 
 const RECIPIENT = 'pb@ecb-system.de';
+const CONTROL_ORIGINAL_LOGO = 'https://ecbkontrollapp-oss.github.io/index.html/icons/icon-512.png';
 const MAX_PDF_BYTES = 8 * 1024 * 1024;
 
 function clean(value, length = 160) {
@@ -182,15 +183,25 @@ async function handle(request){
       'Fahrzeug: ' + (vehicle || '-'), 'Zusammenfassung: ' + (summary || '-'),
       'Das vollständige Protokoll ist als PDF beigefügt.'
     ];
-    const html = '<div style="font-family:Arial,sans-serif;max-width:640px;color:#21332a">' +
-      '<div style="background:#123e31;color:white;padding:20px 24px;border-radius:12px 12px 0 0">' +
-      '<div style="font-size:12px;letter-spacing:1px">E.C.B. REINIGUNGSSYSTEME GMBH</div>' +
-      '<h2 style="margin:8px 0 0">' + escapeHtml(title) + '</h2></div>' +
-      '<div style="padding:20px 24px;border:1px solid #dce7df;border-radius:0 0 12px 12px">' +
-      lines.slice(2, 7).map(line => '<p style="margin:8px 0">' +
-        escapeHtml(line) + '</p>').join('') +
-      '<p style="padding-top:12px"><strong>PDF-Anhang:</strong> ' +
-      escapeHtml(safeName) + '</p></div></div>';
+    const html = '<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>' +
+      '<body style="margin:0;padding:24px 10px;background:#eef4f1;color:#21332a;font-family:Arial,Helvetica,sans-serif;">' +
+      '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:620px;margin:0 auto;background:white;border:1px solid #dce7df;border-radius:16px;overflow:hidden">' +
+      '<tr><td style="padding:26px 28px;background:#164d40;color:#ffffff">' +
+      '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>' +
+      '<td width="112" valign="middle" style="padding-right:16px"><img src="' + CONTROL_ORIGINAL_LOGO +
+      '" width="100" height="100" alt="ECB Kontroll App – Original-Logo" style="display:block;width:100px;height:100px;border-radius:16px;background:white;border:0"></td>' +
+      '<td valign="middle"><div style="font-size:22px;font-weight:bold;line-height:1.25">ECB Kontroll App</div>' +
+      '<div style="font-size:11px;line-height:1.6;letter-spacing:1px;color:#d5eade;margin-top:5px">E.C.B. REINIGUNGSSYSTEME GMBH</div>' +
+      '<div style="font-size:13px;line-height:1.5;color:#e0f0e6;margin-top:10px">Digitales Prüf- und Kontrollprotokoll</div></td></tr></table></td></tr>' +
+      '<tr><td style="padding:30px 28px">' +
+      '<div style="font-size:11px;font-weight:bold;letter-spacing:1.2px;color:#2c7855">IHR DOKUMENT</div>' +
+      '<h1 style="font-size:23px;line-height:1.3;margin:12px 0 18px;color:#1b4832">' + escapeHtml(title) + '</h1>' +
+      '<p style="font-size:14px;line-height:1.7;margin:0 0 20px;color:#3e5647">Das vollständige Dokument finden Sie als PDF im Anhang dieser E-Mail.</p>' +
+      '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f3f9f4;border:1px solid #e0ebe2;border-radius:10px">' +
+      lines.slice(2, 7).map(line => '<tr><td style="padding:11px 14px;font-size:13px;line-height:1.5;color:#2c5038;border-bottom:1px solid #e5eee6">' + escapeHtml(line) + '</td></tr>').join('') +
+      '</table><p style="padding-top:18px;font-size:13px;color:#315843"><strong>PDF-Anhang:</strong> ' + escapeHtml(safeName) + '</p></td></tr>' +
+      '<tr><td style="padding:18px 28px;background:#f7faf8;border-top:1px solid #e2e9e4;font-size:12px;line-height:1.7;color:#708174">' +
+      'E.C.B. Reinigungssysteme GmbH<br>Automatisch erstellt durch die ECB Kontroll App</td></tr></table></body></html>';
 
     console.info('ECB PDF send: PDF accepted, preparing Resend request');
     const pdf = new Uint8Array(await attachment.arrayBuffer());
