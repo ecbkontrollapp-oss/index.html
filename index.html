@@ -79,15 +79,30 @@
             scrollbar-width: none;
         }
     </style>
+    <style id="ecb-large-header-20261106">
+      /* Larger readable app title/icons, while preserving touch controls on narrow phones. */
+      #ecb-kontroll-mobile-app-icon{width:56px;height:56px;border-radius:15px}
+      #ecb-kontroll-desktop-app-icon{width:64px;height:64px;border-radius:16px}
+      .ecb-kontroll-mobile-header{min-height:82px}
+      .ecb-kontroll-header-brand{flex:0 1 auto;min-width:0}
+      .ecb-kontroll-header-title{font-size:16px;line-height:1.15;letter-spacing:-.025em}
+      .ecb-kontroll-desktop-title{font-size:15px;line-height:1.2}
+      .ecb-kontroll-header-actions{flex:0 0 auto}
+      @media(max-width:390px){
+        .ecb-kontroll-header-inner{flex-wrap:wrap;row-gap:7px}
+        .ecb-kontroll-header-actions{width:100%;justify-content:flex-end}
+        .ecb-kontroll-header-title{font-size:16px}
+      }
+    </style>
 </head>
 
 <body id="app-body" class="h-full bg-slate-100 text-slate-800 flex flex-col md:flex-row font-sans select-none antialiased overflow-hidden">
 
     <aside class="hidden md:flex flex-col w-64 bg-white border-r border-slate-200/80 p-4 shrink-0 shadow-xs z-30">
         <div class="flex items-center gap-3 px-2 py-3 mb-4 cursor-pointer" onclick="switchView('start')">
-            <img id="ecb-kontroll-desktop-app-icon" src="./icons/icon-192.png?v=ecb-approved-header-1" alt="ECB Kontroll App – Original-App-Symbol mit Checkliste" width="52" height="52" class="w-[52px] h-[52px] rounded-[13px] object-cover shrink-0 shadow-sm" decoding="async">
+            <img id="ecb-kontroll-desktop-app-icon" src="./icons/icon-192.png?v=ecb-approved-header-1" alt="ECB Kontroll App – Original-App-Symbol mit Checkliste" width="64" height="64" class="w-[64px] h-[64px] rounded-[16px] object-cover shrink-0 shadow-sm" decoding="async">
             <div>
-                <h1 class="text-xs font-bold text-slate-900 tracking-tight leading-none" data-i18n="app_title">ECB Kontroll App</h1>
+                <h1 class="ecb-kontroll-desktop-title text-[15px] font-bold text-slate-900 tracking-tight leading-tight" data-i18n="app_title">ECB Kontroll App</h1>
                 <span class="text-[10px] text-emerald-700 font-mono font-semibold">PC Dashboard</span>
             </div>
         </div>
@@ -142,14 +157,14 @@
         </div>
     </aside>
 
-    <header class="md:hidden sticky top-0 z-30 bg-white border-b border-slate-200/80 px-2.5 sm:px-4 py-2.5 shadow-xs shrink-0">
-        <div class="max-w-md mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
-                <img id="ecb-kontroll-mobile-app-icon" src="./icons/icon-192.png?v=ecb-approved-header-1" alt="ECB Kontroll App – Original-App-Symbol mit Checkliste" width="42" height="42" onclick="switchView('start')" class="w-[42px] sm:w-[46px] h-[42px] sm:h-[46px] rounded-[11px] object-cover shrink-0 cursor-pointer shadow-sm" decoding="async">
-                <h1 class="text-[11px] sm:text-xs font-bold text-slate-900 tracking-tight leading-tight whitespace-nowrap" data-i18n="app_title">ECB Kontroll App</h1>
+    <header class="ecb-kontroll-mobile-header md:hidden sticky top-0 z-30 bg-white border-b border-slate-200/80 px-2.5 sm:px-4 py-3 shadow-xs shrink-0">
+        <div class="ecb-kontroll-header-inner max-w-md mx-auto flex items-center justify-between gap-2">
+            <div class="ecb-kontroll-header-brand flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+                <img id="ecb-kontroll-mobile-app-icon" src="./icons/icon-192.png?v=ecb-approved-header-1" alt="ECB Kontroll App – Original-App-Symbol mit Checkliste" width="56" height="56" onclick="switchView('start')" class="w-[56px] h-[56px] rounded-[15px] object-cover shrink-0 cursor-pointer shadow-sm" decoding="async">
+                <h1 class="ecb-kontroll-header-title text-[16px] font-bold text-slate-900 tracking-tight leading-tight whitespace-nowrap" data-i18n="app_title">ECB Kontroll App</h1>
             </div>
 
-            <div class="flex items-center gap-1.5">
+            <div class="ecb-kontroll-header-actions flex items-center gap-1.5 shrink-0">
                 <button onclick="forceCloudSync()" class="flex items-center justify-center text-[10px] text-sky-700 font-semibold bg-sky-50 px-2 py-1.5 rounded-lg border border-sky-200" title="Sync erzwingen">
                     <i class="fa-solid fa-rotate"></i>
                 </button>
